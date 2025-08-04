@@ -1,0 +1,12 @@
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bandit Scan
+        uses: pycqa/bandit@master
+        with:
+          args: -r fraud-detection-core/
