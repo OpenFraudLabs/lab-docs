@@ -1,12 +1,49 @@
 name: Security Scan
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly scan
 
 jobs:
-  security:
+  bandit-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Bandit Scan
-        uses: pycqa/bandit@master
-        with:
-          args: -r fraud-detection-core/
+    - uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install Bandit
+      run: pip install bandit
+      
+    - name: Run Bandit Security Scan
+      run: bandit -r fraud-detection-core/ -f json -o bandit_results.json
+      
+    - name: Upload Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: bandit_results.json
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'OpenFraudLabs'
+        scanpath: './fraud-detection-core'
+        format: 'JSON'
+        
+    - name: Upload Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-check-report
+        path: dependency-check-report.json
