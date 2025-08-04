@@ -1,1 +1,8 @@
+# Block sensitive files
+*.csv
+*.json
+.env
+/secret_configs/
 
+# Allow only sample synthetic data
+!sample_data/synthetic_*.csv
