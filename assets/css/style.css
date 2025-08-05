@@ -595,4 +595,58 @@ footer {
     background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
     border-radius: 40% 0 0 40%;
 }
+
+/* Add to your style.css */
+.footer-bottom {
+    background: #0a0f1f;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-bottom-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-bottom p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.founder-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+.founder-info span {
+    white-space: nowrap;
+}
+
+.founder-info a {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.founder-info a:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .founder-info {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+    
 }
