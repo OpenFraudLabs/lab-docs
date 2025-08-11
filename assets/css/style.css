@@ -1,16 +1,16 @@
 
-.logo span { color: white; }
+.logo span { color: Blue; }
 
 .hero-image .pattern {
     background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
-    border-radius: 40% 0 0 40%;
+    border-radius: 60% 0 0 60%;
     transform: skewX(-10deg);
 }
 
 /* Mobile header padding */
 @media (max-width: 768px) {
     header {
-        padding: 15px 0;
+        padding: 30px 0;
     }
     .hero {
         padding-top: 140px;
