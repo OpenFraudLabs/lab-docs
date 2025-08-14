@@ -526,6 +526,10 @@ nav a:hover::after {
     z-index: 0;
 }
 
+.section-header h2 span {
+    color: var(--alert);
+}
+
 .impact-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -539,6 +543,7 @@ nav a:hover::after {
 @media (min-width: 768px) {
     .impact-grid {
         grid-template-columns: 1fr 1fr;
+        align-items: center;
     }
 }
 
@@ -554,11 +559,12 @@ nav a:hover::after {
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: var(--card-shadow);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .metric:hover {
     transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
 }
 
 .metric .number {
@@ -573,13 +579,19 @@ nav a:hover::after {
 .metric .label {
     font-size: 0.9rem;
     color: var(--gray);
+    font-weight: 500;
 }
 
 .lead-capture {
     background: var(--white);
-    padding: 2rem;
+    padding: 2.5rem;
     border-radius: 8px;
     box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease;
+}
+
+.lead-capture:hover {
+    transform: translateY(-5px);
 }
 
 .lead-capture h3 {
@@ -592,12 +604,13 @@ nav a:hover::after {
 .lead-capture p {
     color: var(--gray);
     margin-bottom: 1.5rem;
+    font-size: 1.1rem;
 }
 
 .lead-capture form {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
 .lead-capture input[type="email"] {
@@ -625,6 +638,7 @@ nav a:hover::after {
     font-weight: 600;
     font-family: var(--heading-font);
     transition: background 0.3s ease;
+    font-size: 1rem;
 }
 
 .lead-capture button:hover {
