@@ -1089,6 +1089,21 @@ footer .container {
     display: none;
 }
 
+/* Google Form Styling */
+.lead-capture iframe {
+    height: 400px;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-radius: 8px !important;
+}
+
+/* Hide Google Branding */
+.lead-capture iframe .ss-branding,
+.lead-capture iframe .ss-footer {
+    display: none !important;
+}
+
 
 
 
