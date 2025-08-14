@@ -1025,3 +1025,70 @@ footer .container {
 .footer-bottom .container {
     width: 100%;
 }
+
+/* Mailchimp Form Styles */
+#mc_embed_signup {
+    width: 100%;
+    margin-top: 20px;
+}
+
+#mc_embed_signup .mc-field-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#mc_embed_signup input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: var(--body-font);
+}
+
+#mc_embed_signup .button {
+    background: var(--alert);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background 0.3s ease;
+    width: 100%;
+}
+
+#mc_embed_signup .button:hover {
+    background: #e01e4f;
+}
+
+#mce-error-response,
+#mce-success-response {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#mce-error-response {
+    background: #ffebee;
+    color: #c62828;
+}
+
+#mce-success-response {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* Hide Mailchimp branding */
+#mc_embed_signup .optionalParent,
+#mc_embed_signup .refferal_badge {
+    display: none;
+}
+
+
+
+
