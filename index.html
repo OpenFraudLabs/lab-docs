@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Load jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Performance Optimization -->
     <link rel="preconnect" href="https://github.com">
     <link rel="dns-prefetch" href="https://openfraudlabs.github.io">
@@ -280,5 +282,47 @@
             animateCounter('countries-count', 12);
         });
     </script>
+    <script>
+    // Mailchimp form validation and styling
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('mc-embedded-subscribe-form');
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const emailInput = document.getElementById('mce-EMAIL');
+                const errorResponse = document.getElementById('mce-error-response');
+                const successResponse = document.getElementById('mce-success-response');
+                
+                // Reset messages
+                errorResponse.style.display = 'none';
+                successResponse.style.display = 'none';
+                
+                // Simple email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    e.preventDefault();
+                    errorResponse.innerHTML = 'Please enter a valid email address';
+                    errorResponse.style.display = 'block';
+                }
+            });
+        }
+        
+        // Initialize Mailchimp validation
+        window.fnames = new Array(); 
+        window.ftypes = new Array();
+        fnames[0]='EMAIL';
+        ftypes[0]='email';
+    });
+    
+    // Mailchimp validation script
+    !function($) {
+        window.fnames = window.fnames || [];
+        window.ftypes = window.ftypes || [];
+        fnames[0] = 'EMAIL';
+        ftypes[0] = 'email';
+    }(jQuery);
+</script>
+<!-- Mailchimp validation script -->
+<script src="//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js"></script>
 </body>
 </html>
