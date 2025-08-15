@@ -129,48 +129,527 @@
     </section>
 
     <!-- Impact Section -->
-<section id="impact" class="impact">
-    <div class="container">
-        <div class="section-header">
-            <h2>Our <span>Impact</span></h2>
-            <p>Community-powered security innovation</p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenFraudLabs - Impact</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --navy: #0a192f;
+            --electric: #00f7ff;
+            --alert: #ff2e63;
+            --teal: #08d9d6;
+            --light: #e6f1ff;
+            --off-white: #f8f9fa;
+            --dark-text: #333333;
+            --gray: #8892b0;
+            --light-gray: #ccd6f6;
+            --white: #ffffff;
+            --card-shadow: 0 10px 30px rgba(10, 25, 47, 0.15);
+            --hover-shadow: 0 15px 40px rgba(10, 25, 47, 0.25);
+        }
         
-        <div class="impact-grid">
-            <div class="impact-metrics">
-                <div class="metric">
-                    <span class="number">50+</span>
-                    <span class="label">GitHub Stars</span>
-                </div>
-                <div class="metric">
-                    <span class="number">15+</span>
-                    <span class="label">Tool Forks</span>
-                </div>
-                <div class="metric">
-                    <span class="number">8+</span>
-                    <span class="label">Contributing Countries</span>
-                </div>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9fbfd;
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .impact-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin: 40px 0;
+            position: relative;
+        }
+        
+        .impact-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(8, 217, 214, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 46, 99, 0.05) 0%, transparent 40%);
+            z-index: 0;
+        }
+        
+        .section-header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .section-header h2 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: var(--navy);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-header h2 span {
+            color: var(--alert);
+        }
+        
+        .section-header h2::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--alert), var(--teal));
+            border-radius: 2px;
+        }
+        
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 20px auto 0;
+        }
+        
+        .impact-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 20px 50px;
+            position: relative;
+            z-index: 1;
+            gap: 30px;
+        }
+        
+        .metrics-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .metrics-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .metrics-title i {
+            font-size: 28px;
+            color: var(--alert);
+            background: rgba(255, 46, 99, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .metrics-title h3 {
+            font-size: 1.8rem;
+            color: var(--navy);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+        
+        .metric-card {
+            background: var(--off-white);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(10, 25, 47, 0.05);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .metric-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--alert);
+            line-height: 1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--alert), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .metric-label {
+            font-size: 1rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        .form-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .form-title i {
+            font-size: 28px;
+            color: var(--teal);
+            background: rgba(8, 217, 214, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .form-title h3 {
+            font-size: 1.8rem;
+            color: var(--navy);
+        }
+        
+        .form-container p {
+            color: var(--gray);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .starter-kit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--navy);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--teal);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(8, 217, 214, 0.2);
+        }
+        
+        .form-group input::placeholder {
+            color: #aaa;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, var(--alert), var(--teal));
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 46, 99, 0.4);
+        }
+        
+        .form-note {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            color: #28a745;
+            font-size: 0.9rem;
+        }
+        
+        .community-section {
+            background: var(--navy);
+            border-radius: 16px;
+            padding: 50px 30px;
+            margin-top: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .community-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 90% 10%, rgba(255, 46, 99, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 10% 90%, rgba(8, 217, 214, 0.1) 0%, transparent 40%);
+            z-index: 0;
+        }
+        
+        .community-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .community-content h3 {
+            font-size: 2.2rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .community-content p {
+            font-size: 1.1rem;
+            color: var(--light-gray);
+            margin-bottom: 30px;
+        }
+        
+        .community-stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .community-stat {
+            text-align: center;
+        }
+        
+        .community-stat .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--electric);
+            margin-bottom: 10px;
+        }
+        
+        .community-stat .label {
+            font-size: 1rem;
+            color: var(--light-gray);
+        }
+        
+        @media (max-width: 768px) {
+            .impact-content {
+                flex-direction: column;
+            }
+            
+            .section-header h2 {
+                font-size: 2.2rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .community-stats {
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="impact-section">
+            <div class="section-header">
+                <h2>Our <span>Impact</span></h2>
+                <p>Community-powered security innovation</p>
             </div>
             
-    <div class="lead-capture">
-    <h3>Free Fraud Detection Starter Kit</h3>
-    <p>Get our open-source resources delivered to your inbox</p>
-    
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcAiY12IeAeU1MFXSeH6LwxmZ-2ZJT1JW-XS8ERz58Tp88nQ/viewform?embedded=true" 
-            width="100%" 
-            height="400" 
-            frameborder="0" 
-            marginheight="0" 
-            marginwidth="0"
-            style="border-radius: 8px; border: 1px solid #ddd; background: white;">
-        Loading...
-    </iframe>
-    
-    <p style="font-size: 13px; margin-top: 10px; color: #666;">
-        After submitting, check your email within 5 minutes
-    </p>
-</div>
-</section>
+            <div class="impact-content">
+                <div class="metrics-container">
+                    <div class="metrics-title">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Community Growth</h3>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">50+</div>
+                            <div class="metric-label">GitHub Stars</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">15+</div>
+                            <div class="metric-label">Tool Forks</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">8+</div>
+                            <div class="metric-label">Contributing Countries</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">42+</div>
+                            <div class="metric-label">Active Contributors</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-container">
+                    <div class="form-title">
+                        <i class="fas fa-gift"></i>
+                        <h3>Free Starter Kit</h3>
+                    </div>
+                    
+                    <p>Get our open-source fraud detection resources delivered to your inbox</p>
+                    
+                    <form class="starter-kit-form">
+                        <div class="form-group">
+                            <label for="email">Your Email Address</label>
+                            <input type="email" id="email" placeholder="Enter your email" required>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            Get Free Kit <i class="fas fa-arrow-right"></i>
+                        </button>
+                        
+                        <div class="form-note">
+                            We respect your privacy. Unsubscribe at any time.
+                        </div>
+                        
+                        <div class="security-note">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>256-bit SSL Encryption</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+        
+        <section class="community-section">
+            <div class="community-content">
+                <h3>Join Our Security Community</h3>
+                <p>Become part of Africa's fastest-growing open-source security community. Collaborate, contribute, and help secure financial systems across the continent.</p>
+                
+                <div class="community-stats">
+                    <div class="community-stat">
+                        <div class="number">12</div>
+                        <div class="label">African Countries</div>
+                    </div>
+                    <div class="community-stat">
+                        <div class="number">7</div>
+                        <div class="label">AI Models</div>
+                    </div>
+                    <div class="community-stat">
+                        <div class="number">500+</div>
+                        <div class="label">Analysts Trained</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Simple form validation and animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('.starter-kit-form');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const emailInput = document.getElementById('email');
+                    
+                    if (emailInput.value) {
+                        // Show success UI
+                        form.innerHTML = `
+                            <div style="text-align: center; padding: 30px;">
+                                <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745; margin-bottom: 20px;"></i>
+                                <h3 style="color: var(--navy); margin-bottom: 15px;">Success!</h3>
+                                <p>Your starter kit is on its way to your inbox.</p>
+                                <p style="margin-top: 20px;">Check your email within 5 minutes.</p>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            // Animate metric cards on scroll
+            const metricCards = document.querySelectorAll('.metric-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            metricCards.forEach(card => {
+                card.style.opacity = "0";
+                card.style.transform = "translateY(20px)";
+                card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
 
     <!-- Contribute Section -->
     <section id="contribute" class="contribute">
