@@ -477,13 +477,19 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
     const data = Object.fromEntries(formData.entries());
     
     try {
-      // Send to Google Sheet
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+      // Create URL parameters to bypass CORS restrictions
+      const params = new URLSearchParams();
+      params.append('name', data.name || '');
+      params.append('email', data.email || '');
+      params.append('organization', data.organization || '');
+      params.append('problem-type', data['problem-type'] || '');
+      params.append('problem', data.problem || '');
+      params.append('impact', data.impact || '');
+      params.append('consent', data.consent ? 'YES' : 'NO');
+      
+      // Send to Google Sheet using GET request to bypass CORS
+      const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
+        method: 'GET',
       });
       
       if (response.ok) {
@@ -497,10 +503,12 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
           formStatus.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       } else {
-        throw new Error('Form submission failed');
+        const errorText = await response.text();
+        throw new Error(`Server responded with status ${response.status}: ${errorText}`);
       }
     } catch (error) {
-      formStatus.textContent = 'Oops! There was a problem. Please try again or contact hello@openlabs.ai';
+      console.error('Submission error:', error);
+      formStatus.textContent = `Error: ${error.message || 'Please try again or contact hello@openlabs.ai'}`;
       formStatus.className = 'form-status error';
     }
   });
