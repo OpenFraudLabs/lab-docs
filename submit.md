@@ -123,16 +123,25 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
     const data = Object.fromEntries(formData.entries());
     
     try {
-      // Show temporary success message (we'll connect to backend later)
-      form.reset();
-      formStatus.textContent = 'Thank you! Your challenge has been submitted to our solution pipeline.';
-      formStatus.className = 'status success';
-      
-      // We'll connect to Google Sheets in the next step
-    } catch (error) {
-      formStatus.textContent = 'Oops! There was a problem. Please try again or contact hello@openlabs.ai';
-      formStatus.className = 'status error';
-      console.error(error);
-    }
+  // Send to Google Sheet
+  const response = await fetch('https://script.google.com/macros/s/AKfycbystH6LmEWwqsLRbQ22GtYDrW0LrkMbrSMz3kKwN1Q2diUKTK2NaTQrhzWYiZl8uaV1/exec', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
   });
+  
+  if (response.ok) {
+    form.reset();
+    formStatus.textContent = 'Thank you! Your challenge has been submitted to our solution pipeline.';
+    formStatus.className = 'status success';
+  } else {
+    throw new Error('Form submission failed');
+  }
+} catch (error) {
+  formStatus.textContent = 'Oops! There was a problem. Please try again or contact hello@openlabs.ai';
+  formStatus.className = 'status error';
+  console.error(error);
+}
 </script>
