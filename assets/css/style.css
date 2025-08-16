@@ -1104,6 +1104,17 @@ footer .container {
     display: none !important;
 }
 
+.main-title {
+    font-size: 36px;
+    font-weight: bold;
+}
+.sub-title {
+    font-size: 20px;
+    font-weight: normal;
+    color: #777;
+}
+
+
 
 
 
