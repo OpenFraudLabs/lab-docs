@@ -422,6 +422,9 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
   // Google Apps Script URL
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWlMrhVUgRbXM52xn88WZJMU8X9PKTSa_ot1jDqrWA7JP8jw2ECV5E0ypdSuMlpDl5/exec";
   
+  // Secure CORS Proxy
+  const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
+  
   // Form validation function
   function validateForm() {
     let isValid = true;
@@ -477,19 +480,14 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
     const data = Object.fromEntries(formData.entries());
     
     try {
-      // Create URL parameters to bypass CORS restrictions
-      const params = new URLSearchParams();
-      params.append('name', data.name || '');
-      params.append('email', data.email || '');
-      params.append('organization', data.organization || '');
-      params.append('problem-type', data['problem-type'] || '');
-      params.append('problem', data.problem || '');
-      params.append('impact', data.impact || '');
-      params.append('consent', data.consent ? 'YES' : 'NO');
-      
-      // Send to Google Sheet using GET request to bypass CORS
-      const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
-        method: 'GET',
+      // Send to Google Sheet via CORS proxy
+      const response = await fetch(CORS_PROXY + GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
       });
       
       if (response.ok) {
@@ -503,12 +501,11 @@ description: Help build Africa's next-generation AI solutions by sharing your fi
           formStatus.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       } else {
-        const errorText = await response.text();
-        throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+        throw new Error('Form submission failed with status: ' + response.status);
       }
     } catch (error) {
       console.error('Submission error:', error);
-      formStatus.textContent = `Error: ${error.message || 'Please try again or contact hello@openlabs.ai'}`;
+      formStatus.textContent = 'Oops! There was a problem. Please try again or contact hello@openlabs.ai';
       formStatus.className = 'form-status error';
     }
   });
