@@ -186,6 +186,15 @@ nav a:hover::after {
     width: 100%;
 }
 
+.spacer {
+    border: none;
+    height: 1px;
+    background-color: var(--light-gray); /* Choose a color that suits your design */
+    margin: 0 auto 30px; /* Adjust margin to suit your design */
+    width: 80%;
+}
+
+
 /* ===== HERO SECTION ===== */
 .hero {
     padding: 160px 20px 100px;
