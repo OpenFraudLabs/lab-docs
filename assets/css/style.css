@@ -189,7 +189,7 @@ nav a:hover::after {
 .spacer {
     border: none;
     height: 1px;
-    background-color: white (--light-gray); /* Choose a color that suits your design */
+    background-color: var(--light-gray); /* Choose a color that suits your design */
     margin: 0 auto 30px; /* Adjust margin to suit your design */
     width: 80%;
 }
