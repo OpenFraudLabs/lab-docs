@@ -279,6 +279,8 @@ img {
     align-items: flex-start;
     justify-content: center;
     min-height: 52px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .brand-text strong {
@@ -286,6 +288,9 @@ img {
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .brand-text small {
@@ -296,6 +301,9 @@ img {
     letter-spacing: 0.18em;
     text-transform: none;
     color: #B8C0CC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav-toggle {
@@ -476,9 +484,9 @@ img {
 
 .hero-stats {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.9rem;
-    max-width: 560px;
+    max-width: 100%;
 }
 
 .hero-stat-card {
@@ -1206,8 +1214,7 @@ img {
 @media (max-width: 900px) {
     .hero-grid,
     .intro-grid,
-    .approach-grid,
-    .card-grid {
+    .approach-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1229,10 +1236,6 @@ img {
 
     .intro-section {
         padding-bottom: 4.5rem;
-    }
-
-    .card-grid {
-        gap: 1.75rem;
     }
 
     .contact-panel {
@@ -1274,6 +1277,10 @@ img {
 
     .hero-content {
         max-width: none;
+    }
+
+    .hero-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .hero-visual {
@@ -1355,10 +1362,6 @@ img {
     .hero-stats,
     .footer-top {
         grid-template-columns: 1fr;
-    }
-
-    .timeline-connector {
-        display: none;
     }
 }
 
@@ -1543,6 +1546,25 @@ img {
 
     .workflow-step strong {
         font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .brand-text strong {
+        font-size: 0.84rem;
+    }
+
+    .brand-text small {
+        font-size: 0.56rem;
+        letter-spacing: 0.09em;
+    }
+
+    .hero {
+        padding: 4.25rem 0 3.75rem;
+    }
+
+    .hero-badge {
+        font-size: 0.68rem;
     }
 }
 
