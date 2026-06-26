@@ -3,814 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenLabs - Open-Source AI Fintech For Emerging Markets</title>
-    <!-- Added SEO Meta Tags -->
-    <meta name="description" content="Free machine learning tools for fraud analysts. Synthetic datasets, detection models, and threat blueprints.">
-    <meta name="keywords" content="open source fraud detection, fraud dataset, ml fraud prevention, african fintech security">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Open Fraud Labs | AI Data Operations & Trustworthy AI</title>
+    <meta name="description" content="Open Fraud Labs is an AI data operations, human evaluation, trust & safety, and applied AI research company building high-quality datasets for smarter AI systems.">
+    <meta name="keywords" content="AI data operations, human evaluation, trust and safety, applied AI research, fraud detection, trustworthy AI">
+    <meta property="og:title" content="Open Fraud Labs | AI Data Operations & Trustworthy AI">
+    <meta property="og:description" content="Open Fraud Labs partners with AI companies, research institutions, and enterprises to build reliable datasets and advance trustworthy AI research.">
+    <meta name="theme-color" content="#06111f">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260626">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Load jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Performance Optimization -->
-    <link rel="preconnect" href="https://github.com">
-    <link rel="dns-prefetch" href="https://openfraudlabs.github.io">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- Add a horizontal rule or spacer between header and hero -->
-<hr class="spacer">
-    <!-- Header -->
-<header>
-    <div class="container">
-        <div class="logo">
-            <img src="assets/logo.png" alt="OpenFraudLabs Logo">
-            <a href="/" class="site-title" aria-label="Homepage">
-<!--                 <span>Open</span>Labs AI
-                <small>Fintech AI for Emerging Markets</small> -->
-                <h1 class="main-title">OpenLabs AI</h1>
-                <h2 class="sub-title">AI-powered Fintech for Emerging Markets</h2>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav-bar">
+            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
+                <img src="assets/logo.png" alt="" aria-hidden="true">
+                <span class="brand-text">
+                    <strong>Open Fraud Labs</strong>
+                    <small>Applied AI Data Operations</small>
+                </span>
             </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="site-nav" aria-label="Primary navigation">
+                <ul class="nav-links">
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#approach">Approach</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
+                </ul>
+            </nav>
         </div>
-        <nav>
-            <ul>
-                <li><a href="#mission" aria-label="Our Mission">Mission</a></li>
-                <li><a href="#solutions" aria-label="Our Solutions">Solutions</a></li>
-                <li><a href="#impact" aria-label="Impact" title="Learn about our impact">Impact</a></li> <!-- NEW LINK -->
-                <li><a href="#contribute" aria-label="How to Contribute">Contribute</a></li>
-                <li><a href="https://github.com/OpenFraudLabs" class="btn" aria-label="GitHub Repository" title="Visit our GitHub page">GitHub</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
+    </header>
 
-
-    <!-- Hero Section -->
-<!--     <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>OpenLabs AI: Building <span>AI-powered Fintech</span> for Emerging Markets Financial Future</h1>
-                <!-- MOVED VALUE PROP HERE -->
-<!--                 <div class="value-prop">      
-                    <h2>Open-Source Fraud Detection Tools & Threat Intelligence</h2>     
-                    <p>Free ML-powered solutions for developers fighting financial crime</p>
-                </div>
-                <p>Open-source intelligence protecting transactions, securing livelihoods, and fighting financial fraud across the continent</p>
-                <div class="hero-buttons">
-                    <a href="#contribute" class="btn primary">Join the Movement</a>
-                    <a href="https://github.com/OpenFraudLabs/fraud-detection-core" class="btn secondary">Explore Code</a>
-                </div> -->
-<!--             </div>
-            <div class="hero-image">
-                <div class="pattern"></div>
-            </div>
-        </div> -->
-<!--     </section> --> 
-
-    <!-- Hero Section -->
-<section class="hero">
-    <div class="container">
-        <div class="hero-content">
-            <!-- Headline with break for readability -->
-            <h1>OpenLabs AI: Building <span>AI-powered Fintech</span><br>for Emerging Markets Financial Future</h1>
-            
-            <!-- MOVED VALUE PROP HERE -->
-            <div class="value-prop">
-                <!-- Updated heading for clarity -->
-                <h2>AI-Driven Open-Source Fraud Detection Tools & Threat Intelligence</h2>     
-                <p>Free ML-powered solutions for developers fighting financial crime</p>
-            </div>
-            
-            <!-- Supporting text with more emphasis -->
-            <p>Open-source intelligence protecting transactions, securing livelihoods, and fighting financial fraud across the continent</p>
-            
-            <!-- CTA buttons -->
-            <div class="hero-buttons">
-                <a href="#contribute" class="btn primary">Join the Movement</a>
-                <a href="https://github.com/OpenFraudLabs/fraud-detection-core" class="btn secondary">Explore Code</a>
-            </div>
-        </div>
-        
-        <div class="hero-image">
-            <div class="pattern"></div>
-        </div>
-    </div>
-</section>
-
-
-    <!-- Mission Section -->
-    <section id="mission" class="mission">
-        <div class="container">
-            <div class="section-header">
-                <h2>Our <span>Mission</span></h2>
-                <p>Democratizing financial security through transparent AI</p>
-            </div>
-            <div class="mission-grid">
-                <div class="mission-card">
-                    <div class="icon">🔓</div>
-                    <h3>Accessible Security</h3>
-                    <p>Making fraud prevention tools available to every African SME, regardless of budget</p>
-                </div>
-                <div class="mission-card">
-                    <div class="icon">🌍</div>
-                    <h3>Africa-First AI</h3>
-                    <p>Models trained on African transaction patterns for local relevance</p>
-                </div>
-                <div class="mission-card">
-                    <div class="icon">🤝</div>
-                    <h3>Community Defense</h3>
-                    <p>Collective intelligence against evolving financial threats</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Solutions Section -->
-    <section id="solutions" class="solutions">
-        <div class="container">
-            <div class="section-header">
-                <h2>Open <span>Solutions</span></h2>
-                <p>Building Africa's fraud-fighting arsenal together</p>
-            </div>
-            <div class="solutions-container">
-                <div class="solution-card">
-                    <h3>Real-Time Fraud Detection</h3>
-                    <p>Lightweight ML models that identify suspicious transactions as they happen</p>
-                    <div class="tech-stack">
-                        <span>XGBoost</span>
-                        <span>Python</span>
-                        <span>FastAPI</span>
+    <main id="main-content">
+        <section class="hero" aria-labelledby="hero-heading">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <p class="hero-badge"><span class="hero-badge__dot"></span> Trusted AI Data Operations</p>
+                    <p class="eyebrow">AI Data Operations • Human Evaluation • Trust &amp; Safety • Applied AI Research</p>
+                    <h1 id="hero-heading">Building high-quality AI data for smarter, safer systems.</h1>
+                    <p class="hero-copy">Open Fraud Labs partners with AI companies, research institutions, and enterprises to collect, evaluate, annotate, and validate high-quality datasets while advancing research in fraud detection and trustworthy AI.</p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary btn--primary" href="#contact">Talk to Us</a>
+                        <a class="btn btn-secondary btn--secondary" href="#services">View Services</a>
                     </div>
-                    <a href="https://github.com/OpenFraudLabs/fraud-detection-core" class="btn outline">View on GitHub</a>
-                </div>
-                <div class="solution-card">
-                    <h3>Transaction Pattern Library</h3>
-                    <p>Anonymized fraud signatures from across Africa</p>
-                    <div class="tech-stack">
-                        <span>SQLite</span>
-                        <span>Pandas</span>
-                        <span>SDV</span>
+                    <div class="hero-stats" aria-label="Key metrics">
+                        <article class="hero-stat-card card card--soft">
+                            <div class="hero-stat-card__icon" aria-hidden="true">📊</div>
+                            <div class="hero-stat-card__value">10,000+</div>
+                            <div class="hero-stat-card__label">Tasks Processed</div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-card__icon" aria-hidden="true">✓</div>
+                            <div class="hero-stat-card__value">95%</div>
+                            <div class="hero-stat-card__label">Quality Accuracy</div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-card__icon" aria-hidden="true">⚡</div>
+                            <div class="hero-stat-card__value">24 hrs</div>
+                            <div class="hero-stat-card__label">Average Turnaround</div>
+                        </article>
+                        <article class="hero-stat-card">
+                            <div class="hero-stat-card__icon" aria-hidden="true">👥</div>
+                            <div class="hero-stat-card__value">Human + AI</div>
+                            <div class="hero-stat-card__label">Hybrid Review</div>
+                        </article>
                     </div>
-                    <a href="https://github.com/OpenFraudLabs/africa-fraud-data" class="btn outline">Explore Data</a>
                 </div>
-                <div class="solution-card">
-                    <h3>Financial Literacy Tools</h3>
-                    <p>Educational resources for merchants and consumers</p>
-                    <div class="tech-stack">
-                        <span>Gradio</span>
-                        <span>WhatsApp API</span>
-                        <span>NLP</span>
-                    </div>
-                    <a href="#" class="btn outline">Coming Soon</a>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Impact Section -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenFraudLabs - Impact</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --navy: #0a192f;
-            --electric: #00f7ff;
-            --alert: #ff2e63;
-            --teal: #08d9d6;
-            --light: #e6f1ff;
-            --off-white: #f8f9fa;
-            --dark-text: #333333;
-            --gray: #8892b0;
-            --light-gray: #ccd6f6;
-            --white: #ffffff;
-            --card-shadow: 0 10px 30px rgba(10, 25, 47, 0.15);
-            --hover-shadow: 0 15px 40px rgba(10, 25, 47, 0.25);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f9fbfd;
-            color: var(--dark-text);
-            line-height: 1.6;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .impact-section {
-            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-            margin: 40px 0;
-            position: relative;
-        }
-        
-        .impact-section::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(8, 217, 214, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(255, 46, 99, 0.05) 0%, transparent 40%);
-            z-index: 0;
-        }
-        
-        .section-header {
-            text-align: center;
-            padding: 50px 20px 30px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .section-header h2 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            color: var(--navy);
-            position: relative;
-            display: inline-block;
-        }
-        
-        .section-header h2 span {
-            color: var(--alert);
-        }
-        
-        .section-header h2::after {
-            content: "";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--alert), var(--teal));
-            border-radius: 2px;
-        }
-        
-        .section-header p {
-            font-size: 1.2rem;
-            color: var(--gray);
-            max-width: 600px;
-            margin: 20px auto 0;
-        }
-        
-        .impact-content {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 0 20px 50px;
-            position: relative;
-            z-index: 1;
-            gap: 30px;
-        }
-        
-        .metrics-container {
-            flex: 1;
-            min-width: 300px;
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-        }
-        
-        .metrics-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .metrics-title i {
-            font-size: 28px;
-            color: var(--alert);
-            background: rgba(255, 46, 99, 0.1);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .metrics-title h3 {
-            font-size: 1.8rem;
-            color: var(--navy);
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 20px;
-        }
-        
-        .metric-card {
-            background: var(--off-white);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(10, 25, 47, 0.05);
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-        }
-        
-        .metric-value {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--alert);
-            line-height: 1;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, var(--alert), var(--teal));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .metric-label {
-            font-size: 1rem;
-            color: var(--gray);
-            font-weight: 500;
-        }
-        
-        .form-container {
-            flex: 1;
-            min-width: 300px;
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-        }
-        
-        .form-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .form-title i {
-            font-size: 28px;
-            color: var(--teal);
-            background: rgba(8, 217, 214, 0.1);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .form-title h3 {
-            font-size: 1.8rem;
-            color: var(--navy);
-        }
-        
-        .form-container p {
-            color: var(--gray);
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-        }
-        
-        .starter-kit-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .form-group {
-            position: relative;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--navy);
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 16px 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-group input:focus {
-            border-color: var(--teal);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(8, 217, 214, 0.2);
-        }
-        
-        .form-group input::placeholder {
-            color: #aaa;
-        }
-        
-        .submit-btn {
-            background: linear-gradient(135deg, var(--alert), var(--teal));
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
-            text-align: center;
-            text-decoration: none;
-            display: block;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 46, 99, 0.4);
-        }
-        
-        .form-note {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: var(--gray);
-        }
-        
-        .security-note {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 10px;
-            color: #28a745;
-            font-size: 0.9rem;
-        }
-        
-        .community-section {
-            background: var(--navy);
-            border-radius: 16px;
-            padding: 50px 30px;
-            margin-top: 40px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .community-section::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 90% 10%, rgba(255, 46, 99, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 10% 90%, rgba(8, 217, 214, 0.1) 0%, transparent 40%);
-            z-index: 0;
-        }
-        
-        .community-content {
-            position: relative;
-            z-index: 1;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .community-content h3 {
-            font-size: 2.2rem;
-            color: white;
-            margin-bottom: 20px;
-        }
-        
-        .community-content p {
-            font-size: 1.1rem;
-            color: var(--light-gray);
-            margin-bottom: 30px;
-        }
-        
-        .community-stats {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 40px;
-            margin-top: 40px;
-        }
-        
-        .community-stat {
-            text-align: center;
-        }
-        
-        .community-stat .number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--electric);
-            margin-bottom: 10px;
-        }
-        
-        .community-stat .label {
-            font-size: 1rem;
-            color: var(--light-gray);
-        }
-        
-        @media (max-width: 768px) {
-            .impact-content {
-                flex-direction: column;
-            }
-            
-            .section-header h2 {
-                font-size: 2.2rem;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            .community-stats {
-                gap: 20px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .section-header h2 {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <section class="impact-section">
-            <div class="section-header">
-                <h2>Our <span>Impact</span></h2>
-                <p>Community-powered security innovation</p>
-            </div>
-            
-            <div class="impact-content">
-                <div class="metrics-container">
-                    <div class="metrics-title">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>Community Growth</h3>
-                    </div>
-                    
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="metric-value">50+</div>
-                            <div class="metric-label">GitHub Stars</div>
+                <div class="hero-visual" aria-hidden="true">
+                    <div class="visual-orb orb-a"></div>
+                    <div class="visual-orb orb-b"></div>
+                    <div class="workflow-card">
+                        <div class="workflow-card__header">
+                            <span class="workflow-card__label">AI Workflow</span>
+                            <span class="workflow-card__status">LIVE</span>
                         </div>
-                        <div class="metric-card">
-                            <div class="metric-value">15+</div>
-                            <div class="metric-label">Tool Forks</div>
+                        <div class="workflow-flow">
+                            <div class="workflow-step workflow-step--done">
+                                <span class="workflow-step__indicator workflow-step__indicator--done"></span>
+                                <div>
+                                    <strong>Raw Dataset</strong>
+                                    <span>Ready</span>
+                                </div>
+                            </div>
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step workflow-step--done">
+                                <span class="workflow-step__indicator workflow-step__indicator--done"></span>
+                                <div>
+                                    <strong>Annotation</strong>
+                                    <span>Completed</span>
+                                </div>
+                            </div>
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step workflow-step--active">
+                                <span class="workflow-step__indicator workflow-step__indicator--active"></span>
+                                <div>
+                                    <strong>Expert Review</strong>
+                                    <span>In Progress</span>
+                                </div>
+                            </div>
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step workflow-step--pending">
+                                <span class="workflow-step__indicator workflow-step__indicator--pending"></span>
+                                <div>
+                                    <strong>Quality Assurance</strong>
+                                    <span>Pending</span>
+                                </div>
+                            </div>
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step workflow-step--pending">
+                                <span class="workflow-step__indicator workflow-step__indicator--pending"></span>
+                                <div>
+                                    <strong>Dataset Delivery</strong>
+                                    <span>Ready</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="metric-card">
-                            <div class="metric-value">8+</div>
-                            <div class="metric-label">Contributing Countries</div>
+                        <div class="workflow-footer">
+                            <div class="workflow-footer__label">Overall Progress</div>
+                            <div class="workflow-footer__value">78%</div>
+                            <div class="workflow-progress">
+                                <span></span>
+                            </div>
                         </div>
-                        <div class="metric-card">
-                            <div class="metric-value">42+</div>
-                            <div class="metric-label">Active Contributors</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-container">
-                    <div class="form-title">
-                        <i class="fas fa-gift"></i>
-                        <h3>Free Starter Kit</h3>
-                    </div>
-                    
-                    <p>Get our open-source fraud detection resources delivered to your inbox</p>
-                    
-                    <!-- Google Form Integration -->
-                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfcAiY12IeAeU1MFXSeH6LwxmZ-2ZJT1JW-XS8ERz58Tp88nQ/viewform?usp=header" 
-                       class="submit-btn" 
-                       target="_blank">
-                        Get Free Kit <i class="fas fa-arrow-right"></i>
-                    </a>
-                    
-                    <div class="form-note">
-                        We respect your privacy. Unsubscribe at any time.
-                    </div>
-                    
-                    <div class="security-note">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>256-bit SSL Encryption</span>
                     </div>
                 </div>
             </div>
         </section>
-        
-        <section class="community-section">
-            <div class="community-content">
-                <h3>Join Our Security Community</h3>
-                <p>Become part of Africa's fastest-growing open-source security community. Collaborate, contribute, and help secure financial systems across the continent.</p>
-                
-                <div class="community-stats">
-                    <div class="community-stat">
-                        <div class="number">12</div>
-                        <div class="label">African Countries</div>
-                    </div>
-                    <div class="community-stat">
-                        <div class="number">7</div>
-                        <div class="label">AI Models</div>
-                    </div>
-                    <div class="community-stat">
-                        <div class="number">500+</div>
-                        <div class="label">Analysts Trained</div>
-                    </div>
+
+        <section class="section intro-section">
+            <div class="container intro-grid">
+                <div class="intro-copy">
+                    <p class="section-kicker">WHO WE ARE</p>
+                    <h2>Building Better AI Through Better Data</h2>
+                    <p>Open Fraud Labs partners with AI companies, research institutions and enterprises to build, evaluate and improve high-quality AI datasets.</p>
+                    <p>We combine expert human evaluation, scalable data operations and applied AI research to help organizations develop safer, more reliable and trustworthy AI systems.</p>
+                </div>
+                <div class="intro-trust-grid">
+                    <article class="trust-card card card--interactive">
+                        <div class="trust-card__icon" aria-hidden="true">✓</div>
+                        <h3>Enterprise Quality</h3>
+                        <p>Multi-stage quality assurance with expert human validation.</p>
+                    </article>
+                    <article class="trust-card card card--interactive">
+                        <div class="trust-card__icon" aria-hidden="true">🧠</div>
+                        <h3>AI Specialists</h3>
+                        <p>Experienced reviewers trained for AI evaluation and annotation.</p>
+                    </article>
+                    <article class="trust-card card card--interactive">
+                        <div class="trust-card__icon" aria-hidden="true">🔬</div>
+                        <h3>Research Driven</h3>
+                        <p>Workflows informed by applied AI research and continuous improvement.</p>
+                    </article>
+                    <article class="trust-card card card--interactive">
+                        <div class="trust-card__icon" aria-hidden="true">⚡</div>
+                        <h3>Scalable Operations</h3>
+                        <p>Flexible teams capable of supporting projects from pilot to enterprise scale.</p>
+                    </article>
                 </div>
             </div>
         </section>
-    </div>
 
-    <script>
-        // Animate metric cards on scroll
-        document.addEventListener('DOMContentLoaded', function() {
-            const metricCards = document.querySelectorAll('.metric-card');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = "1";
-                        entry.target.style.transform = "translateY(0)";
-                    }
-                });
-            }, { threshold: 0.1 });
-            
-            metricCards.forEach(card => {
-                card.style.opacity = "0";
-                card.style.transform = "translateY(20px)";
-                card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
-                observer.observe(card);
-            });
-        });
-    </script>
-</body>
-</html>
+        <section id="services" class="section">
+            <div class="container">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Services</p>
+                    <h2>Our Capabilities</h2>
+                    <p>We provide end-to-end AI data services that help organizations build, evaluate and deploy trustworthy AI systems at enterprise scale.</p>
+                </div>
 
-    <!-- Contribute Section -->
-    <section id="contribute" class="contribute">
-        <div class="container">
-            <div class="contribute-content">
-                <h2>Join the <span>Fraud Fighters</span></h2>
-                <p>Your skills can help secure Africa's financial ecosystem</p>
-                
-                <div class="contribute-options">
-                    <div class="option">
-                        <div class="number">1</div>
-                        <h3>Code Contributors</h3>
-                        <p>Python developers, ML engineers, and DevOps specialists</p>
-                        <a href="https://github.com/OpenFraudLabs/fraud-detection-core/issues" class="btn small">Fix an Issue</a>
-                    </div>
-                    <div class="option">
-                        <div class="number">2</div>
-                        <h3>Data Donors</h3>
-                        <p>Share anonymized transaction patterns (no sensitive data)</p>
-                        <a href="https://github.com/OpenFraudLabs/africa-fraud-data" class="btn small">Submit Patterns</a>
-                    </div>
-                    <div class="option">
-                        <div class="number">3</div>
-                        <h3>Community Advocates</h3>
-                        <p>Technical writers, translators, and community organizers</p>
-                        <a href="https://github.com/OpenFraudLabs/.github/discussions" class="btn small">Join Discussion</a>
-                    </div>
+                <div class="card-grid">
+                    <article class="service-card card card--interactive">
+                        <div class="service-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"></path>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h5"></path>
+                            </svg>
+                        </div>
+                        <h3>AI Data Operations</h3>
+                        <p>Collect, structure, annotate and manage enterprise datasets with scalable workflows.</p>
+                        <div class="service-card__content">
+                            <ul class="service-card__features check-list">
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Dataset Collection</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Annotation</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Data Governance</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Dataset Delivery</span></li>
+                            </ul>
+                        </div>
+                        <a class="service-card__link" href="#contact">Learn More <span aria-hidden="true">→</span></a>
+                    </article>
+                    <article class="service-card card card--interactive">
+                        <div class="service-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                                <path d="M12 3v18"></path>
+                                <path d="M3 12h18"></path>
+                                <path d="m7 7 10 10"></path>
+                                <path d="m17 7-10 10"></path>
+                            </svg>
+                        </div>
+                        <h3>Human Evaluation</h3>
+                        <p>Expert reviewers validate AI outputs using structured evaluation frameworks.</p>
+                        <div class="service-card__content">
+                            <ul class="service-card__features">
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>RLHF</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Prompt Evaluation</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Response Ranking</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Expert Review</span></li>
+                            </ul>
+                        </div>
+                        <a class="service-card__link" href="#contact">Learn More <span aria-hidden="true">→</span></a>
+                    </article>
+                    <article class="service-card card card--interactive">
+                        <div class="service-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                                <path d="M12 3 4 7v5c0 4.4 2.8 8.3 8 9 5.2-.7 8-4.6 8-9V7z"></path>
+                                <path d="m9 12 2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <h3>Trust &amp; Safety</h3>
+                        <p>Protect AI systems through policy enforcement, moderation and quality assurance.</p>
+                        <div class="service-card__content">
+                            <ul class="service-card__features">
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Content Moderation</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Safety Review</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Risk Detection</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Quality Assurance</span></li>
+                            </ul>
+                        </div>
+                        <a class="service-card__link" href="#contact">Learn More <span aria-hidden="true">→</span></a>
+                    </article>
+                    <article class="service-card card card--interactive">
+                        <div class="service-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                                <path d="M5 19V9"></path>
+                                <path d="M12 19V5"></path>
+                                <path d="M19 19v-7"></path>
+                                <path d="M3 19h18"></path>
+                            </svg>
+                        </div>
+                        <h3>Applied AI Research</h3>
+                        <p>Support research teams with benchmark creation, evaluation and dataset analysis.</p>
+                        <div class="service-card__content">
+                            <ul class="service-card__features">
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Benchmark Creation</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Dataset Analysis</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Model Evaluation</span></li>
+                                <li><span class="service-card__check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"></path></svg></span><span>Research Support</span></li>
+                            </ul>
+                        </div>
+                        <a class="service-card__link" href="#contact">Learn More <span aria-hidden="true">→</span></a>
+                    </article>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-about">
-                    <div class="logo">
-                        <img src="assets/logo.png" alt="OpenFraudLabs">
-                        <span>Open<span>Fraud</span>Labs</span>
-                    </div>
-                    <p>Building open-source AI guardians for Africa's financial ecosystem</p>
-                    <div class="social">
-                        <a href="https://github.com/OpenFraudLabs">GitHub</a>
-                        <a href="https://twitter.com/OpenFraudLabs">Twitter</a>
-                        <a href="https://linkedin.com/company/opnfraudlabs">LinkedIn</a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="https://github.com/OpenFraudLabs/fraud-detection-core">Core Models</a></li>
-                        <li><a href="https://github.com/OpenFraudLabs/africa-fraud-data">Data Hub</a></li>
-                        <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
-                        <li><a href="https://github.com/OpenFraudLabs/.github/discussions">Community</a></li>
+        <section id="approach" class="section section-alt">
+            <div class="container approach-grid">
+                <div class="approach-copy">
+                    <p class="section-kicker">Our approach</p>
+                    <h2>Our AI Data Lifecycle</h2>
+                    <p>Every AI project follows a structured quality pipeline that ensures consistency, scalability and enterprise-grade results.</p>
+
+                    <ul class="approach-trust-list check-list">
+                        <li><span class="approach-trust-list__icon" aria-hidden="true">✓</span><span>Human-in-the-loop review</span></li>
+                        <li><span class="approach-trust-list__icon" aria-hidden="true">✓</span><span>Multi-stage quality assurance</span></li>
+                        <li><span class="approach-trust-list__icon" aria-hidden="true">✓</span><span>Continuous client feedback</span></li>
+                        <li><span class="approach-trust-list__icon" aria-hidden="true">✓</span><span>Enterprise security standards</span></li>
                     </ul>
                 </div>
-                <div class="footer-contact">
-                    <h4>Get Involved</h4>
-                    <p>security@opnfraudlabs.org</p>
-                    <a href="https://github.com/OpenFraudLabs/.github/blob/main/CONTRIBUTING.md" class="btn outline">Contribution Guide</a>
+
+                <div class="approach-timeline" aria-label="AI data lifecycle timeline">
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M4 7h16"></path>
+                                <path d="M7 7V5h10v2"></path>
+                                <path d="M6 7v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Requirements Analysis</h3>
+                            <p>Understand objectives, labels and evaluation criteria.</p>
+                        </div>
+                    </article>
+                    <div class="timeline-connector" aria-hidden="true"></div>
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M4 7h16"></path>
+                                <path d="M7 7v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"></path>
+                                <path d="M9 11h6"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Dataset Collection</h3>
+                            <p>Collect or receive structured datasets.</p>
+                        </div>
+                    </article>
+                    <div class="timeline-connector" aria-hidden="true"></div>
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M8 7h8"></path>
+                                <path d="M8 12h8"></path>
+                                <path d="M8 17h5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Annotation</h3>
+                            <p>Expert annotators label and classify data.</p>
+                        </div>
+                    </article>
+                    <div class="timeline-connector" aria-hidden="true"></div>
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v18"></path>
+                                <path d="m5 9 7-6 7 6"></path>
+                                <path d="m7 13 5 5 5-5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Quality Review</h3>
+                            <p>Senior reviewers validate quality.</p>
+                        </div>
+                    </article>
+                    <div class="timeline-connector" aria-hidden="true"></div>
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Dataset Delivery</h3>
+                            <p>Verified datasets delivered securely.</p>
+                        </div>
+                    </article>
+                    <div class="timeline-connector" aria-hidden="true"></div>
+                    <article class="timeline-card card card--interactive">
+                        <div class="timeline-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 19V9"></path>
+                                <path d="M12 19V5"></path>
+                                <path d="M19 19v-7"></path>
+                                <path d="M3 19h18"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Continuous Improvement</h3>
+                            <p>Feedback loops improve future datasets.</p>
+                        </div>
+                    </article>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <div class="footer-bottom-content">
-                    <p>© 2025 OpenFraudLabs. Licensed under MIT.</p>
-                    <div class="founder-info">
-                        <span>Ayodele Odugbile</span>
-                        <span>•</span>
-                        <span>Founder & Lead Researcher</span>
-                        <span>•</span>
-                        <a href="mailto:security@opnfraudlabs.org">security@opnfraudlabs.org</a>
-                    </div>
-                    <p>Made with ❤️ across Africa</p>
+        </section>
+
+        <section id="contact" class="section contact-section">
+            <div class="container contact-panel">
+                <div>
+                    <p class="section-kicker">Let’s build with care</p>
+                    <h2>Ready to strengthen your AI data pipeline?</h2>
+                    <p>We partner with teams shaping the next generation of trustworthy AI.</p>
                 </div>
+                <a class="btn btn-primary" href="mailto:hello@openlabs.ai">Talk to Us</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!isOpen));
+                navLinks.classList.toggle('is-open', !isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navLinks.classList.remove('is-open');
+                });
+            });
+        }
+    </script>
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
+                    <img src="assets/logo.png" alt="" aria-hidden="true">
+                    <span class="brand-text">
+                        <strong>Open Fraud Labs</strong>
+                        <small>Applied AI Data Operations</small>
+                    </span>
+                </a>
+                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="#services">AI Data Operations</a></li>
+                    <li><a href="#services">Human Evaluation</a></li>
+                    <li><a href="#services">Trust &amp; Safety</a></li>
+                    <li><a href="#services">Applied AI Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#approach">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><span>Lagos, Nigeria</span></li>
+                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <div class="footer-bottom__links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
             </div>
         </div>
     </footer>
-
-    <script>
-        // Simple counter animation for stats
-        function animateCounter(elementId, finalValue, duration = 2000) {
-            let start = 0;
-            const element = document.getElementById(elementId);
-            const increment = finalValue / (duration / 16);
-            
-            const timer = setInterval(() => {
-                start += increment;
-                if (start >= finalValue) {
-                    element.textContent = finalValue;
-                    clearInterval(timer);
-                } else {
-                    element.textContent = Math.floor(start);
-                }
-            }, 16);
-        }
-        
-        // Initialize counters when in view
-        document.addEventListener('DOMContentLoaded', function() {
-            animateCounter('contributors-count', 42);
-            animateCounter('models-count', 7);
-            animateCounter('countries-count', 12);
-        });
-    </script>
-    <script>
-    // Mailchimp form validation and styling
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('mc-embedded-subscribe-form');
-        
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const emailInput = document.getElementById('mce-EMAIL');
-                const errorResponse = document.getElementById('mce-error-response');
-                const successResponse = document.getElementById('mce-success-response');
-                
-                // Reset messages
-                errorResponse.style.display = 'none';
-                successResponse.style.display = 'none';
-                
-                // Simple email validation
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(emailInput.value)) {
-                    e.preventDefault();
-                    errorResponse.innerHTML = 'Please enter a valid email address';
-                    errorResponse.style.display = 'block';
-                }
-            });
-        }
-        
-        // Initialize Mailchimp validation
-        window.fnames = new Array(); 
-        window.ftypes = new Array();
-        fnames[0]='EMAIL';
-        ftypes[0]='email';
-    });
-    
-    // Mailchimp validation script
-    !function($) {
-        window.fnames = window.fnames || [];
-        window.ftypes = window.ftypes || [];
-        fnames[0] = 'EMAIL';
-        ftypes[0] = 'email';
-    }(jQuery);
-</script>
-<!-- Mailchimp validation script -->
-<script src="//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js"></script>
-</body>
-</html>
