@@ -1,3 +1,6 @@
+/* The hidden attribute must always win over component display rules (forms, grids, buttons). */
+[hidden] { display: none !important; }
+
 /* ==========================================================================
    Open Fraud Labs Academy
    Ink navy, paper, signal blue for actions, verified green for completion only,
@@ -460,3 +463,16 @@ a.ac-row:hover { background: #F5F7FB; }
 .lab-solution pre { margin: 0; background: #0F1724; color: #E6EDF7; padding: 0.85rem 1rem; border-radius: var(--radius-s); overflow-x: auto; font: 0.9rem/1.55 "IBM Plex Mono", ui-monospace, monospace; }
 @media (max-width: 760px) { .lab-pill span { display: none; } .lab-pill { padding-right: 0.4rem; } }
 .ac-btn[hidden], .lab-actions [hidden] { display: none !important; }
+/* Account page: keep sign-up / log-in forms at a comfortable reading width */
+#auth-box, #reset-form, #terms-form { max-width: 560px; }
+/* Small screens: keep the header on one line */
+.ac-brand strong, .ac-account .ac-btn { white-space: nowrap; }
+@media (max-width: 480px) {
+    .ac-header__bar { gap: 0.5rem; }
+    .ac-brand { gap: 0.45rem; }
+    .ac-brand img { width: 30px; height: 30px; }
+    .ac-brand strong { font-size: 0.95rem; }
+    .ac-account { gap: 0.25rem; }
+    .ac-account .ac-btn--sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; min-height: 36px; }
+}
+@media (max-width: 420px) { .ac-account .ac-btn--ghost { display: none; } }
