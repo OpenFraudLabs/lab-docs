@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001n"
+V = "20261001o"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -827,7 +827,31 @@ def extract(path):
 
 PORT_FIX = [("'/my-learning/'", "'/academy/dashboard/'"), ('"/my-learning/"', '"/academy/dashboard/"'), ("/my-learning/", "/academy/dashboard/"),
             ("/learn/capstone/", "/academy/capstone/"), ("OFL.requireUser('/admin/')", "OFL.requireUser('/academy/admin/')"),
-            ("'/learn/' + c.slug + '/'", "'/academy/courses/' + c.slug + '/'")]
+            ("'/learn/' + c.slug + '/'", "'/academy/courses/' + c.slug + '/'"),
+            # Verify page: sample preview, awarded certificates and revocation
+            ('<div class="ofl-cert" id="cert">', '<div class="ofl-cert" id="cert"><div class="ofl-cert__sample" id="c-sample" hidden aria-hidden="true">SAMPLE</div>'),
+            ('<p class="ofl-cert__desc">including all lesson quizzes and an approved capstone project.</p>', '<p class="ofl-cert__desc" id="c-desc">including all lesson quizzes and an approved capstone project.</p>'),
+            ("""                if (!r.data) return OFL.notice(msg, 'No certificate found with ID “' + id + '”. Check the ID and try again.', 'error');""",
+             """                if (!r.data) return OFL.notice(msg, 'No certificate found with ID “' + id + '”. Check the ID and try again.', 'error');
+                if (r.data.revoked_at) return OFL.notice(msg, 'Certificate ' + r.data.id + ' was issued to ' + r.data.full_name + ' but was revoked on ' + OFL.formatDate(r.data.revoked_at) + '. It is no longer valid.', 'error');
+                document.getElementById('c-sample').hidden = true;
+                document.getElementById('c-desc').textContent = r.data.award_type === 'awarded' ? 'awarded by Open Fraud Labs in recognition of completing this programme.' : 'including all lesson quizzes and an approved capstone project.';"""),
+            ("""            var id = OFL.qs('id');
+            if (id) { form.id.value = id; check(id); }""",
+             """            var id = OFL.qs('id');
+            if (OFL.qs('sample')) {
+                // Design preview only: clearly marked, never verifiable.
+                var who = 'Your Name Here', u = await OFL.getUser();
+                if (u) { var pr = (await sb.from('profiles').select('full_name').eq('id', u.id).maybeSingle()).data; if (pr && pr.full_name) who = pr.full_name; }
+                document.getElementById('c-name').textContent = who;
+                document.getElementById('c-course').textContent = 'Data Science from Scratch';
+                document.getElementById('c-date').textContent = OFL.formatDate(new Date().toISOString());
+                document.getElementById('c-id').textContent = 'OFL-SAMPLE';
+                document.getElementById('c-sample').hidden = false;
+                document.getElementById('copy-link').hidden = true;
+                OFL.notice(msg, 'This is a sample to preview the certificate design. It is not a certificate and cannot be verified.', 'info');
+                wrap.hidden = false;
+            } else if (id) { form.id.value = id; check(id); }""")]
 
 def port(src, dest, title, desc, active="", noindex=False):
     srcfile = os.path.join(src, "index.html")
@@ -853,7 +877,7 @@ json.dump(PORTED, open(CACHE, "w"))
 admin_main = """        <div class="ac-wrap ac-admin">
             <div class="ac-dash-head">
                 <h1>Academy admin</h1>
-                <p class="ac-muted" id="admin-sub">Live figures from the learning database.</p>
+                <p class="ac-muted" id="admin-sub">Live figures from the learning database. <a href="/verify/?sample=1" target="_blank" rel="noopener">Preview the certificate design</a></p>
                 <div id="msg"></div>
             </div>
             <div id="admin-body" hidden>
@@ -901,6 +925,8 @@ admin_script = r"""        (async function () {
               .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1] == null ? 0 : x[1]) }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null)); });
 
             var lr = await sb.rpc('admin_learners'), rows = lr.data || [];
+            var cr = await sb.rpc('admin_learner_certs'), certs = {};
+            (cr.data || []).forEach(function (c) { if (!c.revoked_at && !certs[c.user_id]) certs[c.user_id] = c; });
             var fl = await sb.rpc('admin_learner_flags'), flags = {};
             (fl.data || []).forEach(function (x) { flags[x.user_id] = x; });
             rows.forEach(function (r) { var x = flags[r.user_id] || {}; r.is_admin = x.is_admin; r.suspended_at = x.suspended_at; r.unlock_all = x.unlock_all; r.access_until = x.access_until; });
@@ -949,6 +975,7 @@ admin_script = r"""        (async function () {
                         if (res.error) return OFL.notice(document.getElementById('manage-msg'), OFL.friendlyError(res.error), 'error');
                         dlg.close(); OFL.notice(msg, 'Done: ' + action.replace('_', ' ') + ' for ' + (r.full_name || r.email) + '.', 'success');
                         var f2 = await sb.rpc('admin_learner_flags'); (f2.data || []).forEach(function (x) { flags[x.user_id] = x; });
+                        var c2 = await sb.rpc('admin_learner_certs'); certs = {}; (c2.data || []).forEach(function (c) { if (!c.revoked_at && !certs[c.user_id]) certs[c.user_id] = c; });
                         rows.forEach(function (q) { var x = flags[q.user_id] || {}; q.is_admin = x.is_admin; q.suspended_at = x.suspended_at; q.unlock_all = x.unlock_all; q.access_until = x.access_until; });
                         drawLearners();
                     };
@@ -969,6 +996,12 @@ admin_script = r"""        (async function () {
                     r.access_until ? [btn('Remove free access', 'secondary', act('revoke_access'))] : [days, grant]);
                 group('Admin role', r.is_admin ? 'This person can see all learners and manage accounts.' : 'Admins can see every learner’s data and manage accounts. Only give this to staff you trust.',
                     [r.is_admin ? btn('Remove admin role', 'danger', act('remove_admin', null, 'Remove admin rights from ' + r.email + '?'), self) : btn('Make admin', 'secondary', act('make_admin', null, 'Give ' + r.email + ' full admin rights, including access to every learner’s data?'))]);
+                var cert = certs[r.user_id];
+                group('Certificate', cert ? 'Valid certificate ' + cert.id + (cert.award_type === 'awarded' ? ' (awarded by an admin)' : ' (earned by completing the course)') + ', issued ' + dt(cert.issued_at) + '.'
+                        : 'Learners normally earn the certificate by passing every lesson and an approved capstone. You can award one directly for exceptional cases, such as a live cohort. The public verification page will say it was awarded by Open Fraud Labs, not earned through the course.',
+                    cert ? [el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/verify/?id=' + cert.id, target: '_blank', rel: 'noopener', text: 'View certificate' }),
+                            btn('Revoke certificate', 'danger', function () { var why = window.prompt('Reason for revoking (kept in the admin log):', ''); if (!why) return; act('revoke_certificate', why)(); })]
+                         : [btn('Award certificate', 'primary', function () { var why = window.prompt('Reason for awarding this certificate (kept in the admin log), e.g. "Completed the live cohort":', ''); if (!why) return; act('issue_certificate', why)(); })]);
                 group('Delete account', 'Not switched on yet. Permanent deletion would also remove their progress, quiz history and any certificates, so for now suspend the account instead. It can be enabled later.', []);
                 document.getElementById('manage-msg').textContent = '';
                 dlg.showModal();

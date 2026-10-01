@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001n">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001o">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -45,7 +45,7 @@
         <div class="ac-wrap ac-admin">
             <div class="ac-dash-head">
                 <h1>Academy admin</h1>
-                <p class="ac-muted" id="admin-sub">Live figures from the learning database.</p>
+                <p class="ac-muted" id="admin-sub">Live figures from the learning database. <a href="/verify/?sample=1" target="_blank" rel="noopener">Preview the certificate design</a></p>
                 <div id="msg"></div>
             </div>
             <div id="admin-body" hidden>
@@ -104,8 +104,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261001n"></script>
-    <script src="/assets/js/academy.js?v=20261001n"></script>
+    <script src="/assets/js/learn.js?v=20261001o"></script>
+    <script src="/assets/js/academy.js?v=20261001o"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -124,6 +124,8 @@
               .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1] == null ? 0 : x[1]) }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null)); });
 
             var lr = await sb.rpc('admin_learners'), rows = lr.data || [];
+            var cr = await sb.rpc('admin_learner_certs'), certs = {};
+            (cr.data || []).forEach(function (c) { if (!c.revoked_at && !certs[c.user_id]) certs[c.user_id] = c; });
             var fl = await sb.rpc('admin_learner_flags'), flags = {};
             (fl.data || []).forEach(function (x) { flags[x.user_id] = x; });
             rows.forEach(function (r) { var x = flags[r.user_id] || {}; r.is_admin = x.is_admin; r.suspended_at = x.suspended_at; r.unlock_all = x.unlock_all; r.access_until = x.access_until; });
@@ -172,6 +174,7 @@
                         if (res.error) return OFL.notice(document.getElementById('manage-msg'), OFL.friendlyError(res.error), 'error');
                         dlg.close(); OFL.notice(msg, 'Done: ' + action.replace('_', ' ') + ' for ' + (r.full_name || r.email) + '.', 'success');
                         var f2 = await sb.rpc('admin_learner_flags'); (f2.data || []).forEach(function (x) { flags[x.user_id] = x; });
+                        var c2 = await sb.rpc('admin_learner_certs'); certs = {}; (c2.data || []).forEach(function (c) { if (!c.revoked_at && !certs[c.user_id]) certs[c.user_id] = c; });
                         rows.forEach(function (q) { var x = flags[q.user_id] || {}; q.is_admin = x.is_admin; q.suspended_at = x.suspended_at; q.unlock_all = x.unlock_all; q.access_until = x.access_until; });
                         drawLearners();
                     };
@@ -192,6 +195,12 @@
                     r.access_until ? [btn('Remove free access', 'secondary', act('revoke_access'))] : [days, grant]);
                 group('Admin role', r.is_admin ? 'This person can see all learners and manage accounts.' : 'Admins can see every learner’s data and manage accounts. Only give this to staff you trust.',
                     [r.is_admin ? btn('Remove admin role', 'danger', act('remove_admin', null, 'Remove admin rights from ' + r.email + '?'), self) : btn('Make admin', 'secondary', act('make_admin', null, 'Give ' + r.email + ' full admin rights, including access to every learner’s data?'))]);
+                var cert = certs[r.user_id];
+                group('Certificate', cert ? 'Valid certificate ' + cert.id + (cert.award_type === 'awarded' ? ' (awarded by an admin)' : ' (earned by completing the course)') + ', issued ' + dt(cert.issued_at) + '.'
+                        : 'Learners normally earn the certificate by passing every lesson and an approved capstone. You can award one directly for exceptional cases, such as a live cohort. The public verification page will say it was awarded by Open Fraud Labs, not earned through the course.',
+                    cert ? [el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/verify/?id=' + cert.id, target: '_blank', rel: 'noopener', text: 'View certificate' }),
+                            btn('Revoke certificate', 'danger', function () { var why = window.prompt('Reason for revoking (kept in the admin log):', ''); if (!why) return; act('revoke_certificate', why)(); })]
+                         : [btn('Award certificate', 'primary', function () { var why = window.prompt('Reason for awarding this certificate (kept in the admin log), e.g. "Completed the live cohort":', ''); if (!why) return; act('issue_certificate', why)(); })]);
                 group('Delete account', 'Not switched on yet. Permanent deletion would also remove their progress, quiz history and any certificates, so for now suspend the account instead. It can be enabled later.', []);
                 document.getElementById('manage-msg').textContent = '';
                 dlg.showModal();

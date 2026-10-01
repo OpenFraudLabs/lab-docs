@@ -513,3 +513,6 @@ a.ac-row:hover { background: #F5F7FB; }
 .ac-manage__group h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .ac-manage__group p { margin: 0 0 0.6rem; font-size: 0.92rem; }
 .ac-manage__group select { padding: 0.45rem 0.6rem; border: 1px solid var(--line-2); border-radius: var(--radius-s); font: 400 0.92rem var(--font); }
+/* Certificate sample watermark */
+.ofl-cert { position: relative; }
+.ofl-cert__sample { position: absolute; inset: 0; display: grid; place-items: center; font: 800 clamp(4rem, 14vw, 9rem)/1 var(--font); letter-spacing: 0.2em; color: rgba(180, 35, 24, 0.13); transform: rotate(-18deg); pointer-events: none; z-index: 2; }
