@@ -79,7 +79,7 @@
         if (!list || list.querySelector('[data-ofl-account]')) return;
         var user = await getUser();
         var li = el('li', { 'data-ofl-account': '1' },
-            el('a', { href: user ? '/my-learning/' : '/account/', text: user ? 'My Learning' : 'Log in' }));
+            el('a', { href: user ? '/academy/dashboard/' : '/account/?mode=login&next=/academy/dashboard/', text: user ? 'My learning' : 'Log in' }));
         var gh = list.querySelector('.nav-link--button');
         list.insertBefore(li, gh ? gh.parentNode : null);
     }

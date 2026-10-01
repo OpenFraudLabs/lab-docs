@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Open Fraud Labs Academy</title>
+    <meta name="description" content="Academy admin.">
+    <meta property="og:title" content="Admin | Open Fraud Labs Academy">
+    <meta property="og:description" content="Academy admin.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <section class="section ofl-page ">
+            <div class="container ofl-narrow">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Admin</p>
+                    <h1>Learning admin</h1>
+                    
+                </div>
+                <div id="msg"></div>
+                <div id="stats" class="ofl-stats"></div>
+                <div class="ofl-tabs" id="filters" hidden>
+                    <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
+                    <button type="button" class="ofl-tab" data-status="changes_requested">Changes requested</button>
+                    <button type="button" class="ofl-tab" data-status="approved">Approved</button>
+                </div>
+                <div id="subs"></div>
+            </div>
+        </section>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001e"></script>
+    <script src="/assets/js/academy.js?v=20261001e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
+            if (!(await OFL.isAdmin())) return OFL.notice(msg, 'This page is only for Open Fraud Labs admins.', 'error');
+            document.getElementById('filters').hidden = false;
+
+            var counts = await Promise.all([
+                sb.from('profiles').select('id', { count: 'exact', head: true }),
+                sb.from('quiz_attempts').select('id', { count: 'exact', head: true }),
+                sb.from('lesson_progress').select('user_id', { count: 'exact', head: true }),
+                sb.from('certificates').select('id', { count: 'exact', head: true })
+            ]);
+            var stats = document.getElementById('stats');
+            [['Learners', counts[0].count], ['Quiz attempts', counts[1].count], ['Lessons completed', counts[2].count], ['Certificates', counts[3].count]]
+                .forEach(function (s) { stats.appendChild(el('div', { class: 'ofl-card card ofl-stat' }, el('strong', { text: String(s[1] || 0) }), el('span', { text: s[0] }))); });
+
+            var status = 'submitted';
+            document.querySelectorAll('#filters .ofl-tab').forEach(function (t) {
+                t.addEventListener('click', function () {
+                    document.querySelectorAll('#filters .ofl-tab').forEach(function (x) { x.classList.remove('is-active'); });
+                    t.classList.add('is-active'); status = t.getAttribute('data-status'); load();
+                });
+            });
+
+            async function load() {
+                var box = document.getElementById('subs'); box.textContent = 'Loading…';
+                var r = await sb.from('capstone_submissions').select('*').eq('status', status).order('submitted_at', { ascending: true });
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                var ids = r.data.map(function (s) { return s.user_id; });
+                var names = {};
+                if (ids.length) {
+                    var p = await sb.from('profiles').select('id, full_name').in('id', ids);
+                    (p.data || []).forEach(function (x) { names[x.id] = x.full_name || '(no name yet)'; });
+                }
+                box.textContent = '';
+                if (!r.data.length) return box.appendChild(el('p', { class: 'ofl-muted', text: 'Nothing here.' }));
+                r.data.forEach(function (s) {
+                    var fb = el('textarea', { rows: 3, placeholder: 'Feedback for the learner (required when requesting changes)' });
+                    fb.value = s.feedback || '';
+                    async function review(newStatus) {
+                        if (newStatus === 'changes_requested' && !fb.value.trim()) return OFL.notice(msg, 'Please add feedback explaining what to change.', 'error');
+                        var u = await sb.from('capstone_submissions').update({ status: newStatus, feedback: fb.value.trim(), reviewed_at: new Date().toISOString() }).eq('id', s.id);
+                        if (u.error) return OFL.notice(msg, OFL.friendlyError(u.error), 'error');
+                        OFL.notice(msg, 'Saved: ' + (names[s.user_id] || 'learner') + ' → ' + newStatus.replace('_', ' '), 'success');
+                        load();
+                    }
+                    box.appendChild(el('article', { class: 'ofl-card card ofl-sub' },
+                        el('h3', { text: (names[s.user_id] || 'Learner') + ' · ' + s.course_slug }),
+                        el('p', { class: 'ofl-muted', text: 'Submitted ' + OFL.formatDate(s.submitted_at) + (s.reviewed_at ? ' · reviewed ' + OFL.formatDate(s.reviewed_at) : '') }),
+                        el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })),
+                        el('p', { class: 'ofl-writeup', text: s.writeup }),
+                        fb,
+                        el('div', { class: 'ofl-actions' },
+                            el('button', { class: 'btn btn-primary', type: 'button', text: 'Approve', onclick: function () { review('approved'); } }),
+                            el('button', { class: 'btn btn-secondary', type: 'button', text: 'Request changes', onclick: function () { review('changes_requested'); } }))));
+                });
+            }
+            load();
+        })();
+    </script>
+</body>
+</html>

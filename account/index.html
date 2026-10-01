@@ -10,52 +10,38 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in or create an account | Open Fraud Labs</title>
-    <meta name="description" content="Create a free Open Fraud Labs account to track your course progress, take quizzes and earn certificates.">
-    <meta name="keywords" content="AI data operations, human evaluation, trust and safety, applied AI research, fraud detection, trustworthy AI">
-    <meta property="og:title" content="Log in or create an account | Open Fraud Labs">
-    <meta property="og:description" content="Create a free Open Fraud Labs account to track your course progress, take quizzes and earn certificates.">
-    <meta name="theme-color" content="#06111f">
-    <link rel="stylesheet" href="/assets/css/style.css?v=20261001c">
+    <title>Your account | Open Fraud Labs Academy</title>
+    <meta name="description" content="Create a free Academy account or log in.">
+    <meta property="og:title" content="Your account | Open Fraud Labs Academy">
+    <meta property="og:description" content="Create a free Academy account or log in.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001e">
 </head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    <a class="skip-link" href="#main-content">Skip to content</a>
-
-    <header class="site-header">
-        <div class="container nav-bar">
-            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
-                <img src="/assets/logo.png" alt="" aria-hidden="true">
-                <span class="brand-text">
-                    <strong>Open Fraud Labs</strong>
-                    <small>Applied AI Data Operations</small>
-                </span>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
             </a>
-            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <nav id="site-nav" aria-label="Primary navigation">
-                <ul class="nav-links">
-                    <li><a href="/#services">Services</a></li>
-                    <li><a href="/#approach">Approach</a></li>
-                    <li><a href="/#learn">Learn</a></li>
-                    <li><a href="/#contact">Contact</a></li>
-                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
-                </ul>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/">Open Fraud Labs</a>
             </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
         </div>
     </header>
-
-    <main id="main-content">
+    <main id="main">
         <section class="section ofl-page ">
             <div class="container ofl-narrow">
                 <div class="section-header section-heading">
@@ -120,21 +106,48 @@
                         <button class="btn btn-secondary" type="submit">Save name</button>
                     </form>
                     <div class="ofl-actions">
-                        <a class="btn btn-primary" href="/my-learning/">Go to My Learning</a>
+                        <a class="btn btn-primary" href="/academy/dashboard/">Go to My Learning</a>
                         <button class="btn btn-secondary" type="button" id="logout">Log out</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
-
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261001c"></script>
+    <script src="/assets/js/learn.js?v=20261001e"></script>
+    <script src="/assets/js/academy.js?v=20261001e"></script>
     <script>
         (async function () {
             var sb = OFL.sb, msg = document.getElementById('msg');
-            var next = OFL.qs('next') || '/my-learning/';
-            if (!next.startsWith('/')) next = '/my-learning/';
+            var next = OFL.qs('next') || '/academy/dashboard/';
+            if (!next.startsWith('/')) next = '/academy/dashboard/';
             var authBox = document.getElementById('auth-box'), profileBox = document.getElementById('profile-box'), resetForm = document.getElementById('reset-form');
 
             function show(tab) {
@@ -251,77 +264,5 @@
             });
         })();
     </script>
-    <script>
-        const navToggle = document.querySelector('.nav-toggle');
-        const navLinks = document.querySelector('.nav-links');
-
-        if (navToggle && navLinks) {
-            navToggle.addEventListener('click', () => {
-                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
-                navToggle.setAttribute('aria-expanded', String(!isOpen));
-                navLinks.classList.toggle('is-open', !isOpen);
-            });
-
-            navLinks.querySelectorAll('a').forEach((link) => {
-                link.addEventListener('click', () => {
-                    navToggle.setAttribute('aria-expanded', 'false');
-                    navLinks.classList.remove('is-open');
-                });
-            });
-        }
-    </script>
-
-
-    <footer class="site-footer">
-        <div class="container footer-top">
-            <div class="footer-brand">
-                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
-                    <img src="/assets/logo.png" alt="" aria-hidden="true">
-                    <span class="brand-text">
-                        <strong>Open Fraud Labs</strong>
-                        <small>Applied AI Data Operations</small>
-                    </span>
-                </a>
-                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
-            </div>
-
-            <div class="footer-column">
-                <h3>Services</h3>
-                <ul>
-                    <li><a href="/#services">AI Data Operations</a></li>
-                    <li><a href="/#services">Human Evaluation</a></li>
-                    <li><a href="/#services">Trust &amp; Safety</a></li>
-                    <li><a href="/#services">Applied AI Research</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-column">
-                <h3>Company</h3>
-                <ul>
-                    <li><a href="/#approach">About</a></li>
-                    <li><a href="/#learn">Free Data Science Course</a></li>
-                    <li><a href="/#contact">Contact</a></li>
-                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
-                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-column">
-                <h3>Contact</h3>
-                <ul>
-                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
-                    <li><span>Lagos, Nigeria</span></li>
-                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
-                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="container footer-bottom">
-            <p>© 2026 Open Fraud Labs. All rights reserved.</p>
-            <div class="footer-bottom__links">
-                <a href="/privacy/">Privacy Policy</a>
-                <a href="/terms/">Terms of Service</a>
-            </div>
-        </div>
-    </footer>
+</body>
+</html>

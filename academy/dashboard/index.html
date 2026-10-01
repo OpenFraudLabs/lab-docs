@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My learning | Open Fraud Labs Academy</title>
+    <meta name="description" content="Your courses, progress and certificates.">
+    <meta property="og:title" content="My learning | Open Fraud Labs Academy">
+    <meta property="og:description" content="Your courses, progress and certificates.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/" aria-current="page">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap">
+            <div class="ac-dash-head">
+                <h1 id="hello">My learning</h1>
+                <div id="msg"></div>
+            </div>
+            <div id="next"></div>
+            <div class="ac-two">
+                <div>
+                    <h2>Data Science from Scratch</h2>
+                    <div class="ac-ledger" id="ledger"><div class="ac-ledger__head"><strong>Loading…</strong></div></div>
+                </div>
+                <div>
+                    <div class="ac-aside-card">
+                        <h3>Your path to the certificate</h3>
+                        <ul class="ac-checklist" id="checklist"></ul>
+                        <div id="cert-action"></div>
+                    </div>
+                    <div class="ac-aside-card">
+                        <h3>Stay in the loop</h3>
+                        <p>New lessons drop daily on TikTok. Follow @_drhola, then like, share and comment.</p>
+                        <a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Follow on TikTok</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001e"></script>
+    <script src="/assets/js/academy.js?v=20261001e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, A = ACADEMY, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/dashboard/'); if (!user) return;
+            var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
+            if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
+            document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
+            var course = 'data-science';
+            var st = await A.courseState(course);
+            A.renderLedger(document.getElementById('ledger'), st, { course: course });
+            var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
+            var cert = ((await sb.from('certificates').select('id').eq('course_slug', course)).data || [])[0];
+
+            var next = document.getElementById('next');
+            var released = st.lessons.filter(function (l) { return l.released; }).length;
+            var title, text, href, label;
+            if (st.next) {
+                title = st.done ? 'Continue with Lesson ' + st.next.n : 'Start your first lesson';
+                text = st.next.title; href = '/academy/lesson/?course=' + course + '&n=' + st.next.n; label = st.done ? 'Continue' : 'Start Lesson 1';
+            } else if (st.done < st.total) {
+                title = 'You’re up to date'; text = 'You’ve completed every released lesson. The next one is released soon.'; href = 'https://www.tiktok.com/@_drhola'; label = 'Follow on TikTok';
+            } else if (!cap || cap.status === 'changes_requested') {
+                title = 'All lessons complete'; text = 'Submit your capstone project to earn your certificate.'; href = '/academy/capstone/?course=' + course; label = 'Go to the capstone';
+            } else if (cert) {
+                title = 'Course complete'; text = 'Your certificate is ready to share.'; href = '/verify/?id=' + cert.id; label = 'View certificate';
+            } else {
+                title = 'Capstone ' + (cap.status === 'approved' ? 'approved' : 'under review'); text = cap.status === 'approved' ? 'Claim your certificate below.' : 'You’ll see the result here.'; href = '/academy/capstone/?course=' + course; label = 'View submission';
+            }
+            next.appendChild(el('div', { class: 'ac-next' },
+                el('div', {}, el('h2', { text: title }), el('p', { text: text })),
+                el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
+
+            var list = document.getElementById('checklist');
+            function item(isDone, text, link) {
+                list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));
+            }
+            item(st.done >= st.total, 'Pass all ' + st.total + ' lesson quizzes (' + st.done + ' done, ' + released + ' released)');
+            var capText = !cap ? 'Submit your capstone project' : cap.status === 'approved' ? 'Capstone approved' : cap.status === 'submitted' ? 'Capstone under review' : 'Capstone: changes requested';
+            item(cap && cap.status === 'approved', capText, el('a', { href: '/academy/capstone/?course=' + course, text: cap ? 'View' : 'Brief' }));
+            item(!!cert, cert ? 'Certificate issued' : 'Claim your certificate');
+            var ca = document.getElementById('cert-action');
+            if (cert) ca.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/verify/?id=' + cert.id, text: 'View certificate' }));
+            else if (st.done >= st.total && cap && cap.status === 'approved') {
+                ca.appendChild(el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Claim your certificate', onclick: async function (e) {
+                    e.target.disabled = true;
+                    var r = await sb.rpc('claim_certificate', { p_course: course });
+                    if (r.error) { e.target.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                    location.href = '/verify/?id=' + r.data.id;
+                } }));
+            }
+        })();
+    </script>
+</body>
+</html>

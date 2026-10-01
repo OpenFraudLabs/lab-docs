@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson | Open Fraud Labs Academy</title>
+    <meta name="description" content="Watch, read and take the quiz for this Open Fraud Labs Academy lesson.">
+    <meta property="og:title" content="Lesson | Open Fraud Labs Academy">
+    <meta property="og:description" content="Watch, read and take the quiz for this Open Fraud Labs Academy lesson.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap ac-player">
+            <aside class="ac-player__side" id="side">
+                <button class="ac-btn ac-btn--secondary ac-side-toggle" type="button" id="side-toggle" aria-expanded="false">Course outline <span aria-hidden="true">&#9662;</span></button>
+                <div class="ac-ledger" id="ledger"><div class="ac-ledger__head"><strong>Loading…</strong></div></div>
+            </aside>
+            <section class="ac-stage" id="stage">
+                <nav class="ac-crumbs" aria-label="Breadcrumb"><a href="/academy/courses/data-science/">Data Science from Scratch</a> / <span id="crumb-mod"></span></nav>
+                <h1 id="lesson-title">Loading lesson…</h1>
+                <div id="msg"></div>
+                <div class="ac-tabs" role="tablist" id="tabs" hidden>
+                    <button class="ac-tab" role="tab" data-step="watch" aria-selected="true"><i>1</i><span>Watch<small id="tab-watch-sub">Video</small></span></button>
+                    <button class="ac-tab" role="tab" data-step="read" aria-selected="false"><i>2</i><span>Read<small id="tab-read-sub">Study notes</small></span></button>
+                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">5 questions</small></span></button>
+                </div>
+                <div class="ac-panel" data-panel="watch" hidden>
+                    <div class="ac-watch">
+                        <div class="ac-video"><video id="video" playsinline preload="metadata" controls controlslist="nodownload noplaybackrate" disablepictureinpicture></video></div>
+                        <div class="ac-watch__meta">
+                            <h3>Watch the full video</h3>
+                            <p>The notes unlock when you reach the end. You can pause and rewind, but you can't skip ahead.</p>
+                            <div class="ac-meter" id="meter"><span></span></div>
+                            <p class="ac-muted num" id="meter-text">0:00 watched</p>
+                            <div id="watch-next"></div>
+                            <div class="ac-follow">
+                                <strong>Enjoying the lesson?</strong>
+                                <p>Follow @_drhola on TikTok, then like, share and comment on this lesson. It helps more people learn.</p>
+                                <a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Follow on TikTok</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ac-panel" data-panel="read" hidden>
+                    <article class="ac-notes" id="notes"><p class="ac-muted">Loading notes…</p></article>
+                    <div id="notes-end" aria-hidden="true"></div>
+                    <div class="ac-gate"><p id="read-hint">Read to the end of the notes to continue.</p><button class="ac-btn ac-btn--primary" type="button" id="read-done" disabled>I've read the notes</button></div>
+                </div>
+                <div class="ac-panel" data-panel="quiz" hidden>
+                    <div id="quiz-wait"></div>
+                    <form id="quiz" hidden></form>
+                    <div id="quiz-result"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001e"></script>
+    <script src="/assets/js/academy.js?v=20261001e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, A = ACADEMY;
+            var course = OFL.qs('course') || 'data-science', n = parseInt(OFL.qs('n') || '1', 10);
+            var msg = document.getElementById('msg');
+            var here = location.pathname + location.search;
+            var user = await OFL.requireUser(here); if (!user) return;
+            var prof = (await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle()).data;
+            if (!prof || !prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(here); return; }
+
+            var side = document.getElementById('side'), tog = document.getElementById('side-toggle');
+            side.classList.add('is-collapsed');
+            tog.addEventListener('click', function () { var c = side.classList.toggle('is-collapsed'); tog.setAttribute('aria-expanded', String(!c)); });
+
+            var st = await A.courseState(course);
+            A.renderLedger(document.getElementById('ledger'), st, { course: course, currentN: n });
+            var lesson = st.lessons.find(function (l) { return l.n === n; });
+            document.getElementById('crumb-mod').textContent = A.moduleOf(n);
+            var titleEl = document.getElementById('lesson-title');
+
+            function lockedPanel(heading, text, href, label) {
+                titleEl.textContent = heading;
+                var box = el('div', { class: 'ac-panel ac-locked' });
+                box.innerHTML = A.LOCK.replace('ac-lock', '');
+                box.appendChild(el('p', { text: text }));
+                if (href) box.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label }));
+                msg.appendChild(box);
+            }
+            if (!lesson || !lesson.released) {
+                return lockedPanel('Lesson ' + n + ' is coming soon', 'New lessons are released daily. Follow @_drhola on TikTok to catch it first.', st.next ? '/academy/lesson/?course=' + course + '&n=' + st.next.n : '/academy/dashboard/', st.next ? 'Go to Lesson ' + st.next.n : 'My learning');
+            }
+            titleEl.textContent = 'Lesson ' + n + ': ' + lesson.title;
+            document.title = 'Lesson ' + n + ': ' + lesson.title + ' | Open Fraud Labs Academy';
+            if (n > 1 && !((n - 1) in st.passed)) {
+                return lockedPanel('Lesson ' + n + ' is locked', 'Lessons unlock in order. Complete Lesson ' + (st.next ? st.next.n : n - 1) + ' first.',
+                    '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
+            }
+
+            var act = (await sb.from('lesson_activity').select('*').eq('course_slug', course).eq('lesson_n', n).maybeSingle()).data || {};
+            var passed = n in st.passed;
+            var tabs = document.getElementById('tabs'); tabs.hidden = false;
+            var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
+            var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
+
+            function unlocked(step) {
+                if (step === 'watch') return true;
+                if (step === 'read') return !!act.video_completed_at || passed;
+                return !!act.notes_completed_at || passed;
+            }
+            function refreshTabs() {
+                tabEls.watch.classList.toggle('is-done', !!act.video_completed_at || passed);
+                tabEls.read.classList.toggle('is-done', !!act.notes_completed_at || passed);
+                tabEls.quiz.classList.toggle('is-done', passed);
+                ['read', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
+                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : '5 questions';
+            }
+            function show(step) {
+                if (!unlocked(step)) return;
+                Object.keys(panels).forEach(function (k) { panels[k].hidden = k !== step; tabEls[k].setAttribute('aria-selected', String(k === step)); });
+                if (step === 'read') openNotes();
+                if (step === 'quiz') loadQuiz();
+            }
+            Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
+            refreshTabs();
+
+            // ---------------- Watch ----------------
+            var video = document.getElementById('video'), meter = document.getElementById('meter'), meterText = document.getElementById('meter-text');
+            video.src = lesson.video_url;
+            var maxSeen = 0, done = !!act.video_completed_at || passed, dur = lesson.video_seconds || 0;
+            function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+            function paintMeter() {
+                var total = video.duration || dur || 1;
+                var pct = done ? 100 : Math.min(100, 100 * maxSeen / total);
+                meter.firstChild.style.width = pct + '%'; meter.classList.toggle('is-done', done);
+                meterText.textContent = done ? 'Video complete' : fmt(maxSeen) + ' of ' + fmt(total) + ' watched';
+            }
+            paintMeter();
+            video.addEventListener('loadedmetadata', paintMeter);
+            video.addEventListener('ratechange', function () { if (!done && video.playbackRate !== 1) video.playbackRate = 1; });
+            video.addEventListener('timeupdate', function () {
+                if (!video.seeking && video.currentTime - maxSeen < 1.5) maxSeen = Math.max(maxSeen, video.currentTime);
+                paintMeter();
+            });
+            video.addEventListener('seeking', function () { if (!done && video.currentTime > maxSeen + 0.75) video.currentTime = maxSeen; });
+            var started = !!act.video_started_at;
+            video.addEventListener('play', async function () {
+                if (started || done) return;
+                started = true;
+                var r = await sb.rpc('start_video', { p_course: course, p_lesson: n });
+                if (r.error) { started = false; video.pause(); OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+            });
+            video.addEventListener('ended', async function () {
+                if (done) return;
+                var r = await sb.rpc('complete_video', { p_course: course, p_lesson: n });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                done = true; act.video_completed_at = new Date().toISOString(); paintMeter(); refreshTabs();
+                watchNext();
+            });
+            function watchNext() {
+                var box = document.getElementById('watch-next'); box.textContent = '';
+                if (done) box.appendChild(el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Continue to the notes', onclick: function () { show('read'); } }));
+            }
+            watchNext();
+
+            // ---------------- Read ----------------
+            var notesLoaded = false, sawEnd = false, openedAt = act.notes_opened_at ? new Date(act.notes_opened_at).getTime() : null, timer = null;
+            var readBtn = document.getElementById('read-done'), hint = document.getElementById('read-hint');
+            async function openNotes() {
+                if (!notesLoaded) {
+                    notesLoaded = true;
+                    try {
+                        var nn = (n < 10 ? '0' : '') + n;
+                        var spec = await (await fetch(A.RAW + 'lessons/ds' + nn + '.json', { cache: 'no-cache' })).json();
+                        renderNotes(spec);
+                    } catch (e) { document.getElementById('notes').textContent = 'The notes could not be loaded. Please refresh the page.'; }
+                }
+                if (act.notes_completed_at || passed) { readBtn.hidden = true; hint.textContent = 'Notes complete.'; return; }
+                if (!openedAt) {
+                    var r = await sb.rpc('open_notes', { p_course: course, p_lesson: n });
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    openedAt = Date.now();
+                }
+                tick();
+            }
+            function tick() {
+                clearTimeout(timer);
+                var left = Math.ceil(45 - (Date.now() - openedAt) / 1000);
+                if (!sawEnd) hint.textContent = 'Read to the end of the notes to continue.';
+                else if (left > 0) hint.textContent = 'Take a moment with the notes. You can continue in ' + left + 's.';
+                else hint.textContent = 'Done reading? Continue to the quiz.';
+                readBtn.disabled = !(sawEnd && left <= 0);
+                if (left > 0 || !sawEnd) timer = setTimeout(tick, 1000);
+            }
+            new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting && notesLoaded) { sawEnd = true; if (openedAt) tick(); } }); })
+                .observe(document.getElementById('notes-end'));
+            readBtn.addEventListener('click', async function () {
+                readBtn.disabled = true;
+                var r = await sb.rpc('complete_notes', { p_course: course, p_lesson: n });
+                if (r.error) { readBtn.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                act.notes_completed_at = new Date().toISOString(); refreshTabs(); show('quiz');
+            });
+            function renderNotes(spec) {
+                var box = document.getElementById('notes'); box.textContent = '';
+                var skip = { 'NEXT LESSON': 1, 'THANKS FOR WATCHING': 1, 'NEXT': 1 };
+                if (spec.summary) { box.appendChild(el('h2', { text: 'In a nutshell' })); box.appendChild(el('p', { class: 'ac-summary', text: spec.summary })); }
+                var ul = el('ul');
+                spec.slides.slice(1).forEach(function (s) {
+                    if (skip[(s.tag || '').toUpperCase()]) return;
+                    var t = (s.tag || '').toLowerCase(); t = t.charAt(0).toUpperCase() + t.slice(1);
+                    ul.appendChild(el('li', {}, el('strong', { text: t + ': ' }), (s.text || '').replace(/\n/g, ' / ') + (s.sub ? ' (' + s.sub + ')' : '')));
+                });
+                box.appendChild(el('h2', { text: 'Key ideas' })); box.appendChild(ul);
+                if (spec.practice) { box.appendChild(el('h2', { text: 'Try it yourself' })); box.appendChild(el('p', { text: spec.practice })); }
+                var d = el('details', {}, el('summary', { text: 'Full transcript' }));
+                spec.slides.forEach(function (s) { d.appendChild(el('p', { text: s.say })); });
+                box.appendChild(d);
+            }
+
+            // ---------------- Quiz ----------------
+            var quizLoaded = false, qs = [], order = [];
+            var form = document.getElementById('quiz'), waitBox = document.getElementById('quiz-wait'), result = document.getElementById('quiz-result');
+            function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+            // keepResults: leave the marked answers visible while the learner waits.
+            function cooldown(seconds, keepResults) {
+                if (!keepResults) form.hidden = true;
+                waitBox.textContent = '';
+                var box = el('div', { class: 'ac-wait', role: 'status' }); waitBox.appendChild(box);
+                var end = Date.now() + seconds * 1000;
+                (function loop() {
+                    var s = Math.ceil((end - Date.now()) / 1000);
+                    if (s <= 0) {
+                        box.className = 'ofl-notice ofl-notice--info'; box.textContent = 'You can try the quiz again now. The questions have been reshuffled. ';
+                        box.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Try again', onclick: function () { waitBox.textContent = ''; buildQuiz(); } }));
+                        return;
+                    }
+                    box.textContent = 'Review the video and notes, then try again in ' + fmt(s) + '.';
+                    setTimeout(loop, 1000);
+                })();
+            }
+            async function loadQuiz() {
+                if (quizLoaded) return; quizLoaded = true;
+                var q = await sb.from('quiz_questions').select('position, question, options').eq('course_slug', course).eq('lesson_n', n).order('position');
+                qs = q.data || [];
+                if (!qs.length) { waitBox.appendChild(el('p', { class: 'ac-muted', text: 'The quiz for this lesson is being prepared. Please check back soon.' })); return; }
+                var last = (await sb.from('quiz_attempts').select('passed, created_at').eq('course_slug', course).eq('lesson_n', n).order('created_at', { ascending: false }).limit(1)).data;
+                if (last && last[0] && !last[0].passed) {
+                    var left = 600 - (Date.now() - new Date(last[0].created_at).getTime()) / 1000;
+                    if (left > 0) return cooldown(left);
+                }
+                buildQuiz();
+            }
+            function buildQuiz() {
+                form.textContent = ''; result.textContent = '';
+                if (passed) form.appendChild(el('p', { class: 'ofl-notice ofl-notice--success', text: 'You’ve passed this lesson. You can take the quiz again to practise.' }));
+                order = shuffle(qs.map(function (_, i) { return i; }));
+                order.forEach(function (qi, k) {
+                    var item = qs[qi], fs = el('fieldset', { class: 'ac-q', 'data-q': qi }, el('legend', { text: (k + 1) + '. ' + item.question }));
+                    shuffle(item.options.map(function (_, j) { return j; })).forEach(function (j) {
+                        fs.appendChild(el('label', { class: 'ac-opt' }, el('input', { type: 'radio', name: 'q' + qi, value: j, required: true }), el('span', { text: item.options[j] })));
+                    });
+                    fs.appendChild(el('p', { class: 'ac-q__fb', hidden: true }));
+                    form.appendChild(fs);
+                });
+                form.appendChild(el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Submit answers' }));
+                form.hidden = false;
+            }
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var answers = qs.map(function (_, i) { return parseInt(form['q' + i].value, 10); });
+                var btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+                var r = await sb.rpc('submit_quiz', { p_course: course, p_lesson: n, p_answers: answers });
+                if (r.error) {
+                    btn.disabled = false;
+                    var m = /COOLDOWN:(\d+)/.exec(r.error.message || '');
+                    if (m) return cooldown(+m[1]);
+                    return OFL.notice(result, OFL.friendlyError(r.error), 'error');
+                }
+                var res = r.data, pct = Math.round(res.score * 100);
+                btn.hidden = true; form.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
+                res.results.forEach(function (x, i) {
+                    var fs = form.querySelector('[data-q="' + i + '"]'), fb = fs.querySelector('.ac-q__fb');
+                    fs.classList.add(x.correct ? 'is-right' : 'is-wrong'); fb.hidden = false;
+                    fb.textContent = x.correct ? 'Correct. ' + (x.explanation || '') :
+                        (res.passed ? 'The answer is “' + qs[i].options[x.correct_index] + '”. ' + (x.explanation || '') : 'Not quite.');
+                });
+                var actions = el('div', { class: 'ofl-actions' });
+                if (res.passed) {
+                    passed = true; st.passed[n] = res.score; st.done = Object.keys(st.passed).length; refreshTabs();
+                    A.renderLedger(document.getElementById('ledger'), st, { course: course, currentN: n });
+                    var nl = st.lessons.find(function (l) { return l.n === n + 1; });
+                    if (nl && nl.released) actions.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/lesson/?course=' + course + '&n=' + (n + 1), text: 'Start Lesson ' + (n + 1) }));
+                    else if (n >= st.total) actions.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/capstone/?course=' + course, text: 'Go to the capstone project' }));
+                    actions.appendChild(el('a', { class: 'ac-btn ac-btn--secondary', href: '/academy/dashboard/', text: 'My learning' }));
+                } else {
+                    actions.appendChild(el('button', { class: 'ac-btn ac-btn--secondary', type: 'button', text: 'Rewatch the video', onclick: function () { show('watch'); } }));
+                }
+                var next = res.passed && !(st.lessons.find(function (l) { return l.n === n + 1 && l.released; })) && n < st.total;
+                result.textContent = '';
+                result.appendChild(el('div', { class: 'ac-result ' + (res.passed ? 'is-pass' : 'is-fail') },
+                    el('h3', { text: (res.passed ? 'Lesson complete: ' : 'Not passed yet: ') + pct + '% (' + res.correct + ' of ' + res.total + ')' }),
+                    el('p', { text: res.passed ? (next ? 'Lesson ' + (n + 1) + ' is released soon. Follow @_drhola on TikTok to catch it.' : 'Nice work. Your progress is saved.')
+                        : 'You need 70% to pass. Answers are shown once you pass. You can try again in 10 minutes.' }), actions));
+                if (!res.passed) cooldown(600, true);
+                result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+
+            // Start on the first unfinished step.
+            show(passed || !act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : 'quiz'));
+        })();
+    </script>
+</body>
+</html>
