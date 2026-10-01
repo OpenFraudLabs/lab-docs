@@ -43,6 +43,7 @@
         if (/Invalid login credentials/i.test(m)) return 'That email and password don’t match. Try again or reset your password.';
         if (/Email not confirmed/i.test(m)) return 'Please confirm your email first. Check your inbox (and spam folder) for the link.';
         if (/rate limit/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
+        if (/not authorized/i.test(m)) return 'Sign-ups are being switched on right now. Please try again shortly, or email hello@openfraudlabs.com.';
         if (/already registered/i.test(m)) return 'An account with this email already exists. Try logging in instead.';
         return m;
     }
