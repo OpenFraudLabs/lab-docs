@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science from Scratch | Open Fraud Labs</title>
+    <meta name="description" content="A free, beginner-friendly data science course by Ayodele Odugbile: 90-second video lessons on TikTok, with study notes and practice exercises.">
+    <meta name="keywords" content="data science course, learn data science, free data science lessons, machine learning, statistics, Open Fraud Labs">
+    <meta property="og:title" content="Data Science from Scratch | Open Fraud Labs">
+    <meta property="og:description" content="Free 90-second data science lessons, released daily on TikTok, with study notes and exercises.">
+    <meta name="theme-color" content="#06111f">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261001b">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav-bar">
+            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
+                <img src="/assets/logo.png" alt="" aria-hidden="true">
+                <span class="brand-text">
+                    <strong>Open Fraud Labs</strong>
+                    <small>Applied AI Data Operations</small>
+                </span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="site-nav" aria-label="Primary navigation">
+                <ul class="nav-links">
+                    <li><a href="/#services">Services</a></li>
+                    <li><a href="/#approach">Approach</a></li>
+                    <li><a href="/#learn">Learn</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="section course-hero">
+            <div class="container">
+                <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/#learn">Learn</a> <span aria-hidden="true">/</span> Data Science from Scratch</nav>
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Free course · Beginner</p>
+                    <h1>Data Science from Scratch</h1>
+                    <p>One idea per lesson, explained in plain language in about 90 seconds, by Ayodele Odugbile. New lessons are released every day on TikTok, each with study notes and a short exercise.</p>
+                    <p class="course-hero__meta" data-course-count>3 of 30 lessons released</p>
+                </div>
+
+                <div class="learn-cta card">
+                    <p class="learn-cta__title">Before you watch, join the community on TikTok:</p>
+                    <div class="learn-steps">
+                        <a class="learn-step card card--interactive" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">
+                            <span class="service-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"></circle><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"></path><path d="M19 8v6"></path><path d="M16 11h6"></path></svg></span>
+                            <strong>1. Follow</strong>
+                            <span>Follow @_drhola so you never miss a lesson</span>
+                        </a>
+                        <a class="learn-step card card--interactive" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">
+                            <span class="service-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></span>
+                            <strong>2. Like</strong>
+                            <span>Like each video to help it reach more learners</span>
+                        </a>
+                        <a class="learn-step card card--interactive" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">
+                            <span class="service-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><path d="m8.2 10.8 7.6-4.4"></path><path d="m8.2 13.2 7.6 4.4"></path></svg></span>
+                            <strong>3. Share</strong>
+                            <span>Share with a friend who wants to learn data science</span>
+                        </a>
+                        <a class="learn-step card card--interactive" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">
+                            <span class="service-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span>
+                            <strong>4. Comment</strong>
+                            <span>Ask questions in the comments. They shape future lessons</span>
+                        </a>
+                    </div>
+                    <div class="learn-cta__actions">
+                        <a class="btn btn-primary" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Follow &amp; Watch on TikTok</a>
+                        <a class="btn btn-secondary" href="https://github.com/Odugbile1993/openfraudlab-tiktok" target="_blank" rel="noopener noreferrer">Study Notes on GitHub →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section course-lessons" aria-labelledby="lessons-heading">
+            <div class="container">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Course map</p>
+                    <h2 id="lessons-heading">All lessons</h2>
+                    <p>Work through the lessons in order. Each one builds on the last.</p>
+                </div>
+                <div id="lesson-modules">
+                    <div class="lesson-module">
+                        <h3>Module 1 · Foundations</h3>
+                        <ol class="lesson-list">
+                            <li class="lesson-row">
+                                <span class="lesson-row__num">01</span>
+                                <span class="lesson-row__title">What is data science, really?</span>
+                                <span class="lesson-row__actions">
+                                    <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-01.md" target="_blank" rel="noopener noreferrer">Notes</a>
+                                </span>
+                            </li>
+                            <li class="lesson-row">
+                                <span class="lesson-row__num">02</span>
+                                <span class="lesson-row__title">Types of data, and why they matter</span>
+                                <span class="lesson-row__actions">
+                                    <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-02.md" target="_blank" rel="noopener noreferrer">Notes</a>
+                                </span>
+                            </li>
+                            <li class="lesson-row">
+                                <span class="lesson-row__num">03</span>
+                                <span class="lesson-row__title">Your first dataset: rows, columns &amp; features</span>
+                                <span class="lesson-row__actions">
+                                    <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-03.md" target="_blank" rel="noopener noreferrer">Notes</a>
+                                </span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="lesson-module">
+                        <h3>Module 2 · Statistics &amp; Exploring Data</h3>
+                        <ol class="lesson-list">
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">04</span>
+                                <span class="lesson-row__title">Mean, median &amp; mode: describing data with one number</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">05</span>
+                                <span class="lesson-row__title">Spread: range, variance &amp; standard deviation</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">06</span>
+                                <span class="lesson-row__title">Distributions and the normal curve</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">07</span>
+                                <span class="lesson-row__title">Outliers: errors, or the most interesting rows?</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">08</span>
+                                <span class="lesson-row__title">Missing data and what to do about it</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">09</span>
+                                <span class="lesson-row__title">Data cleaning basics</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">10</span>
+                                <span class="lesson-row__title">Exploratory data analysis (EDA)</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">11</span>
+                                <span class="lesson-row__title">Choosing the right chart</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">12</span>
+                                <span class="lesson-row__title">Correlation is not causation</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">13</span>
+                                <span class="lesson-row__title">Sampling and sampling bias</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">14</span>
+                                <span class="lesson-row__title">Probability basics for data science</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="lesson-module">
+                        <h3>Module 3 · Tools of the Trade</h3>
+                        <ol class="lesson-list">
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">15</span>
+                                <span class="lesson-row__title">Why Python for data science</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">16</span>
+                                <span class="lesson-row__title">Meet the pandas DataFrame</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">17</span>
+                                <span class="lesson-row__title">SQL basics: SELECT, WHERE, GROUP BY</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="lesson-module">
+                        <h3>Module 4 · Machine Learning Essentials</h3>
+                        <ol class="lesson-list">
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">18</span>
+                                <span class="lesson-row__title">Train/test split: why we hide data from the model</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">19</span>
+                                <span class="lesson-row__title">Linear regression intuition</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">20</span>
+                                <span class="lesson-row__title">Classification and logistic regression</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">21</span>
+                                <span class="lesson-row__title">Overfitting vs underfitting</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">22</span>
+                                <span class="lesson-row__title">Why accuracy can lie</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">23</span>
+                                <span class="lesson-row__title">The confusion matrix, precision &amp; recall</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">24</span>
+                                <span class="lesson-row__title">Decision trees</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">25</span>
+                                <span class="lesson-row__title">Feature engineering</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">26</span>
+                                <span class="lesson-row__title">Cross-validation</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">27</span>
+                                <span class="lesson-row__title">Imbalanced data: the fraud detection problem</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="lesson-module">
+                        <h3>Module 5 · Responsible Data Science &amp; Next Steps</h3>
+                        <ol class="lesson-list">
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">28</span>
+                                <span class="lesson-row__title">Explainable AI: why did the model decide that?</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">29</span>
+                                <span class="lesson-row__title">Data ethics and bias in models</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                            <li class="lesson-row lesson-row--soon">
+                                <span class="lesson-row__num">30</span>
+                                <span class="lesson-row__title">Your data science roadmap</span>
+                                <span class="lesson-row__actions"><span class="lesson-row__soon">Coming soon</span></span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="course-next card">
+                    <h3>Coming next</h3>
+                    <p>Full lesson videos right here on openfraudlabs.com, and live classes with Q&amp;A. Follow <a href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">@_drhola on TikTok</a> to hear first.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Rebuilds the lesson list from the live course outline.
+        window.renderLessons = function (all, next) {
+            var TIKTOK = 'https://www.tiktok.com/@_drhola', NOTES = 'https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-';
+            var MODULES = [[1, 3, "Module 1 \u00b7 Foundations"], [4, 14, "Module 2 \u00b7 Statistics & Exploring Data"], [15, 17, "Module 3 \u00b7 Tools of the Trade"], [18, 27, "Module 4 \u00b7 Machine Learning Essentials"], [28, 30, "Module 5 \u00b7 Responsible Data Science & Next Steps"]];
+            var box = document.getElementById('lesson-modules');
+            if (!box || !all.length) return;
+            function mod(n) { for (var i = 0; i < MODULES.length; i++) if (n >= MODULES[i][0] && n <= MODULES[i][1]) return MODULES[i][2]; return 'Module 6 · Going Further'; }
+            function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+            function link(cls, href, text) { var a = el('a', cls, text); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; return a; }
+            box.textContent = '';
+            var current = null, list = null;
+            all.forEach(function (l) {
+                var m = mod(l.n);
+                if (m !== current) {
+                    current = m;
+                    var wrap = el('div', 'lesson-module');
+                    wrap.appendChild(el('h3', '', m));
+                    list = el('ol', 'lesson-list');
+                    wrap.appendChild(list);
+                    box.appendChild(wrap);
+                }
+                var nn = (l.n < 10 ? '0' : '') + l.n;
+                var row = el('li', 'lesson-row' + (l.n < next ? '' : ' lesson-row--soon'));
+                row.appendChild(el('span', 'lesson-row__num', nn));
+                row.appendChild(el('span', 'lesson-row__title', l.title));
+                var act = el('span', 'lesson-row__actions');
+                if (l.n < next) {
+                    act.appendChild(link('lesson-row__watch', TIKTOK, 'Watch on TikTok'));
+                    act.appendChild(link('lesson-row__notes', NOTES + nn + '.md', 'Notes'));
+                } else {
+                    act.appendChild(el('span', 'lesson-row__soon', 'Coming soon'));
+                }
+                row.appendChild(act);
+                list.appendChild(row);
+            });
+        };
+    </script>
+    <script>
+        // Keeps lesson counts and lists current from the course outline (new lessons are added daily).
+        (function () {
+            var RAW = 'https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/';
+            if (!window.fetch) return;
+            Promise.all([
+                fetch(RAW + 'curriculum.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
+                fetch(RAW + 'state.json', { cache: 'no-cache' }).then(function (r) { return r.json(); })
+            ]).then(function (res) {
+                var all = res[0].lessons || [];
+                var next = res[1].next_lesson;
+                var released = all.filter(function (l) { return l.n < next; }).length;
+                document.querySelectorAll('[data-course-count]').forEach(function (el) {
+                    el.textContent = released + ' of ' + Math.max(all.length, released) + ' lessons released';
+                });
+                if (window.renderLessons) window.renderLessons(all, next);
+            }).catch(function () { /* keep the built-in content */ });
+        })();
+    </script>
+    <script>
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!isOpen));
+                navLinks.classList.toggle('is-open', !isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navLinks.classList.remove('is-open');
+                });
+            });
+        }
+    </script>
+
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
+                    <img src="/assets/logo.png" alt="" aria-hidden="true">
+                    <span class="brand-text">
+                        <strong>Open Fraud Labs</strong>
+                        <small>Applied AI Data Operations</small>
+                    </span>
+                </a>
+                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="/#services">AI Data Operations</a></li>
+                    <li><a href="/#services">Human Evaluation</a></li>
+                    <li><a href="/#services">Trust &amp; Safety</a></li>
+                    <li><a href="/#services">Applied AI Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="/#approach">About</a></li>
+                    <li><a href="/#learn">Free Data Science Course</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><span>Lagos, Nigeria</span></li>
+                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <div class="footer-bottom__links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
