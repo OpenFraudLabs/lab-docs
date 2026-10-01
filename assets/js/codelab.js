@@ -8,7 +8,8 @@
 
     // Runs learner code like a notebook cell: prints go to the output, and the last line's value is shown.
     var HARNESS = [
-        'import ast, io, sys, contextlib, traceback',
+        'import ast, io, sys, os, base64, contextlib, traceback',
+        'os.environ["MPLBACKEND"] = "Agg"',
         'import pandas as pd',
         'import pyodide.http',
         'if not getattr(pd.read_csv, "_ofl", False):',
@@ -48,6 +49,13 @@
         '        err = f"SyntaxError (line {e.lineno}): {e.msg}"',
         '    except Exception as e:',
         '        err = _ofl_err(e)',
+        '    plt = sys.modules.get("matplotlib.pyplot")',
+        '    if plt is not None and plt.get_fignums():',
+        '        try:',
+        '            buf = io.BytesIO(); plt.gcf().savefig(buf, format="png", dpi=110, bbox_inches="tight", facecolor="white")',
+        '            html = \'<img class="lab-chart" alt="Chart output" src="data:image/png;base64,\' + base64.b64encode(buf.getvalue()).decode() + \'">\'',
+        '        finally:',
+        '            plt.close("all")',
         '    return out.getvalue(), html, err',
         'def _ofl_ns():',
         '    return {"DATA_URL": DATA_URL}',
@@ -146,6 +154,8 @@
             if (running) return; busy(true); verdict.textContent = '';
             try {
                 var py = await ready();
+                say('Loading any libraries your code imports…');
+                await py.loadPackagesFromImports(ed.value);
                 say('Running…');
                 var res = py.globals.get('_ofl_run')(ed.value, ns).toJs();
                 if (opts.onEvent) opts.onEvent('practice_run');
@@ -162,6 +172,7 @@
             if (running) return; busy(true);
             try {
                 var py = await ready();
+                await py.loadPackagesFromImports(ed.value + '\n' + practice.check);
                 say('Checking…');
                 var r = py.globals.get('_ofl_check')(ed.value, practice.check).toJs();
                 verdict.textContent = '';

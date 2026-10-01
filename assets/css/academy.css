@@ -516,3 +516,4 @@ a.ac-row:hover { background: #F5F7FB; }
 /* Certificate sample watermark */
 .ofl-cert { position: relative; }
 .ofl-cert__sample { position: absolute; inset: 0; display: grid; place-items: center; font: 800 clamp(4rem, 14vw, 9rem)/1 var(--font); letter-spacing: 0.2em; color: rgba(180, 35, 24, 0.13); transform: rotate(-18deg); pointer-events: none; z-index: 2; }
+.lab-chart { display: block; max-width: 100%; height: auto; }
