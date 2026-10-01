@@ -1793,3 +1793,138 @@ img {
 
 
 
+
+/* ---------------------------------------------------------------------------
+   Learn section — Data Science from Scratch (TikTok course)
+   --------------------------------------------------------------------------- */
+.learn-section {
+    background: var(--white);
+}
+
+.learn-cta {
+    padding: 2rem;
+    margin-bottom: var(--space-6);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(124, 58, 237, 0.06));
+    border-color: rgba(37, 99, 235, 0.16);
+}
+
+.learn-cta__title {
+    margin: 0 0 1.5rem;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.learn-steps {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 1.75rem;
+}
+
+.learn-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--secondary-text);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.learn-step .service-card__icon {
+    margin-bottom: 0.4rem;
+    color: var(--primary-blue);
+}
+
+.learn-step:hover .service-card__icon {
+    background: rgba(37, 99, 235, 0.12);
+}
+
+.learn-step strong {
+    color: var(--text);
+    font-size: 1.05rem;
+}
+
+.learn-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.learn-latest__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.learn-latest__head h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--text);
+}
+
+.learn-latest__head span {
+    font-size: var(--font-size-label);
+    color: var(--secondary-text);
+}
+
+.learn-lessons {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.learn-lesson {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    text-decoration: none;
+}
+
+.learn-lesson__num {
+    font-size: var(--font-size-label);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-purple);
+}
+
+.learn-lesson strong {
+    flex: 1;
+    color: var(--text);
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+    .learn-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .learn-lessons {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .learn-cta {
+        padding: 1.25rem;
+    }
+
+    .learn-latest__head {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .learn-cta__actions .btn {
+        width: 100%;
+    }
+}
