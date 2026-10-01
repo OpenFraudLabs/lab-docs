@@ -501,3 +501,15 @@ a.ac-row:hover { background: #F5F7FB; }
 .ac-table th, .ac-table td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .ac-table th { background: var(--paper); font-weight: 600; position: sticky; top: 0; }
 .ac-table tr:last-child td { border-bottom: 0; }
+.ac-btn--danger { background: #B42318; color: #fff; border-color: #B42318; }
+.ac-btn--danger:hover { background: #912018; }
+.ac-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+.ac-table tr.is-suspended td { color: var(--ink-3); background: #FDF5F4; }
+.ac-dialog { border: 0; border-radius: var(--radius-l); padding: 1.25rem 1.5rem 1.5rem; width: min(560px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); }
+.ac-dialog::backdrop { background: rgba(14, 26, 43, 0.45); }
+.ac-dialog__head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.ac-dialog__head h2 { margin: 0; font-size: 1.2rem; }
+.ac-manage__group { border-top: 1px solid var(--line); padding-top: 0.9rem; margin-top: 0.9rem; }
+.ac-manage__group h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+.ac-manage__group p { margin: 0 0 0.6rem; font-size: 0.92rem; }
+.ac-manage__group select { padding: 0.45rem 0.6rem; border: 1px solid var(--line-2); border-radius: var(--radius-s); font: 400 0.92rem var(--font); }

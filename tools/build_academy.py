@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001m"
+V = "20261001n"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -862,6 +862,11 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
                 </section>
+                <dialog class="ac-dialog" id="manage" aria-labelledby="manage-title">
+                    <div class="ac-dialog__head"><h2 id="manage-title">Manage learner</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" id="manage-close" aria-label="Close">Close</button></div>
+                    <div id="manage-msg"></div>
+                    <div id="manage-body"></div>
+                </dialog>
                 <section class="ac-admin__sec">
                     <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
                     <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
@@ -896,26 +901,79 @@ admin_script = r"""        (async function () {
               .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1] == null ? 0 : x[1]) }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null)); });
 
             var lr = await sb.rpc('admin_learners'), rows = lr.data || [];
+            var fl = await sb.rpc('admin_learner_flags'), flags = {};
+            (fl.data || []).forEach(function (x) { flags[x.user_id] = x; });
+            rows.forEach(function (r) { var x = flags[r.user_id] || {}; r.is_admin = x.is_admin; r.suspended_at = x.suspended_at; r.unlock_all = x.unlock_all; r.access_until = x.access_until; });
             var cols = [['full_name', 'Name'], ['email', 'Email'], ['registered_at', 'Registered'], ['last_sign_in_at', 'Last log-in'], ['enrolled_courses', 'Enrolled'],
                         ['lessons_passed', 'Lessons passed'], ['avg_best_score', 'Avg quiz score'], ['quiz_attempts', 'Quiz attempts'], ['practice_solved', 'Practice solved'],
-                        ['last_activity_at', 'Last activity'], ['certificates', 'Certificates']];
+                        ['last_activity_at', 'Last activity'], ['certificates', 'Certificates'], ['status', 'Status']];
             function cell(r, c) {
                 var v = r[c];
                 if (/_at$/.test(c)) return dt(v);
                 if (c === 'avg_best_score') return pct(v);
+                if (c === 'status') {
+                    var tags = [];
+                    if (r.suspended_at) tags.push('Suspended'); if (r.is_admin) tags.push('Admin');
+                    if (r.unlock_all) tags.push('All lessons unlocked'); if (r.access_until) tags.push('Free access (' + r.access_until + ')');
+                    return tags.join(' · ') || 'Active';
+                }
                 if (c === 'full_name') return (v || '(no name)') + (r.terms_signed ? '' : ' · terms not signed') + (r.email_confirmed ? '' : ' · email not confirmed');
                 return v == null || v === '' ? '—' : String(v);
             }
             function drawLearners() {
                 var q = document.getElementById('q').value.trim().toLowerCase(), t = document.getElementById('learners'); t.textContent = '';
-                var hr = el('tr'); cols.forEach(function (c) { hr.appendChild(el('th', { text: c[1] })); }); t.appendChild(el('thead', {}, hr));
+                var hr = el('tr', {}, el('th', { text: '' })); cols.forEach(function (c) { hr.appendChild(el('th', { text: c[1] })); }); t.appendChild(el('thead', {}, hr));
                 var tb = el('tbody');
                 rows.filter(function (r) { return !q || ((r.full_name || '') + ' ' + (r.email || '')).toLowerCase().indexOf(q) >= 0; })
-                    .forEach(function (r) { var tr = el('tr'); cols.forEach(function (c) { tr.appendChild(el('td', { text: cell(r, c[0]) })); }); tb.appendChild(tr); });
+                    .forEach(function (r) {
+                        var tr = el('tr', { class: r.suspended_at ? 'is-suspended' : '' });
+                        tr.appendChild(el('td', {}, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Manage', onclick: function () { manage(r); } })));
+                        cols.forEach(function (c) { tr.appendChild(el('td', { text: cell(r, c[0]) })); }); tb.appendChild(tr);
+                    });
                 if (!tb.children.length) tb.appendChild(el('tr', {}, el('td', { colspan: String(cols.length), text: 'No learners match.' })));
                 t.appendChild(tb);
             }
             document.getElementById('q').addEventListener('input', drawLearners); drawLearners();
+
+            // ---- Manage one learner: suspend, special rights, admin role
+            var dlg = document.getElementById('manage');
+            function manage(r) {
+                var body = document.getElementById('manage-body'); body.textContent = '';
+                document.getElementById('manage-title').textContent = (r.full_name || r.email);
+                body.appendChild(el('p', { class: 'ac-muted', text: r.email + ' · registered ' + dt(r.registered_at) + ' · ' + r.lessons_passed + ' lessons passed' }));
+                var self = r.user_id === user.id;
+                function act(action, value, confirmText) {
+                    return async function () {
+                        if (confirmText && !window.confirm(confirmText)) return;
+                        var res = await sb.rpc('admin_manage_user', { p_user: r.user_id, p_action: action, p_value: value == null ? null : String(value) });
+                        if (res.error) return OFL.notice(document.getElementById('manage-msg'), OFL.friendlyError(res.error), 'error');
+                        dlg.close(); OFL.notice(msg, 'Done: ' + action.replace('_', ' ') + ' for ' + (r.full_name || r.email) + '.', 'success');
+                        var f2 = await sb.rpc('admin_learner_flags'); (f2.data || []).forEach(function (x) { flags[x.user_id] = x; });
+                        rows.forEach(function (q) { var x = flags[q.user_id] || {}; q.is_admin = x.is_admin; q.suspended_at = x.suspended_at; q.unlock_all = x.unlock_all; q.access_until = x.access_until; });
+                        drawLearners();
+                    };
+                }
+                function group(title, text, buttons) {
+                    var g = el('div', { class: 'ac-manage__group' }, el('h3', { text: title }), el('p', { class: 'ac-muted', text: text }));
+                    var row = el('div', { class: 'ofl-actions' }); buttons.forEach(function (b) { if (b) row.appendChild(b); }); g.appendChild(row); body.appendChild(g);
+                }
+                function btn(label, kind, fn, disabled) { return el('button', { class: 'ac-btn ac-btn--' + kind + ' ac-btn--sm', type: 'button', text: label, onclick: fn, disabled: disabled ? 'disabled' : null }); }
+                var days = el('select', { 'aria-label': 'Length of free access' });
+                [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'No end date']].forEach(function (o) { days.appendChild(el('option', { value: o[0], text: o[1] })); });
+                group('Account', r.suspended_at ? 'Suspended on ' + dt(r.suspended_at) + '. They can’t log in, open lessons or take quizzes.' : 'Suspending blocks log-in and all learning. Their records are kept, and you can reactivate them at any time.',
+                    [r.suspended_at ? btn('Reactivate', 'primary', act('reactivate')) : btn('Suspend account', 'danger', function () { var why = window.prompt('Reason for suspending (kept in the admin log):', ''); if (why === null) return; act('suspend', why)(); }, self)]);
+                group('Unlock all lessons', r.unlock_all ? 'This learner can open any released lesson in any order.' : 'Let this learner open released lessons in any order, without passing the previous lesson first. Video, notes and quiz rules still apply.',
+                    [r.unlock_all ? btn('Lock again', 'secondary', act('relock')) : btn('Unlock all lessons', 'primary', act('unlock_all'))]);
+                var grant = btn('Grant free access', 'primary', function () { act('grant_access', days.value)(); });
+                group('Free access to paid courses', r.access_until ? 'Active: free access ' + (r.access_until === 'no end date' ? 'with no end date' : 'until ' + r.access_until) + '.' : 'For scholarships, interns or partners: full access to paid courses without paying. Data Science from Scratch is already free for everyone.',
+                    r.access_until ? [btn('Remove free access', 'secondary', act('revoke_access'))] : [days, grant]);
+                group('Admin role', r.is_admin ? 'This person can see all learners and manage accounts.' : 'Admins can see every learner’s data and manage accounts. Only give this to staff you trust.',
+                    [r.is_admin ? btn('Remove admin role', 'danger', act('remove_admin', null, 'Remove admin rights from ' + r.email + '?'), self) : btn('Make admin', 'secondary', act('make_admin', null, 'Give ' + r.email + ' full admin rights, including access to every learner’s data?'))]);
+                group('Delete account', 'Not switched on yet. Permanent deletion would also remove their progress, quiz history and any certificates, so for now suspend the account instead. It can be enabled later.', []);
+                document.getElementById('manage-msg').textContent = '';
+                dlg.showModal();
+            }
+            document.getElementById('manage-close').addEventListener('click', function () { dlg.close(); });
             document.getElementById('csv').addEventListener('click', function () {
                 function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
                 var keys = ['full_name', 'email', 'registered_at', 'email_confirmed', 'terms_signed', 'last_sign_in_at', 'enrolled_courses', 'lessons_passed', 'avg_best_score', 'quiz_attempts', 'practice_solved', 'last_activity_at', 'certificates'];
