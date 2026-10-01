@@ -3,3 +3,6 @@ description: Open-source AI for financial security in Africa
 theme: jekyll-theme-minimal
 baseurl: ""
 url: "https://opnfraudlabs.github.io/lab-docs"
+
+exclude:
+  - tools/

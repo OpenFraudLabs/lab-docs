@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in or create an account | Open Fraud Labs</title>
+    <meta name="description" content="Create a free Open Fraud Labs account to track your course progress, take quizzes and earn certificates.">
+    <meta name="keywords" content="AI data operations, human evaluation, trust and safety, applied AI research, fraud detection, trustworthy AI">
+    <meta property="og:title" content="Log in or create an account | Open Fraud Labs">
+    <meta property="og:description" content="Create a free Open Fraud Labs account to track your course progress, take quizzes and earn certificates.">
+    <meta name="theme-color" content="#06111f">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261001c">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="robots" content="noindex">
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav-bar">
+            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
+                <img src="/assets/logo.png" alt="" aria-hidden="true">
+                <span class="brand-text">
+                    <strong>Open Fraud Labs</strong>
+                    <small>Applied AI Data Operations</small>
+                </span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="site-nav" aria-label="Primary navigation">
+                <ul class="nav-links">
+                    <li><a href="/#services">Services</a></li>
+                    <li><a href="/#approach">Approach</a></li>
+                    <li><a href="/#learn">Learn</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="section ofl-page ">
+            <div class="container ofl-narrow">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Your account</p>
+                    <h1>Learn, track progress, earn certificates</h1>
+                    <p>A free account lets you take lesson quizzes, save your progress, submit capstone projects and claim certificates of completion.</p>
+                </div>
+                <div id="msg"></div>
+                <div id="auth-box" class="ofl-card card" hidden>
+                    <div class="ofl-tabs" role="tablist">
+                        <button type="button" class="ofl-tab is-active" data-tab="signup" role="tab">Create account</button>
+                        <button type="button" class="ofl-tab" data-tab="login" role="tab">Log in</button>
+                    </div>
+                    <form id="signup-form" class="ofl-form" data-panel="signup">
+                        <label>Full name <small>(as it should appear on your certificate)</small>
+                            <input name="full_name" required maxlength="120" autocomplete="name"></label>
+                        <label>Email <input name="email" type="email" required autocomplete="email"></label>
+                        <label>Password <small>(at least 8 characters)</small>
+                            <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+                        <label class="ofl-check"><input type="checkbox" name="agree" required>
+                            <span>I agree to the <a href="/privacy/" target="_blank">Privacy Policy</a>.</span></label>
+                        <button class="btn btn-primary" type="submit">Create free account</button>
+                    </form>
+                    <form id="login-form" class="ofl-form" data-panel="login" hidden>
+                        <label>Email <input name="email" type="email" required autocomplete="email"></label>
+                        <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
+                        <button class="btn btn-primary" type="submit">Log in</button>
+                        <button class="ofl-link" type="button" id="forgot">Forgot your password?</button>
+                    </form>
+                    <form id="forgot-form" class="ofl-form" data-panel="forgot" hidden>
+                        <p>Enter your email and we’ll send you a link to set a new password.</p>
+                        <label>Email <input name="email" type="email" required autocomplete="email"></label>
+                        <button class="btn btn-primary" type="submit">Send reset link</button>
+                    </form>
+                </div>
+                <form id="reset-form" class="ofl-card card ofl-form" hidden>
+                    <h2>Set a new password</h2>
+                    <label>New password <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+                    <button class="btn btn-primary" type="submit">Save new password</button>
+                </form>
+                <div id="profile-box" class="ofl-card card" hidden>
+                    <h2>Your profile</h2>
+                    <p class="ofl-muted">Signed in as <strong id="me-email"></strong></p>
+                    <form id="profile-form" class="ofl-form">
+                        <label>Full name <small>(shown on your certificates)</small>
+                            <input name="full_name" required maxlength="120" autocomplete="name"></label>
+                        <button class="btn btn-secondary" type="submit">Save name</button>
+                    </form>
+                    <div class="ofl-actions">
+                        <a class="btn btn-primary" href="/my-learning/">Go to My Learning</a>
+                        <button class="btn btn-secondary" type="button" id="logout">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001c"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, msg = document.getElementById('msg');
+            var next = OFL.qs('next') || '/my-learning/';
+            if (!next.startsWith('/')) next = '/my-learning/';
+            var authBox = document.getElementById('auth-box'), profileBox = document.getElementById('profile-box'), resetForm = document.getElementById('reset-form');
+
+            function show(tab) {
+                document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== tab; });
+                document.querySelectorAll('.ofl-tab').forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-tab') === tab); });
+            }
+            document.querySelectorAll('.ofl-tab').forEach(function (t) { t.addEventListener('click', function () { OFL.notice(msg, ''); show(t.getAttribute('data-tab')); }); });
+            document.getElementById('forgot').addEventListener('click', function () { show('forgot'); });
+
+            async function renderProfile(user) {
+                authBox.hidden = true; profileBox.hidden = false;
+                document.getElementById('me-email').textContent = user.email;
+                var res = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+                document.querySelector('#profile-form [name=full_name]').value = (res.data && res.data.full_name) || '';
+            }
+
+            var recovering = /type=recovery/.test(location.hash) || OFL.qs('reset') === '1';
+            sb.auth.onAuthStateChange(function (event) {
+                if (event === 'PASSWORD_RECOVERY') { recovering = true; authBox.hidden = true; profileBox.hidden = true; resetForm.hidden = false; }
+            });
+
+            var user = await OFL.getUser();
+            if (recovering && user) { resetForm.hidden = false; }
+            else if (user) { if (OFL.qs('next')) { location.href = next; return; } renderProfile(user); }
+            else { authBox.hidden = false; if (OFL.qs('mode') === 'login') show('login'); }
+
+            document.getElementById('signup-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target, btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+                var res = await sb.auth.signUp({
+                    email: f.email.value.trim(), password: f.password.value,
+                    options: { data: { full_name: f.full_name.value.trim() }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
+                });
+                btn.disabled = false;
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                if (res.data.session) { location.href = next; return; }
+                f.reset();
+                OFL.notice(msg, 'Almost done! We’ve sent a confirmation link to your email. Click it to activate your account (check your spam folder too).', 'success');
+            });
+
+            document.getElementById('login-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target, btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+                var res = await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value });
+                btn.disabled = false;
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                location.href = next;
+            });
+
+            document.getElementById('forgot-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target;
+                var res = await sb.auth.resetPasswordForEmail(f.email.value.trim(), { redirectTo: location.origin + '/account/?reset=1' });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                OFL.notice(msg, 'If an account exists for that email, a reset link is on its way.', 'success');
+            });
+
+            resetForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var res = await sb.auth.updateUser({ password: resetForm.password.value });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                resetForm.hidden = true;
+                OFL.notice(msg, 'Your password has been updated.', 'success');
+                renderProfile((await sb.auth.getUser()).data.user);
+            });
+
+            document.getElementById('profile-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var u = await OFL.getUser();
+                var res = await sb.from('profiles').update({ full_name: e.target.full_name.value.trim() }).eq('id', u.id);
+                OFL.notice(msg, res.error ? OFL.friendlyError(res.error) : 'Name saved.', res.error ? 'error' : 'success');
+            });
+
+            document.getElementById('logout').addEventListener('click', async function () {
+                await sb.auth.signOut(); location.href = '/';
+            });
+        })();
+    </script>
+    <script>
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!isOpen));
+                navLinks.classList.toggle('is-open', !isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navLinks.classList.remove('is-open');
+                });
+            });
+        }
+    </script>
+
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
+                    <img src="/assets/logo.png" alt="" aria-hidden="true">
+                    <span class="brand-text">
+                        <strong>Open Fraud Labs</strong>
+                        <small>Applied AI Data Operations</small>
+                    </span>
+                </a>
+                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="/#services">AI Data Operations</a></li>
+                    <li><a href="/#services">Human Evaluation</a></li>
+                    <li><a href="/#services">Trust &amp; Safety</a></li>
+                    <li><a href="/#services">Applied AI Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="/#approach">About</a></li>
+                    <li><a href="/#learn">Free Data Science Course</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><span>Lagos, Nigeria</span></li>
+                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <div class="footer-bottom__links">
+                <a href="/privacy/">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>

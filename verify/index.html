@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify a certificate | Open Fraud Labs</title>
+    <meta name="description" content="Check that an Open Fraud Labs certificate of completion is genuine.">
+    <meta name="keywords" content="AI data operations, human evaluation, trust and safety, applied AI research, fraud detection, trustworthy AI">
+    <meta property="og:title" content="Verify a certificate | Open Fraud Labs">
+    <meta property="og:description" content="Check that an Open Fraud Labs certificate of completion is genuine.">
+    <meta name="theme-color" content="#06111f">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261001c">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav-bar">
+            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
+                <img src="/assets/logo.png" alt="" aria-hidden="true">
+                <span class="brand-text">
+                    <strong>Open Fraud Labs</strong>
+                    <small>Applied AI Data Operations</small>
+                </span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="site-nav" aria-label="Primary navigation">
+                <ul class="nav-links">
+                    <li><a href="/#services">Services</a></li>
+                    <li><a href="/#approach">Approach</a></li>
+                    <li><a href="/#learn">Learn</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="section ofl-page">
+            <div class="container ofl-narrow ofl-noprint">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Certificate verification</p>
+                    <h1>Verify a certificate</h1>
+                    <p>Enter the certificate ID (for example OFL-1A2B-3C4D) to confirm it was issued by Open Fraud Labs.</p>
+                </div>
+                <form id="verify-form" class="ofl-form ofl-inline">
+                    <label class="u-sr-only" for="cid">Certificate ID</label>
+                    <input id="cid" name="id" required placeholder="OFL-XXXX-XXXX" autocomplete="off">
+                    <button class="btn btn-primary" type="submit">Verify</button>
+                </form>
+                <div id="msg"></div>
+            </div>
+            <div class="container" id="cert-wrap" hidden>
+                <div class="ofl-cert" id="cert">
+                    <div class="ofl-cert__inner">
+                        <img src="/assets/logo.png" alt="" class="ofl-cert__logo">
+                        <p class="ofl-cert__org">Open Fraud Labs</p>
+                        <p class="ofl-cert__kicker">Certificate of Completion</p>
+                        <p class="ofl-cert__small">This certifies that</p>
+                        <p class="ofl-cert__name" id="c-name"></p>
+                        <p class="ofl-cert__small">has successfully completed</p>
+                        <p class="ofl-cert__course" id="c-course"></p>
+                        <p class="ofl-cert__desc">including all lesson quizzes and an approved capstone project.</p>
+                        <div class="ofl-cert__foot">
+                            <div><span class="ofl-cert__sig">Ayodele Odugbile</span><span>Founder, Open Fraud Labs</span></div>
+                            <div><span id="c-date"></span><span>Date issued</span></div>
+                            <div><span id="c-id"></span><span>Certificate ID</span></div>
+                        </div>
+                        <p class="ofl-cert__note">Verify at openfraudlabs.com/verify. This is a certificate of course completion, not an accredited academic qualification.</p>
+                    </div>
+                </div>
+                <div class="ofl-actions ofl-noprint ofl-center">
+                    <button class="btn btn-primary" type="button" onclick="window.print()">Download / Print (save as PDF)</button>
+                    <button class="btn btn-secondary" type="button" id="copy-link">Copy verification link</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001c"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, msg = document.getElementById('msg');
+            var form = document.getElementById('verify-form'), wrap = document.getElementById('cert-wrap');
+            async function check(id) {
+                OFL.notice(msg, ''); wrap.hidden = true;
+                var r = await sb.rpc('verify_certificate', { p_id: id });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                if (!r.data) return OFL.notice(msg, 'No certificate found with ID “' + id + '”. Check the ID and try again.', 'error');
+                document.getElementById('c-name').textContent = r.data.full_name;
+                document.getElementById('c-course').textContent = r.data.course;
+                document.getElementById('c-date').textContent = OFL.formatDate(r.data.issued_at);
+                document.getElementById('c-id').textContent = r.data.id;
+                document.title = r.data.full_name + ' – ' + r.data.course + ' certificate | Open Fraud Labs';
+                OFL.notice(msg, '✓ Genuine certificate issued by Open Fraud Labs to ' + r.data.full_name + ' on ' + OFL.formatDate(r.data.issued_at) + '.', 'success');
+                wrap.hidden = false;
+                history.replaceState(null, '', '/verify/?id=' + encodeURIComponent(r.data.id));
+            }
+            form.addEventListener('submit', function (e) { e.preventDefault(); check(form.id.value.trim()); });
+            document.getElementById('copy-link').addEventListener('click', function () {
+                navigator.clipboard && navigator.clipboard.writeText(location.href).then(function () { OFL.notice(msg, 'Verification link copied.', 'success'); });
+            });
+            var id = OFL.qs('id');
+            if (id) { form.id.value = id; check(id); }
+        })();
+    </script>
+    <script>
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!isOpen));
+                navLinks.classList.toggle('is-open', !isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navLinks.classList.remove('is-open');
+                });
+            });
+        }
+    </script>
+
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
+                    <img src="/assets/logo.png" alt="" aria-hidden="true">
+                    <span class="brand-text">
+                        <strong>Open Fraud Labs</strong>
+                        <small>Applied AI Data Operations</small>
+                    </span>
+                </a>
+                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="/#services">AI Data Operations</a></li>
+                    <li><a href="/#services">Human Evaluation</a></li>
+                    <li><a href="/#services">Trust &amp; Safety</a></li>
+                    <li><a href="/#services">Applied AI Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="/#approach">About</a></li>
+                    <li><a href="/#learn">Free Data Science Course</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><span>Lagos, Nigeria</span></li>
+                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <div class="footer-bottom__links">
+                <a href="/privacy/">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>

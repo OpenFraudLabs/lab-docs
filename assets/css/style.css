@@ -2177,3 +2177,130 @@ img {
         padding-top: 7rem;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Learning platform — accounts, quizzes, progress, certificates
+   --------------------------------------------------------------------------- */
+.ofl-page { background: var(--white); padding-top: 9rem; min-height: 70vh; }
+.ofl-page h1 { font-size: var(--font-size-h2); line-height: var(--line-height-tight); margin: 0 0 1rem; color: var(--text); }
+.ofl-narrow { max-width: 780px; }
+.ofl-card { padding: 1.75rem; margin-bottom: 1.5rem; }
+.ofl-card h2 { margin: 0 0 0.75rem; font-size: 1.35rem; color: var(--text); }
+.ofl-muted { color: var(--secondary-text); font-size: 0.95rem; }
+.ofl-center { justify-content: center; }
+.ofl-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+
+.ofl-notice { padding: 0.9rem 1.1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-weight: 500; }
+.ofl-notice--info { background: rgba(37, 99, 235, 0.08); color: #1e3a8a; }
+.ofl-notice--success { background: rgba(16, 185, 129, 0.12); color: #065f46; }
+.ofl-notice--error { background: rgba(239, 68, 68, 0.1); color: #991b1b; }
+
+.ofl-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.ofl-tab { border: 1px solid var(--border-strong); background: var(--bg-alt); color: var(--secondary-text); padding: 0.55rem 1.1rem; border-radius: var(--radius-pill); font-weight: 600; cursor: pointer; font: inherit; }
+.ofl-tab.is-active { background: var(--primary-blue); border-color: var(--primary-blue); color: var(--white); }
+
+.ofl-form { display: grid; gap: 1rem; }
+.ofl-form label { display: grid; gap: 0.4rem; font-weight: 600; color: var(--text); font-size: 0.95rem; }
+.ofl-form label small { font-weight: 400; color: var(--secondary-text); }
+.ofl-form input, .ofl-form textarea, .ofl-sub textarea {
+    width: 100%; padding: 0.8rem 1rem; border: 1px solid rgba(15, 23, 42, 0.15); border-radius: 12px;
+    font: inherit; font-weight: 400; color: var(--text); background: var(--white);
+}
+.ofl-form input:focus, .ofl-form textarea:focus, .ofl-sub textarea:focus { outline: 2px solid rgba(37, 99, 235, 0.35); border-color: var(--primary-blue); }
+.ofl-form .btn { justify-self: start; }
+.ofl-check { grid-template-columns: auto 1fr !important; align-items: start; font-weight: 400 !important; }
+.ofl-check input { width: auto; margin-top: 0.25rem; }
+.ofl-check a, .ofl-prose a, .ofl-muted a, .ofl-course a:not(.btn) { color: var(--primary-blue); font-weight: 600; }
+.ofl-link { background: none; border: 0; padding: 0; color: var(--primary-blue); font: inherit; font-weight: 600; cursor: pointer; justify-self: start; }
+.ofl-inline { grid-template-columns: 1fr auto; align-items: center; margin-bottom: 1.25rem; }
+
+.ofl-quiz { display: grid; gap: 1rem; }
+.ofl-question { padding: 1.4rem 1.5rem; margin: 0; border: 1px solid var(--border-strong); }
+.ofl-question legend { font-weight: 700; color: var(--text); padding: 0; margin-bottom: 0.9rem; float: left; width: 100%; }
+.ofl-option { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.6rem 0.75rem; border-radius: 12px; cursor: pointer; clear: both; }
+.ofl-option:hover { background: var(--bg-alt); }
+.ofl-option input { margin-top: 0.3rem; }
+.ofl-question.is-right { border-color: rgba(16, 185, 129, 0.6); }
+.ofl-question.is-wrong { border-color: rgba(239, 68, 68, 0.5); }
+.ofl-feedback { margin: 0.75rem 0 0; font-size: 0.95rem; color: var(--secondary-text); }
+.ofl-question.is-right .ofl-feedback { color: #065f46; }
+.ofl-question.is-wrong .ofl-feedback { color: #991b1b; }
+.ofl-quiz .btn { justify-self: start; }
+.ofl-score { margin-top: 1.5rem; }
+.ofl-score.is-pass { border-color: rgba(16, 185, 129, 0.5); }
+.ofl-score.is-fail { border-color: rgba(239, 68, 68, 0.4); }
+
+.ofl-progress { height: 10px; border-radius: var(--radius-pill); background: rgba(15, 23, 42, 0.08); overflow: hidden; margin: 0.75rem 0 0.25rem; }
+.ofl-progress span { display: block; height: 100%; min-width: 4px; background: linear-gradient(90deg, var(--primary-blue), var(--accent-purple)); border-radius: inherit; }
+.ofl-course__head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.ofl-course__head h2 a:not(.btn) { color: var(--text); font-weight: 700; }
+.ofl-steps { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: 0.6rem; }
+.ofl-steps li { padding-left: 1.8rem; position: relative; color: var(--secondary-text); }
+.ofl-steps li::before { content: ""; position: absolute; left: 0; top: 0.3rem; width: 1.05rem; height: 1.05rem; border-radius: 50%; border: 2px solid rgba(15, 23, 42, 0.2); }
+.ofl-steps li.is-done { color: var(--text); }
+.ofl-steps li.is-done::before { background: var(--success-green); border-color: var(--success-green); }
+
+.ofl-badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; margin-right: 0.4rem; }
+.ofl-badge--submitted { background: rgba(37, 99, 235, 0.1); color: #1e40af; }
+.ofl-badge--approved { background: rgba(16, 185, 129, 0.14); color: #065f46; }
+.ofl-badge--changes_requested { background: rgba(245, 158, 11, 0.16); color: #92400e; }
+.ofl-feedback-box { margin: 0.75rem 0 0; padding: 0.9rem 1.1rem; border-left: 3px solid var(--primary-blue); background: var(--bg-alt); border-radius: 0 12px 12px 0; }
+.ofl-prose h2 { margin-top: 1.5rem; } .ofl-prose h2:first-child { margin-top: 0; }
+.ofl-prose h3 { margin: 1.25rem 0 0.5rem; font-size: 1.1rem; color: var(--text); }
+.ofl-prose ul, .ofl-prose ol { padding-left: 1.25rem; display: grid; gap: 0.4rem; color: var(--secondary-text); }
+.ofl-prose p { color: var(--secondary-text); }
+
+.ofl-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.ofl-stat { display: grid; gap: 0.2rem; text-align: center; margin: 0; }
+.ofl-stat strong { font-size: 1.8rem; color: var(--primary-blue); }
+.ofl-stat span { font-size: 0.85rem; color: var(--secondary-text); }
+.ofl-sub h3 { margin: 0 0 0.25rem; color: var(--text); }
+.ofl-writeup { white-space: pre-wrap; background: var(--bg-alt); padding: 1rem; border-radius: 12px; color: var(--text); }
+
+/* Course page additions */
+.ofl-course-progress { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin: 0 0 2rem; flex-wrap: wrap; }
+.ofl-course-progress > div:first-child { flex: 1 1 340px; }
+.ofl-course-progress p { margin: 0; color: var(--secondary-text); }
+.ofl-course-progress .ofl-actions { margin-top: 0; }
+.ofl-capstone-card { margin-top: 1rem; }
+.ofl-capstone-card h3 { margin: 0 0 0.5rem; color: var(--text); font-size: 1.3rem; }
+.ofl-capstone-card p { color: var(--secondary-text); }
+.lesson-row__quiz { font-size: 0.88rem; font-weight: 700; color: var(--primary-blue); padding: 0.45rem 0.9rem; border: 1px solid rgba(37, 99, 235, 0.3); border-radius: var(--radius-pill); }
+.lesson-row.is-done { border-color: rgba(16, 185, 129, 0.45); }
+.lesson-row.is-done .lesson-row__quiz { color: #065f46; border-color: rgba(16, 185, 129, 0.45); background: rgba(16, 185, 129, 0.08); }
+
+/* Certificate */
+.ofl-cert { max-width: 980px; margin: 1rem auto 0; aspect-ratio: 1.414 / 1; background: #fff; border-radius: 6px; box-shadow: var(--shadow-lg); padding: 18px;
+    background-image: linear-gradient(135deg, var(--primary-blue), var(--accent-purple)); }
+.ofl-cert__inner { height: 100%; background: #fff; border-radius: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3% 6%; }
+.ofl-cert__logo { width: 64px; height: 64px; border-radius: 50%; }
+.ofl-cert__org { margin: 0.5rem 0 0; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text); font-size: 0.95rem; }
+.ofl-cert__kicker { margin: 1.25rem 0 0.75rem; font-size: clamp(1.4rem, 3.2vw, 2.4rem); font-weight: 800; color: var(--primary-blue); }
+.ofl-cert__small { margin: 0.25rem 0; color: var(--secondary-text); }
+.ofl-cert__name { margin: 0.4rem 0; font-size: clamp(1.6rem, 4vw, 3rem); font-weight: 800; color: var(--text); border-bottom: 2px solid rgba(15, 23, 42, 0.12); padding: 0 2rem 0.35rem; }
+.ofl-cert__course { margin: 0.4rem 0; font-size: clamp(1.15rem, 2.4vw, 1.7rem); font-weight: 700; color: var(--accent-purple); }
+.ofl-cert__desc { margin: 0.25rem 0 0; color: var(--secondary-text); font-size: 0.95rem; }
+.ofl-cert__foot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; width: 100%; margin-top: auto; padding-top: 1.5rem; }
+.ofl-cert__foot div { display: grid; gap: 0.2rem; border-top: 1px solid rgba(15, 23, 42, 0.2); padding-top: 0.5rem; }
+.ofl-cert__foot span:first-child { font-weight: 700; color: var(--text); }
+.ofl-cert__foot span:last-child { font-size: 0.78rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.08em; }
+.ofl-cert__sig { font-style: italic; }
+.ofl-cert__note { margin: 1rem 0 0; font-size: 0.72rem; color: var(--secondary-text); }
+
+@media (max-width: 640px) {
+    .ofl-page { padding-top: 7rem; }
+    .ofl-inline { grid-template-columns: 1fr; }
+    .ofl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ofl-cert { aspect-ratio: auto; padding: 10px; }
+    .ofl-cert__inner { padding: 1.5rem 1rem; }
+    .ofl-cert__foot { grid-template-columns: 1fr; gap: 0.75rem; }
+}
+
+@media print {
+    @page { size: A4 landscape; margin: 0; }
+    body * { visibility: hidden; }
+    .ofl-cert, .ofl-cert * { visibility: visible; }
+    .ofl-cert { position: fixed; inset: 0; margin: 0; max-width: none; width: 100vw; height: 100vh; aspect-ratio: auto; box-shadow: none; border-radius: 0;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ofl-noprint, .site-header, .site-footer { display: none !important; }
+}

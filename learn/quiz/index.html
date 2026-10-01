@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson quiz | Open Fraud Labs</title>
+    <meta name="description" content="Check your understanding of each Data Science from Scratch lesson.">
+    <meta name="keywords" content="AI data operations, human evaluation, trust and safety, applied AI research, fraud detection, trustworthy AI">
+    <meta property="og:title" content="Lesson quiz | Open Fraud Labs">
+    <meta property="og:description" content="Check your understanding of each Data Science from Scratch lesson.">
+    <meta name="theme-color" content="#06111f">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261001c">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav-bar">
+            <a class="brand" href="/" aria-label="Open Fraud Labs homepage">
+                <img src="/assets/logo.png" alt="" aria-hidden="true">
+                <span class="brand-text">
+                    <strong>Open Fraud Labs</strong>
+                    <small>Applied AI Data Operations</small>
+                </span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="site-nav" aria-label="Primary navigation">
+                <ul class="nav-links">
+                    <li><a href="/#services">Services</a></li>
+                    <li><a href="/#approach">Approach</a></li>
+                    <li><a href="/#learn">Learn</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs" class="nav-link--button">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="section ofl-page ">
+            <div class="container ofl-narrow">
+                <div class="section-header section-heading">
+                    <p class="section-kicker">Lesson quiz</p>
+                    <h1><span id="quiz-title">Loading quiz…</span></h1>
+                    
+                </div>
+                <p class="ofl-muted" id="quiz-sub"></p>
+                <div id="msg"></div>
+                <form id="quiz-form" class="ofl-quiz" hidden></form>
+                <div id="quiz-result"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001c"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var course = OFL.qs('course') || 'data-science', lesson = parseInt(OFL.qs('lesson') || '1', 10);
+            var form = document.getElementById('quiz-form'), result = document.getElementById('quiz-result');
+
+            var l = await sb.from('lessons').select('title, released').eq('course_slug', course).eq('n', lesson).maybeSingle();
+            if (!l.data || !l.data.released) { document.getElementById('quiz-title').textContent = 'Quiz not available yet'; return OFL.notice(msg, 'This lesson hasn’t been released yet. Follow @_drhola on TikTok to catch it when it drops.', 'info'); }
+            document.getElementById('quiz-title').textContent = 'Lesson ' + lesson + ': ' + l.data.title;
+            var sub = document.getElementById('quiz-sub');
+            sub.appendChild(document.createTextNode('Score 70% or more to complete this lesson. Haven’t watched it yet? '));
+            sub.appendChild(el('a', { href: OFL.TIKTOK, target: '_blank', rel: 'noopener noreferrer', text: 'Watch on TikTok' }));
+            sub.appendChild(document.createTextNode(' (follow, like, share and comment!).'));
+
+            var user = await OFL.getUser();
+            if (!user) {
+                var box = el('div', { class: 'ofl-card card' },
+                    el('h2', { text: 'Log in to take this quiz' }),
+                    el('p', { text: 'A free account saves your progress and counts each passed quiz towards your certificate.' }),
+                    el('div', { class: 'ofl-actions' },
+                        el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Create free account' }),
+                        el('a', { class: 'btn btn-secondary', href: '/account/?mode=login&next=' + encodeURIComponent(location.pathname + location.search), text: 'Log in' })));
+                return msg.appendChild(box);
+            }
+
+            var q = await sb.from('quiz_questions').select('position, question, options').eq('course_slug', course).eq('lesson_n', lesson).order('position');
+            if (q.error || !q.data.length) return OFL.notice(msg, 'The quiz for this lesson is being prepared. Please check back soon.', 'info');
+            var prog = await sb.from('lesson_progress').select('best_score').eq('course_slug', course).eq('lesson_n', lesson).maybeSingle();
+            if (prog.data) OFL.notice(msg, 'You’ve already passed this quiz (best score ' + Math.round(prog.data.best_score * 100) + '%). You can take it again to practise.', 'success');
+
+            q.data.forEach(function (item, i) {
+                var fs = el('fieldset', { class: 'ofl-question card', 'data-q': i },
+                    el('legend', { text: (i + 1) + '. ' + item.question }));
+                item.options.forEach(function (opt, j) {
+                    fs.appendChild(el('label', { class: 'ofl-option' },
+                        el('input', { type: 'radio', name: 'q' + i, value: j, required: true }), el('span', { text: opt })));
+                });
+                fs.appendChild(el('p', { class: 'ofl-feedback', hidden: true }));
+                form.appendChild(fs);
+            });
+            var submitBtn = el('button', { class: 'btn btn-primary', type: 'submit', text: 'Submit answers' });
+            form.appendChild(submitBtn);
+            form.hidden = false;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var answers = q.data.map(function (_, i) { return parseInt(form['q' + i].value, 10); });
+                submitBtn.disabled = true;
+                var res = await sb.rpc('submit_quiz', { p_course: course, p_lesson: lesson, p_answers: answers });
+                submitBtn.disabled = false;
+                if (res.error) return OFL.notice(result, OFL.friendlyError(res.error), 'error');
+                var r = res.data, pct = Math.round(r.score * 100);
+                r.results.forEach(function (x, i) {
+                    var fs = form.querySelector('[data-q="' + i + '"]'), fb = fs.querySelector('.ofl-feedback');
+                    fs.classList.toggle('is-right', x.correct); fs.classList.toggle('is-wrong', !x.correct);
+                    fb.hidden = false;
+                    fb.textContent = x.correct ? 'Correct. ' + (x.explanation || '') :
+                        (r.passed ? 'The right answer was “' + q.data[i].options[x.correct_index] + '”. ' + (x.explanation || '') : 'Not quite. Review the lesson and try again.');
+                });
+                result.textContent = '';
+                submitBtn.hidden = true;
+                form.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
+                var actions = el('div', { class: 'ofl-actions' });
+                if (r.passed) {
+                    var nl = await sb.from('lessons').select('n, released').eq('course_slug', course).eq('n', lesson + 1).maybeSingle();
+                    if (nl.data && nl.data.released) actions.appendChild(el('a', { class: 'btn btn-primary', href: '/learn/quiz/?course=' + course + '&lesson=' + (lesson + 1), text: 'Next lesson quiz →' }));
+                    actions.appendChild(el('a', { class: 'btn btn-secondary', href: '/my-learning/', text: 'My Learning' }));
+                } else {
+                    actions.appendChild(el('button', { class: 'btn btn-primary', type: 'button', text: 'Try again', onclick: function () { location.reload(); } }));
+                    actions.appendChild(el('a', { class: 'btn btn-secondary', href: OFL.TIKTOK, target: '_blank', rel: 'noopener noreferrer', text: 'Rewatch on TikTok' }));
+                }
+                result.appendChild(el('div', { class: 'ofl-card card ofl-score ' + (r.passed ? 'is-pass' : 'is-fail') },
+                    el('h2', { text: (r.passed ? 'Passed! ' : 'Not passed yet: ') + pct + '% (' + r.correct + ' of ' + r.total + ')' }),
+                    el('p', { text: r.passed ? 'This lesson is now marked complete.' : 'You need 70% to pass. Answers are revealed once you pass.' }),
+                    actions));
+                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        })();
+    </script>
+    <script>
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+                navToggle.setAttribute('aria-expanded', String(!isOpen));
+                navLinks.classList.toggle('is-open', !isOpen);
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navLinks.classList.remove('is-open');
+                });
+            });
+        }
+    </script>
+
+
+    <footer class="site-footer">
+        <div class="container footer-top">
+            <div class="footer-brand">
+                <a class="brand footer-brand__link" href="/" aria-label="Open Fraud Labs homepage">
+                    <img src="/assets/logo.png" alt="" aria-hidden="true">
+                    <span class="brand-text">
+                        <strong>Open Fraud Labs</strong>
+                        <small>Applied AI Data Operations</small>
+                    </span>
+                </a>
+                <p>Building trustworthy AI through high-quality data operations, human evaluation and applied AI research.</p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="/#services">AI Data Operations</a></li>
+                    <li><a href="/#services">Human Evaluation</a></li>
+                    <li><a href="/#services">Trust &amp; Safety</a></li>
+                    <li><a href="/#services">Applied AI Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="/#approach">About</a></li>
+                    <li><a href="/#learn">Free Data Science Course</a></li>
+                    <li><a href="/#contact">Contact</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs/lab-docs">Documentation</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><span>Lagos, Nigeria</span></li>
+                    <li><a href="https://www.linkedin.com/company/open-fraud-labs/?viewAsMember=true">LinkedIn</a></li>
+                    <li><a href="https://github.com/OpenFraudLabs">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <div class="footer-bottom__links">
+                <a href="/privacy/">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>

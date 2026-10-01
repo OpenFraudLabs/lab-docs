@@ -16,7 +16,7 @@
     <meta property="og:title" content="Data Science from Scratch | Open Fraud Labs">
     <meta property="og:description" content="Free 90-second data science lessons, released daily on TikTok, with study notes and exercises.">
     <meta name="theme-color" content="#06111f">
-    <link rel="stylesheet" href="/assets/css/style.css?v=20261001b">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261001c">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -65,6 +65,17 @@
                     <p class="course-hero__meta" data-course-count>3 of 30 lessons released</p>
                 </div>
 
+                <div class="ofl-card card ofl-course-progress" id="my-progress">
+                    <div>
+                        <h2>Track your progress &amp; earn a certificate</h2>
+                        <p>Create a free account, pass the quiz after each lesson, complete the capstone project, and claim your Open Fraud Labs certificate of completion.</p>
+                    </div>
+                    <div class="ofl-actions">
+                        <a class="btn btn-primary" href="/account/?next=/learn/data-science/">Create free account</a>
+                        <a class="btn btn-secondary" href="/account/?mode=login&amp;next=/learn/data-science/">Log in</a>
+                    </div>
+                </div>
+
                 <div class="learn-cta card">
                     <p class="learn-cta__title">Before you watch, join the community on TikTok:</p>
                     <div class="learn-steps">
@@ -108,27 +119,30 @@
                     <div class="lesson-module">
                         <h3>Module 1 · Foundations</h3>
                         <ol class="lesson-list">
-                            <li class="lesson-row">
+                            <li class="lesson-row" data-lesson="1">
                                 <span class="lesson-row__num">01</span>
                                 <span class="lesson-row__title">What is data science, really?</span>
                                 <span class="lesson-row__actions">
                                     <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__quiz" href="/learn/quiz/?course=data-science&amp;lesson=1">Quiz</a>
                                     <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-01.md" target="_blank" rel="noopener noreferrer">Notes</a>
                                 </span>
                             </li>
-                            <li class="lesson-row">
+                            <li class="lesson-row" data-lesson="2">
                                 <span class="lesson-row__num">02</span>
                                 <span class="lesson-row__title">Types of data, and why they matter</span>
                                 <span class="lesson-row__actions">
                                     <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__quiz" href="/learn/quiz/?course=data-science&amp;lesson=2">Quiz</a>
                                     <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-02.md" target="_blank" rel="noopener noreferrer">Notes</a>
                                 </span>
                             </li>
-                            <li class="lesson-row">
+                            <li class="lesson-row" data-lesson="3">
                                 <span class="lesson-row__num">03</span>
                                 <span class="lesson-row__title">Your first dataset: rows, columns &amp; features</span>
                                 <span class="lesson-row__actions">
                                     <a class="lesson-row__watch" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Watch on TikTok</a>
+                                    <a class="lesson-row__quiz" href="/learn/quiz/?course=data-science&amp;lesson=3">Quiz</a>
                                     <a class="lesson-row__notes" href="https://github.com/Odugbile1993/openfraudlab-tiktok/blob/main/notes/lesson-03.md" target="_blank" rel="noopener noreferrer">Notes</a>
                                 </span>
                             </li>
@@ -291,6 +305,13 @@
                     </div>
                 </div>
 
+                <div class="ofl-card card ofl-capstone-card">
+                    <p class="section-kicker">Final step</p>
+                    <h3>Capstone project</h3>
+                    <p>Bring the course together in one small, real analysis of a public dataset. Once it&rsquo;s approved and every lesson quiz is passed, you can claim your certificate.</p>
+                    <a class="btn btn-secondary" href="/learn/capstone/?course=data-science">Read the capstone brief</a>
+                </div>
+
                 <div class="course-next card">
                     <h3>Coming next</h3>
                     <p>Full lesson videos right here on openfraudlabs.com, and live classes with Q&amp;A. Follow <a href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">@_drhola on TikTok</a> to hear first.</p>
@@ -323,11 +344,13 @@
                 }
                 var nn = (l.n < 10 ? '0' : '') + l.n;
                 var row = el('li', 'lesson-row' + (l.n < next ? '' : ' lesson-row--soon'));
+                row.setAttribute('data-lesson', l.n);
                 row.appendChild(el('span', 'lesson-row__num', nn));
                 row.appendChild(el('span', 'lesson-row__title', l.title));
                 var act = el('span', 'lesson-row__actions');
                 if (l.n < next) {
                     act.appendChild(link('lesson-row__watch', TIKTOK, 'Watch on TikTok'));
+                    var qz = el('a', 'lesson-row__quiz', 'Quiz'); qz.href = '/learn/quiz/?course=data-science&lesson=' + l.n; act.appendChild(qz);
                     act.appendChild(link('lesson-row__notes', NOTES + nn + '.md', 'Notes'));
                 } else {
                     act.appendChild(el('span', 'lesson-row__soon', 'Coming soon'));
@@ -335,7 +358,30 @@
                 row.appendChild(act);
                 list.appendChild(row);
             });
+            if (window.markProgress) window.markProgress();
         };
+    </script>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261001c"></script>
+    <script>
+        // Logged-in learners: show progress and tick passed lessons.
+        window.markProgress = async function () {
+            if (!window.OFL) return;
+            var user = await OFL.getUser(); if (!user) return;
+            var r = await OFL.sb.from('lesson_progress').select('lesson_n').eq('course_slug', 'data-science');
+            var done = {}; (r.data || []).forEach(function (x) { done[x.lesson_n] = true; });
+            document.querySelectorAll('.lesson-row[data-lesson]').forEach(function (row) {
+                var n = +row.getAttribute('data-lesson');
+                if (done[n]) { row.classList.add('is-done'); var q = row.querySelector('.lesson-row__quiz'); if (q) q.textContent = '✓ Passed'; }
+            });
+            var count = Object.keys(done).length, box = document.getElementById('my-progress');
+            var pct = Math.round(100 * count / 30);
+            box.textContent = '';
+            box.appendChild(OFL.el('div', {}, OFL.el('h2', { text: 'Your progress: ' + count + ' of 30 lessons' }),
+                OFL.el('div', { class: 'ofl-progress' }, OFL.el('span', { style: 'width:' + pct + '%' }))));
+            box.appendChild(OFL.el('div', { class: 'ofl-actions' }, OFL.el('a', { class: 'btn btn-primary', href: '/my-learning/', text: 'My Learning' })));
+        };
+        markProgress();
     </script>
     <script>
         // Keeps lesson counts and lists current from the course outline (new lessons are added daily).
@@ -425,7 +471,7 @@
         <div class="container footer-bottom">
             <p>© 2025 Open Fraud Labs. All rights reserved.</p>
             <div class="footer-bottom__links">
-                <a href="#">Privacy Policy</a>
+                <a href="/privacy/">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
             </div>
         </div>
