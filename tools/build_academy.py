@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001l"
+V = "20261001m"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -430,6 +430,7 @@ lesson_script = r"""        (async function () {
                     '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
             }
 
+            OFL.track('lesson_open', course, n);
             var act = (await sb.from('lesson_activity').select('*').eq('course_slug', course).eq('lesson_n', n).maybeSingle()).data || {};
             var passed = n in st.passed;
             var tabs = document.getElementById('tabs'); tabs.hidden = false;
@@ -572,7 +573,8 @@ lesson_script = r"""        (async function () {
             }
             function openLab() {
                 if (labMounted || !long) return; labMounted = true;
-                CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub });
+                CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub,
+                    onEvent: function (ev, ex) { OFL.track(ev, course, n, { exercise: ex }); } });
             }
             if (long) {
                 var exs = exercisesOf(long), dn = 0;
@@ -843,10 +845,132 @@ CACHE = "tools/.ported.json"
 PORTED = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
 PORTED = {k: tuple(v) for k, v in PORTED.items()}
 port("learn/capstone", "academy/capstone", "Capstone project | Open Fraud Labs Academy", "Brief and submission for the Data Science from Scratch capstone project.")
-port("admin", "academy/admin", "Admin | Open Fraud Labs Academy", "Academy admin.", noindex=True)
 port("account", "account", "Your account | Open Fraud Labs Academy", "Create a free Academy account or log in.", noindex=True)
 port("verify", "verify", "Verify a certificate | Open Fraud Labs Academy", "Check that an Open Fraud Labs Academy certificate is genuine.", active="verify")
 json.dump(PORTED, open(CACHE, "w"))
+
+# ============================================================== Admin (reports + capstone review)
+admin_main = """        <div class="ac-wrap ac-admin">
+            <div class="ac-dash-head">
+                <h1>Academy admin</h1>
+                <p class="ac-muted" id="admin-sub">Live figures from the learning database.</p>
+                <div id="msg"></div>
+            </div>
+            <div id="admin-body" hidden>
+                <div class="ac-kpis" id="kpis"></div>
+                <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
+                    <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
+                </section>
+                <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
+                    <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
+                    <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
+                </section>
+                <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Capstone reviews</h2></div>
+                    <div class="ofl-tabs" id="filters">
+                        <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
+                        <button type="button" class="ofl-tab" data-status="changes_requested">Changes requested</button>
+                        <button type="button" class="ofl-tab" data-status="approved">Approved</button>
+                    </div>
+                    <div id="subs"></div>
+                </section>
+            </div>
+        </div>"""
+
+admin_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
+            if (!(await OFL.isAdmin())) return OFL.notice(msg, 'This page is only for Open Fraud Labs admins.', 'error');
+            document.getElementById('admin-body').hidden = false;
+            function dt(v) { if (!v) return '—'; var d = new Date(v); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+            function pct(v) { return v == null ? '—' : Math.round(v * 100) + '%'; }
+
+            var ov = await sb.rpc('admin_overview');
+            if (ov.error) return OFL.notice(msg, OFL.friendlyError(ov.error), 'error');
+            var o = ov.data, k = document.getElementById('kpis');
+            [['Registered', o.registered, o.confirmed + ' confirmed email'], ['Signed terms', o.signed_terms, ''], ['Enrolled', o.enrolled, 'opened a lesson'],
+             ['Active, last 7 days', o.active_7d, o.logins_7d + ' log-ins'], ['Lessons passed', o.lessons_passed, ''], ['Quiz attempts', o.quiz_attempts, pct(o.quiz_pass_rate) + ' passed'],
+             ['Practice exercises solved', o.practice_solved, ''], ['Capstones waiting', o.capstones_waiting, ''], ['Certificates', o.certificates, '']]
+              .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1] == null ? 0 : x[1]) }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null)); });
+
+            var lr = await sb.rpc('admin_learners'), rows = lr.data || [];
+            var cols = [['full_name', 'Name'], ['email', 'Email'], ['registered_at', 'Registered'], ['last_sign_in_at', 'Last log-in'], ['enrolled_courses', 'Enrolled'],
+                        ['lessons_passed', 'Lessons passed'], ['avg_best_score', 'Avg quiz score'], ['quiz_attempts', 'Quiz attempts'], ['practice_solved', 'Practice solved'],
+                        ['last_activity_at', 'Last activity'], ['certificates', 'Certificates']];
+            function cell(r, c) {
+                var v = r[c];
+                if (/_at$/.test(c)) return dt(v);
+                if (c === 'avg_best_score') return pct(v);
+                if (c === 'full_name') return (v || '(no name)') + (r.terms_signed ? '' : ' · terms not signed') + (r.email_confirmed ? '' : ' · email not confirmed');
+                return v == null || v === '' ? '—' : String(v);
+            }
+            function drawLearners() {
+                var q = document.getElementById('q').value.trim().toLowerCase(), t = document.getElementById('learners'); t.textContent = '';
+                var hr = el('tr'); cols.forEach(function (c) { hr.appendChild(el('th', { text: c[1] })); }); t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody');
+                rows.filter(function (r) { return !q || ((r.full_name || '') + ' ' + (r.email || '')).toLowerCase().indexOf(q) >= 0; })
+                    .forEach(function (r) { var tr = el('tr'); cols.forEach(function (c) { tr.appendChild(el('td', { text: cell(r, c[0]) })); }); tb.appendChild(tr); });
+                if (!tb.children.length) tb.appendChild(el('tr', {}, el('td', { colspan: String(cols.length), text: 'No learners match.' })));
+                t.appendChild(tb);
+            }
+            document.getElementById('q').addEventListener('input', drawLearners); drawLearners();
+            document.getElementById('csv').addEventListener('click', function () {
+                function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+                var keys = ['full_name', 'email', 'registered_at', 'email_confirmed', 'terms_signed', 'last_sign_in_at', 'enrolled_courses', 'lessons_passed', 'avg_best_score', 'quiz_attempts', 'practice_solved', 'last_activity_at', 'certificates'];
+                var csv = [keys.join(',')].concat(rows.map(function (r) { return keys.map(function (c) { return esc(r[c]); }).join(','); })).join('\n');
+                var a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'academy-learners-' + new Date().toISOString().slice(0, 10) + '.csv' });
+                document.body.appendChild(a); a.click(); a.remove();
+            });
+
+            var fr = await sb.rpc('admin_lesson_funnel', { p_course: 'data-science' }), f = document.getElementById('funnel');
+            var fh = ['Lesson', 'Opened', 'Watched video', 'Read notes', 'Took quiz', 'Passed', 'Avg best score', 'Solved practice'];
+            var hr2 = el('tr'); fh.forEach(function (h) { hr2.appendChild(el('th', { text: h })); }); f.appendChild(el('thead', {}, hr2));
+            var fb = el('tbody');
+            (fr.data || []).filter(function (r) { return r.released; }).forEach(function (r) {
+                var tr = el('tr'); [r.lesson_n + '. ' + r.title, r.opened, r.video_done, r.notes_done, r.quiz_attempted, r.passed, pct(r.avg_best_score), r.practice_solvers]
+                    .forEach(function (v) { tr.appendChild(el('td', { text: String(v) })); }); fb.appendChild(tr);
+            });
+            f.appendChild(fb);
+
+            var status = 'submitted';
+            document.querySelectorAll('#filters .ofl-tab').forEach(function (t) {
+                t.addEventListener('click', function () {
+                    document.querySelectorAll('#filters .ofl-tab').forEach(function (x) { x.classList.remove('is-active'); });
+                    t.classList.add('is-active'); status = t.getAttribute('data-status'); load();
+                });
+            });
+            async function load() {
+                var box = document.getElementById('subs'); box.textContent = 'Loading…';
+                var r = await sb.from('capstone_submissions').select('*').eq('status', status).order('submitted_at', { ascending: true });
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                var names = {}; rows.forEach(function (x) { names[x.user_id] = x.full_name || x.email; });
+                box.textContent = '';
+                if (!r.data.length) return box.appendChild(el('p', { class: 'ac-muted', text: 'Nothing here.' }));
+                r.data.forEach(function (s) {
+                    var fbx = el('textarea', { rows: 3, placeholder: 'Feedback for the learner (required when requesting changes)' }); fbx.value = s.feedback || '';
+                    async function review(newStatus) {
+                        if (newStatus === 'changes_requested' && !fbx.value.trim()) return OFL.notice(msg, 'Please add feedback explaining what to change.', 'error');
+                        var u = await sb.from('capstone_submissions').update({ status: newStatus, feedback: fbx.value.trim(), reviewed_at: new Date().toISOString() }).eq('id', s.id);
+                        if (u.error) return OFL.notice(msg, OFL.friendlyError(u.error), 'error');
+                        OFL.notice(msg, 'Saved: ' + (names[s.user_id] || 'learner') + ' → ' + newStatus.replace('_', ' '), 'success'); load();
+                    }
+                    box.appendChild(el('article', { class: 'ofl-card card ofl-sub' },
+                        el('h3', { text: (names[s.user_id] || 'Learner') + ' · ' + s.course_slug }),
+                        el('p', { class: 'ac-muted', text: 'Submitted ' + OFL.formatDate(s.submitted_at) + (s.reviewed_at ? ' · reviewed ' + OFL.formatDate(s.reviewed_at) : '') }),
+                        el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })),
+                        el('p', { class: 'ofl-writeup', text: s.writeup }), fbx,
+                        el('div', { class: 'ofl-actions' },
+                            el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Approve', onclick: function () { review('approved'); } }),
+                            el('button', { class: 'ac-btn ac-btn--secondary', type: 'button', text: 'Request changes', onclick: function () { review('changes_requested'); } }))));
+                });
+            }
+            load();
+        })();"""
+
+page("academy/admin", "Admin | Open Fraud Labs Academy", "Academy admin.", admin_main, admin_script, noindex=True)
+
 
 # ============================================================== Redirects from old URLs
 redirect("learn/data-science", "location.replace('/academy/courses/data-science/');")

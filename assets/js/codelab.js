@@ -148,6 +148,7 @@
                 var py = await ready();
                 say('Running…');
                 var res = py.globals.get('_ofl_run')(ed.value, ns).toJs();
+                if (opts.onEvent) opts.onEvent('practice_run');
                 out.textContent = '';
                 if (res[0]) out.appendChild(el('pre', { class: 'lab-stdout', text: res[0] }));
                 if (res[1]) { var d = el('div', { class: 'lab-table' }); d.innerHTML = res[1]; out.appendChild(d); }
@@ -205,8 +206,9 @@
         }
         function open(i) {
             mount(inner, exercises[i], { course: opts.course, lesson: opts.lesson, ex: i ? String(i + 1) : '',
+                onEvent: function (ev) { if (opts.onEvent) opts.onEvent(ev, i + 1); },
                 label: 'Exercise ' + (i + 1) + ' of ' + exercises.length + ' · practice, not graded',
-                onPass: function () { store(base + i, '1'); paint(i); } });
+                onPass: function () { store(base + i, '1'); paint(i); if (opts.onEvent) opts.onEvent('practice_solved', i + 1); } });
             paint(i);
         }
         exercises.forEach(function (ex, i) {

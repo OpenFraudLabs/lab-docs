@@ -646,7 +646,7 @@ page("privacy", "Privacy Policy", "How Open Fraud Labs collects, uses and protec
                     <h2>What we collect</h2>
                     <ul>
                         <li><strong>Account details:</strong> your full name, email address and password (stored securely by our authentication provider; we never see your password).</li>
-                        <li><strong>Learning records:</strong> courses you take, quiz attempts and scores, lessons completed, capstone submissions (including the links and write-ups you provide) and reviewer feedback.</li>
+                        <li><strong>Learning records:</strong> courses you enrol in, when you log in, lessons you open, video and study-note progress, quiz attempts with your answers and scores, practice exercises you solve, lessons completed, capstone submissions (including the links and write-ups you provide) and reviewer feedback. Code you type in the practice lab runs in your browser and is not sent to us.</li>
                         <li><strong>Certificates:</strong> your name, course, issue date and certificate ID.</li>
                         <li><strong>Website analytics:</strong> this site uses Google Tag Manager, which may collect standard usage data such as pages visited and device information.</li>
                     </ul>

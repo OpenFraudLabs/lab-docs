@@ -85,10 +85,20 @@
         list.insertBefore(li, gh ? gh.parentNode : null);
     }
 
+    // Record genuine sign-ins (not page reloads) for the admin reports.
+    sb.auth.onAuthStateChange(function (event) {
+        if (event !== 'SIGNED_IN') return;
+        try { if (sessionStorage.getItem('ofl-login-logged')) return; sessionStorage.setItem('ofl-login-logged', '1'); } catch (e) {}
+        setTimeout(function () { sb.rpc('log_event', { p_event: 'login' }); }, 0);
+    });
+    function track(event, course, lesson, detail) {
+        return sb.rpc('log_event', { p_event: event, p_course: course || null, p_lesson: lesson || null, p_detail: detail || null }).then(function () {}, function () {});
+    }
+
     window.OFL = {
         sb: sb, el: el, qs: qs, notice: notice, friendlyError: friendlyError,
         getUser: getUser, requireUser: requireUser, isAdmin: isAdmin, formatDate: formatDate,
-        TIKTOK: TIKTOK
+        TIKTOK: TIKTOK, track: track
     };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', navAccount);

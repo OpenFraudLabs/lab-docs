@@ -485,3 +485,19 @@ a.ac-row:hover { background: #F5F7FB; }
 .ac-opt__mark { flex: none; width: 1.2rem; text-align: center; font-weight: 700; }
 .ac-opt.is-answer { color: var(--green-ink); font-weight: 600; }
 .ac-opt.is-chosen:not(.is-answer) { color: var(--red); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Admin reports */
+.ac-admin .ac-dash-head h1 { margin-bottom: 0.2rem; }
+.ac-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 0.75rem; margin: 1.25rem 0 2rem; }
+.ac-kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 0.9rem 1rem; display: grid; gap: 0.15rem; }
+.ac-kpi strong { font-size: 1.7rem; line-height: 1.1; }
+.ac-kpi span { font-weight: 600; font-size: 0.9rem; color: var(--ink-2); }
+.ac-kpi small { color: var(--ink-3); font-size: 0.8rem; }
+.ac-admin__sec { margin-bottom: 2.5rem; }
+.ac-admin__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; }
+.ac-admin__head h2 { margin: 0; font-size: 1.25rem; }
+.ac-admin__tools { display: flex; gap: 0.5rem; align-items: center; }
+.ac-admin__tools input { padding: 0.5rem 0.75rem; border: 1px solid var(--line-2); border-radius: var(--radius-s); font: 400 0.95rem var(--font); min-width: 220px; }
+.ac-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; background: var(--surface); }
+.ac-table th, .ac-table td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ac-table th { background: var(--paper); font-weight: 600; position: sticky; top: 0; }
+.ac-table tr:last-child td { border-bottom: 0; }
