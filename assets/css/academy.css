@@ -450,3 +450,13 @@ a.ac-row:hover { background: #F5F7FB; }
     .ac-watch--wide .ac-follow { grid-column: auto; grid-row: auto; }
     .lab-editor { font-size: 0.85rem; min-height: 240px; }
 }
+.lab-switch { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+.lab-pill { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line-2); background: var(--surface); border-radius: 999px; padding: 0.4rem 0.9rem 0.4rem 0.4rem; font: 500 0.92rem var(--font); color: var(--ink-2); cursor: pointer; }
+.lab-pill b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #EEF2F9; color: var(--blue); font-size: 0.82rem; }
+.lab-pill[aria-selected="true"] { border-color: var(--blue); color: var(--ink); background: var(--blue-wash); }
+.lab-pill.is-done b { background: var(--green); color: #fff; }
+.lab-solution { border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface); padding: 0.85rem 1rem; }
+.lab-solution p { margin: 0 0 0.5rem; color: var(--ink-2); }
+.lab-solution pre { margin: 0; background: #0F1724; color: #E6EDF7; padding: 0.85rem 1rem; border-radius: var(--radius-s); overflow-x: auto; font: 0.9rem/1.55 "IBM Plex Mono", ui-monospace, monospace; }
+@media (max-width: 760px) { .lab-pill span { display: none; } .lab-pill { padding-right: 0.4rem; } }
+.ac-btn[hidden], .lab-actions [hidden] { display: none !important; }

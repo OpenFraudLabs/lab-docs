@@ -95,12 +95,12 @@
 
     function mount(box, practice, opts) {
         var el = window.OFL.el;
-        var key = 'ofl-lab:' + opts.course + ':' + opts.lesson;
+        var key = 'ofl-lab:' + opts.course + ':' + opts.lesson + (opts.ex ? ':' + opts.ex : '');
         var ns = null, running = false;
         box.textContent = '';
 
         var task = el('div', { class: 'lab-task' },
-            el('span', { class: 'lab-eyebrow', text: 'Practice · not graded' }),
+            el('span', { class: 'lab-eyebrow', text: opts.label || 'Practice · not graded' }),
             el('h2', { text: practice.title }),
             el('p', { text: practice.prompt }));
         var ed = el('textarea', { class: 'lab-editor', spellcheck: 'false', autocapitalize: 'off', autocomplete: 'off', 'aria-label': 'Python code editor', rows: '14' });
@@ -108,6 +108,7 @@
         var runBtn = el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Run code' });
         var chkBtn = el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Check my answer' });
         var hintBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Hint' });
+        var solBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Show a solution', hidden: true });
         var resetBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Reset' });
         var colab = el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: COLAB + 'lesson-' + ('0' + opts.lesson).slice(-2) + '.ipynb', target: '_blank', rel: 'noopener noreferrer', text: 'Open in Colab' });
         var status = el('p', { class: 'lab-status', role: 'status' });
@@ -117,7 +118,7 @@
         box.appendChild(el('div', { class: 'lab-shell' },
             el('div', { class: 'lab-bar' }, el('span', { text: 'lesson.py' }), el('small', { text: 'Ctrl + Enter to run' })),
             ed));
-        box.appendChild(el('div', { class: 'lab-actions' }, runBtn, chkBtn, hintBtn, resetBtn, colab));
+        box.appendChild(el('div', { class: 'lab-actions' }, runBtn, chkBtn, hintBtn, solBtn, resetBtn, colab));
         box.appendChild(status);
         box.appendChild(verdict);
         box.appendChild(out);
@@ -165,6 +166,7 @@
                 verdict.textContent = '';
                 verdict.appendChild(el('div', { class: 'ofl-notice ofl-notice--' + (r[0] ? 'success' : 'info'), text: r[1] }));
                 if (r[0] && opts.onPass) opts.onPass();
+                if (!r[0]) solBtn.hidden = false;
                 say('');
             } catch (e) { say(e.message || String(e)); }
             busy(false);
@@ -172,11 +174,50 @@
         runBtn.addEventListener('click', run);
         chkBtn.addEventListener('click', check);
         hintBtn.addEventListener('click', function () { verdict.textContent = ''; verdict.appendChild(el('div', { class: 'ofl-notice ofl-notice--info', text: practice.hint })); });
+        solBtn.addEventListener('click', function () {
+            verdict.textContent = '';
+            verdict.appendChild(el('div', { class: 'lab-solution' },
+                el('p', { text: 'One way to solve it. Try typing it yourself rather than copying, then run it and check again.' }),
+                el('pre', { text: practice.solution })));
+        });
         resetBtn.addEventListener('click', function () {
             if (ed.value !== practice.starter && !window.confirm('Reset the editor to the starter code? Your changes will be lost.')) return;
             ed.value = practice.starter; store(key, ed.value); out.textContent = ''; verdict.textContent = ''; ns = null;
         });
     }
 
-    window.CODELAB = { mount: mount, DATA_URL: DATA_URL };
+    // Several exercises per lesson, with a switcher and progress kept on this device.
+    function mountSet(box, exercises, opts) {
+        var el = window.OFL.el, base = 'ofl-lab-done:' + opts.course + ':' + opts.lesson + ':';
+        box.textContent = '';
+        var bar = el('div', { class: 'lab-switch', role: 'tablist', 'aria-label': 'Exercises' });
+        var inner = el('div');
+        box.appendChild(bar); box.appendChild(inner);
+        function solved(i) { return store(base + i) === '1'; }
+        function count() { var c = 0; exercises.forEach(function (_, i) { if (solved(i)) c++; }); return c; }
+        var btns = [];
+        function paint(cur) {
+            btns.forEach(function (b, i) {
+                b.setAttribute('aria-selected', String(i === cur));
+                b.classList.toggle('is-done', solved(i));
+            });
+            if (opts.onProgress) opts.onProgress(count(), exercises.length);
+        }
+        function open(i) {
+            mount(inner, exercises[i], { course: opts.course, lesson: opts.lesson, ex: i ? String(i + 1) : '',
+                label: 'Exercise ' + (i + 1) + ' of ' + exercises.length + ' · practice, not graded',
+                onPass: function () { store(base + i, '1'); paint(i); } });
+            paint(i);
+        }
+        exercises.forEach(function (ex, i) {
+            var b = el('button', { class: 'lab-pill', type: 'button', role: 'tab' }, el('b', { text: String(i + 1) }), el('span', { text: ex.title }));
+            b.addEventListener('click', function () { open(i); });
+            btns.push(b); bar.appendChild(b);
+        });
+        var first = 0; while (first < exercises.length - 1 && solved(first)) first++;
+        open(first);
+        return { solved: count, total: exercises.length };
+    }
+
+    window.CODELAB = { mount: mount, mountSet: mountSet, DATA_URL: DATA_URL };
 })();

@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001f"
+V = "20261001h"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -18,7 +18,7 @@ def esc(t):
 
 curriculum = json.load(urllib.request.urlopen(RAW + "curriculum.json"))["lessons"]
 state = json.load(urllib.request.urlopen(RAW + "state.json"))
-released_n = state["next_lesson"] - 1
+released_n = state.get("academy_next", state["next_lesson"]) - 1
 
 def module_of(n):
     for lo, hi, name in MODULES:
@@ -84,7 +84,7 @@ FOOTER = f"""    <footer class="ac-footer">
         <div class="ac-wrap ac-footer__grid">
             <div>
                 <h3>Open Fraud Labs Academy</h3>
-                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
             </div>
             <div>
                 <h3>Learn</h3>
@@ -167,13 +167,13 @@ coming_html = "\n".join(f'<li><strong>{esc(t)}</strong><span>{esc(d)}</span><em>
 home_main = f"""        <section class="ac-hero">
             <div class="ac-wrap ac-hero__grid">
                 <div>
-                    <h1>Practical data skills, one short lesson at a time.</h1>
-                    <p class="ac-lead">Free courses from Open Fraud Labs. Watch a 90-second lesson, read the notes, pass the quiz, and work towards a certificate anyone can verify.</p>
+                    <h1>Practical data skills, one lesson at a time.</h1>
+                    <p class="ac-lead">Free courses from Open Fraud Labs. Watch a 10-minute lesson with real examples, read the notes, practise the code in your browser, pass the quiz, and work towards a certificate anyone can verify.</p>
                     <div class="ac-hero__actions">
                         <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/" id="hero-cta">Start Data Science from Scratch</a>
                         <a class="ac-btn ac-btn--secondary" href="#how">How it works</a>
                     </div>
-                    <p class="ac-hero__note">No experience needed. New lessons every day.</p>
+                    <p class="ac-hero__note">No experience needed. Nothing to install.</p>
                 </div>
                 <div class="ac-ledger" aria-label="Example of course progress">
 {static_ledger(curriculum, "Data Science from Scratch", limit=5, demo=True)}
@@ -203,8 +203,8 @@ home_main = f"""        <section class="ac-hero">
                     </div>
                     <div class="ac-feature__aside">
                         <dl>
-                            <dt>Lessons</dt><dd class="num">30, about 90 seconds each</dd>
-                            <dt>Each lesson</dt><dd>Video, study notes, quiz</dd>
+                            <dt>Lessons</dt><dd class="num">30 video lessons, about 10 minutes each</dd>
+                            <dt>Each lesson</dt><dd>Video, study notes, coding practice, quiz</dd>
                             <dt>Final step</dt><dd>Capstone project</dd>
                             <dt>Cost</dt><dd>Free</dd>
                             <dt>Certificate</dt><dd>Yes, with public verification</dd>
@@ -227,9 +227,9 @@ home_main = f"""        <section class="ac-hero">
                     <p>Every lesson follows the same path, and each step unlocks the next. It keeps learning honest, so a certificate means something.</p>
                 </div>
                 <ol class="ac-steps">
-                    <li><h3>Watch</h3><p>A focused 90-second video. It has to be watched to the end.</p></li>
-                    <li><h3>Read</h3><p>Study notes with the key ideas, an exercise and the full transcript.</p></li>
-                    <li><h3>Quiz</h3><p>Five questions. Score 70% to complete the lesson and unlock the next.</p></li>
+                    <li><h3>Watch</h3><p>A 10-minute video with worked examples in Python. It has to be watched to the end.</p></li>
+                    <li><h3>Read and practise</h3><p>Study notes, then short coding exercises that run in your browser with instant feedback.</p></li>
+                    <li><h3>Quiz</h3><p>A short quiz. Score 70% to complete the lesson and unlock the next.</p></li>
                     <li><h3>Capstone</h3><p>Analyse a real public dataset and submit it for review.</p></li>
                     <li><h3>Certificate</h3><p>Earn a certificate with an ID employers can check.</p></li>
                 </ol>
@@ -251,9 +251,9 @@ home_main = f"""        <section class="ac-hero">
         <section class="ac-section">
             <div class="ac-narrow ac-faq">
                 <h2>Questions</h2>
-                <details><summary>Is it really free?</summary><p>Yes. Courses, quizzes and certificates are free. You only need an account so we can save your progress.</p></details>
-                <details><summary>Do I need any experience?</summary><p>No. Data Science from Scratch starts from zero. Code is introduced gradually from Module 3.</p></details>
-                <details><summary>How long does a course take?</summary><p>Each lesson takes about five minutes including notes and quiz. New lessons are released daily, so most learners finish alongside the release schedule.</p></details>
+                <details><summary>Is it really free?</summary><p>Yes. Data Science from Scratch, its quizzes, practice and certificate are free. You only need an account so we can save your progress. If we add paid courses or features in future, we'll say clearly what's included before you sign up.</p></details>
+                <details><summary>Do I need any experience?</summary><p>No. Data Science from Scratch starts from zero. You'll see real Python from Lesson 1, explained line by line, and practise it in your browser. There's nothing to install.</p></details>
+                <details><summary>How long does a course take?</summary><p>Plan for about 30 minutes per lesson: a 10-minute video, the study notes, a few practice exercises and the quiz. You can stop and pick up where you left off at any time.</p></details>
                 <details><summary>Is the certificate accredited?</summary><p>It's a certificate of course completion from Open Fraud Labs, not an accredited academic qualification. Each one has a unique ID that anyone can check on our <a href="/verify/">verification page</a>.</p></details>
                 <details><summary>How is my data used?</summary><p>Only to run your account and track your learning. Read the <a href="/privacy/">Privacy Policy</a>.</p></details>
             </div>
@@ -269,7 +269,7 @@ home_script = r"""        (async function () {
         })();"""
 
 page("academy", "Open Fraud Labs Academy: free practical data courses",
-     "Free, beginner-friendly data courses from Open Fraud Labs: 90-second video lessons, study notes, quizzes and verifiable certificates.",
+     "Free, beginner-friendly data courses from Open Fraud Labs: video lessons with real Python, study notes, in-browser coding practice, quizzes and verifiable certificates.",
      home_main, home_script, active="courses")
 
 # ============================================================== Course overview
@@ -285,7 +285,7 @@ course_main = f"""        <section class="ac-course-hero">
                 <aside class="ac-facts">
                     <dl>
                         <dt>Lessons</dt><dd class="num">30 (<span data-released>{released_n}</span> released)</dd>
-                        <dt>Length</dt><dd>About 5 minutes per lesson</dd>
+                        <dt>Length</dt><dd>About 30 minutes per lesson, including practice</dd>
                         <dt>Level</dt><dd>Beginner</dd>
                         <dt>Cost</dt><dd>Free</dd>
                         <dt>Certificate</dt><dd>Certificate of completion</dd>
@@ -343,7 +343,7 @@ course_script = r"""        (async function () {
         })();"""
 
 page("academy/courses/data-science", "Data Science from Scratch | Open Fraud Labs Academy",
-     "A free beginner course: 30 short video lessons with study notes, quizzes, a capstone project and a verifiable certificate.",
+     "A free beginner course: 30 video lessons with study notes, in-browser coding practice, quizzes, a capstone project and a verifiable certificate.",
      course_main, course_script, active="courses")
 
 # ============================================================== Lesson player
@@ -359,7 +359,7 @@ lesson_main = """        <div class="ac-wrap ac-player">
                 <div class="ac-tabs" role="tablist" id="tabs" hidden>
                     <button class="ac-tab" role="tab" data-step="watch" aria-selected="true"><i>1</i><span>Watch<small id="tab-watch-sub">Video</small></span></button>
                     <button class="ac-tab" role="tab" data-step="read" aria-selected="false"><i>2</i><span>Read<small id="tab-read-sub">Study notes</small></span></button>
-                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">5 questions</small></span></button>
+                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">Pass mark 70%</small></span></button>
                     <button class="ac-tab ac-tab--lab" role="tab" data-step="lab" aria-selected="false" hidden><i>&lt;/&gt;</i><span>Practice<small id="tab-lab-sub">Code lab</small></span></button>
                 </div>
                 <div class="ac-panel" data-panel="watch" hidden>
@@ -435,7 +435,6 @@ lesson_script = r"""        (async function () {
             var tabs = document.getElementById('tabs'); tabs.hidden = false;
             // Long-form lessons (spec in longform/) add rich reading and a code lab.
             var nn = (n < 10 ? '0' : '') + n, labDone = false;
-            try { labDone = localStorage.getItem('ofl-lab-done:' + course + ':' + n) === '1'; } catch (e) {}
             var long = null;
             try { var lr = await fetch(A.RAW + 'longform/ds' + nn + '.json', { cache: 'no-cache' }); if (lr.ok) long = await lr.json(); } catch (e) {}
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
@@ -452,7 +451,7 @@ lesson_script = r"""        (async function () {
                 tabEls.quiz.classList.toggle('is-done', passed);
                 tabEls.lab.classList.toggle('is-done', !!labDone);
                 ['read', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
-                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : '5 questions';
+                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : 'Pass mark 70%';
             }
             function show(step) {
                 if (!unlocked(step)) return;
@@ -461,7 +460,7 @@ lesson_script = r"""        (async function () {
                 if (step === 'quiz') loadQuiz();
                 if (step === 'lab') openLab();
             }
-            if (long && long.practice) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
+            if (long && (long.exercises || long.practice)) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
             Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
             refreshTabs();
 
@@ -554,7 +553,7 @@ lesson_script = r"""        (async function () {
                 body.innerHTML = window.marked.parse(spec.reading); // our own course content, from the course repo
                 body.querySelectorAll('table').forEach(function (t) { var w = el('div', { class: 'ac-table-wrap' }); t.parentNode.insertBefore(w, t); w.appendChild(t); });
                 box.appendChild(body);
-                if (spec.practice) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: open the ', el('strong', { text: 'Practice' }), ' tab above to write and run the code yourself.'));
+                if (exercisesOf(spec).length) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: the ', el('strong', { text: 'Practice' }), ' tab has ' + exercisesOf(spec).length + ' short coding exercises on this lesson. Python runs right in the page, nothing to install.'));
                 var d = el('details', {}, el('summary', { text: 'Full transcript' }));
                 spec.chapters.forEach(function (c) {
                     d.appendChild(el('h3', { text: c.title }));
@@ -566,14 +565,20 @@ lesson_script = r"""        (async function () {
                 box.appendChild(d);
             }
             var labMounted = false;
-            function openLab() {
-                if (labMounted || !long || !long.practice) return; labMounted = true;
-                CODELAB.mount(document.getElementById('lab'), long.practice, { course: course, lesson: n, onPass: function () {
-                    labDone = true; try { localStorage.setItem('ofl-lab-done:' + course + ':' + n, '1'); } catch (e) {} refreshTabs();
-                    document.getElementById('tab-lab-sub').textContent = 'Solved';
-                } });
+            function exercisesOf(spec) { return spec.exercises || (spec.practice ? [spec.practice] : []); }
+            function labSub(done, total) {
+                document.getElementById('tab-lab-sub').textContent = done ? done + ' of ' + total + ' solved' : total + (total === 1 ? ' exercise' : ' exercises');
+                labDone = done === total; refreshTabs();
             }
-            if (labDone) document.getElementById('tab-lab-sub').textContent = 'Solved';
+            function openLab() {
+                if (labMounted || !long) return; labMounted = true;
+                CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub });
+            }
+            if (long) {
+                var exs = exercisesOf(long), dn = 0;
+                exs.forEach(function (_, i) { try { if (localStorage.getItem('ofl-lab-done:' + course + ':' + n + ':' + i) === '1') dn++; } catch (e) {} });
+                labSub(dn, exs.length);
+            }
             function renderNotes(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
                 var skip = { 'NEXT LESSON': 1, 'THANKS FOR WATCHING': 1, 'NEXT': 1 };

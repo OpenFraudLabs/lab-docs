@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001h">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -54,7 +54,7 @@
                 <div class="ac-tabs" role="tablist" id="tabs" hidden>
                     <button class="ac-tab" role="tab" data-step="watch" aria-selected="true"><i>1</i><span>Watch<small id="tab-watch-sub">Video</small></span></button>
                     <button class="ac-tab" role="tab" data-step="read" aria-selected="false"><i>2</i><span>Read<small id="tab-read-sub">Study notes</small></span></button>
-                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">5 questions</small></span></button>
+                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">Pass mark 70%</small></span></button>
                     <button class="ac-tab ac-tab--lab" role="tab" data-step="lab" aria-selected="false" hidden><i>&lt;/&gt;</i><span>Practice<small id="tab-lab-sub">Code lab</small></span></button>
                 </div>
                 <div class="ac-panel" data-panel="watch" hidden>
@@ -92,7 +92,7 @@
         <div class="ac-wrap ac-footer__grid">
             <div>
                 <h3>Open Fraud Labs Academy</h3>
-                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Short video lessons, study notes, quizzes and verifiable certificates.</p>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
             </div>
             <div>
                 <h3>Learn</h3>
@@ -116,10 +116,10 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261001f"></script>
-    <script src="/assets/js/academy.js?v=20261001f"></script>
+    <script src="/assets/js/learn.js?v=20261001h"></script>
+    <script src="/assets/js/academy.js?v=20261001h"></script>
     <script src="/assets/js/vendor/marked-18.0.14.js"></script>
-    <script src="/assets/js/codelab.js?v=20261001f"></script>
+    <script src="/assets/js/codelab.js?v=20261001h"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY;
@@ -163,7 +163,6 @@
             var tabs = document.getElementById('tabs'); tabs.hidden = false;
             // Long-form lessons (spec in longform/) add rich reading and a code lab.
             var nn = (n < 10 ? '0' : '') + n, labDone = false;
-            try { labDone = localStorage.getItem('ofl-lab-done:' + course + ':' + n) === '1'; } catch (e) {}
             var long = null;
             try { var lr = await fetch(A.RAW + 'longform/ds' + nn + '.json', { cache: 'no-cache' }); if (lr.ok) long = await lr.json(); } catch (e) {}
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
@@ -180,7 +179,7 @@
                 tabEls.quiz.classList.toggle('is-done', passed);
                 tabEls.lab.classList.toggle('is-done', !!labDone);
                 ['read', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
-                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : '5 questions';
+                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : 'Pass mark 70%';
             }
             function show(step) {
                 if (!unlocked(step)) return;
@@ -189,7 +188,7 @@
                 if (step === 'quiz') loadQuiz();
                 if (step === 'lab') openLab();
             }
-            if (long && long.practice) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
+            if (long && (long.exercises || long.practice)) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
             Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
             refreshTabs();
 
@@ -282,7 +281,7 @@
                 body.innerHTML = window.marked.parse(spec.reading); // our own course content, from the course repo
                 body.querySelectorAll('table').forEach(function (t) { var w = el('div', { class: 'ac-table-wrap' }); t.parentNode.insertBefore(w, t); w.appendChild(t); });
                 box.appendChild(body);
-                if (spec.practice) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: open the ', el('strong', { text: 'Practice' }), ' tab above to write and run the code yourself.'));
+                if (exercisesOf(spec).length) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: the ', el('strong', { text: 'Practice' }), ' tab has ' + exercisesOf(spec).length + ' short coding exercises on this lesson. Python runs right in the page, nothing to install.'));
                 var d = el('details', {}, el('summary', { text: 'Full transcript' }));
                 spec.chapters.forEach(function (c) {
                     d.appendChild(el('h3', { text: c.title }));
@@ -294,14 +293,20 @@
                 box.appendChild(d);
             }
             var labMounted = false;
-            function openLab() {
-                if (labMounted || !long || !long.practice) return; labMounted = true;
-                CODELAB.mount(document.getElementById('lab'), long.practice, { course: course, lesson: n, onPass: function () {
-                    labDone = true; try { localStorage.setItem('ofl-lab-done:' + course + ':' + n, '1'); } catch (e) {} refreshTabs();
-                    document.getElementById('tab-lab-sub').textContent = 'Solved';
-                } });
+            function exercisesOf(spec) { return spec.exercises || (spec.practice ? [spec.practice] : []); }
+            function labSub(done, total) {
+                document.getElementById('tab-lab-sub').textContent = done ? done + ' of ' + total + ' solved' : total + (total === 1 ? ' exercise' : ' exercises');
+                labDone = done === total; refreshTabs();
             }
-            if (labDone) document.getElementById('tab-lab-sub').textContent = 'Solved';
+            function openLab() {
+                if (labMounted || !long) return; labMounted = true;
+                CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub });
+            }
+            if (long) {
+                var exs = exercisesOf(long), dn = 0;
+                exs.forEach(function (_, i) { try { if (localStorage.getItem('ofl-lab-done:' + course + ':' + n + ':' + i) === '1') dn++; } catch (e) {} });
+                labSub(dn, exs.length);
+            }
             function renderNotes(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
                 var skip = { 'NEXT LESSON': 1, 'THANKS FOR WATCHING': 1, 'NEXT': 1 };
