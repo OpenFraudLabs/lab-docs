@@ -88,7 +88,13 @@
                     <label>GitHub repository link <input name="repo_url" type="url" required placeholder="https://github.com/you/your-project"></label>
                     <label>Write-up <small>(your question and what you found)</small>
                         <textarea name="writeup" rows="7" required minlength="50" maxlength="5000"></textarea></label>
-                    <button class="btn btn-primary" type="submit">Submit for review</button>
+                    <div class="ofl-sign">
+                        <p class="ofl-sign__title">Declaration of own work</p>
+                        <p class="ofl-muted">I confirm this project is my own work, that I have credited any code, data or ideas I used from others, and that I have followed the <a href="/terms/" target="_blank">Terms of Service</a>. Sign by typing your registered full name: <strong id="cap-name"></strong></p>
+                        <label>Signature (your full name) <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                        <p class="ofl-sign__status" aria-live="polite"></p>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Sign &amp; submit for review</button>
                 </form>
             </div>
         </section>
@@ -106,6 +112,22 @@
                 return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Log in to submit your capstone' }),
                     el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Create free account / Log in' }))));
             }
+            var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
+            if (!prof.terms_accepted_at) {
+                return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Please sign the Terms of Service first' }),
+                    el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Review & sign' }))));
+            }
+            document.getElementById('cap-name').textContent = prof.full_name;
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            var sigIn = form.signature, sigStatus = form.querySelector('.ofl-sign__status');
+            function sigOk() {
+                var ok = norm(sigIn.value) !== '' && norm(sigIn.value) === norm(prof.full_name);
+                sigIn.setCustomValidity(ok || !sigIn.value ? '' : 'Your signature must match your registered full name exactly.');
+                sigStatus.textContent = !sigIn.value ? '' : ok ? '\u2713 Signature matches your registered name' : 'Signature must match your registered name exactly';
+                sigStatus.className = 'ofl-sign__status ' + (!sigIn.value ? '' : ok ? 'is-ok' : 'is-bad');
+                return ok;
+            }
+            sigIn.addEventListener('input', sigOk);
             async function loadHistory() {
                 var r = await sb.from('capstone_submissions').select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course).order('submitted_at', { ascending: false });
                 hist.textContent = '';
@@ -123,8 +145,9 @@
             await loadHistory();
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                var btn = form.querySelector('button'); btn.disabled = true;
-                var res = await sb.from('capstone_submissions').insert({ user_id: user.id, course_slug: course, repo_url: form.repo_url.value.trim(), writeup: form.writeup.value.trim() });
+                if (!sigOk()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+                var res = await sb.from('capstone_submissions').insert({ user_id: user.id, course_slug: course, repo_url: form.repo_url.value.trim(), writeup: form.writeup.value.trim(), integrity_signature: sigIn.value.trim() });
                 btn.disabled = false;
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
                 form.reset();
@@ -200,10 +223,10 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <p>© 2026 Open Fraud Labs. All rights reserved.</p>
             <div class="footer-bottom__links">
                 <a href="/privacy/">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="/terms/">Terms of Service</a>
             </div>
         </div>
     </footer>

@@ -75,9 +75,16 @@ page("account", "Log in or create an account",
                         <label>Email <input name="email" type="email" required autocomplete="email"></label>
                         <label>Password <small>(at least 8 characters)</small>
                             <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
-                        <label class="ofl-check"><input type="checkbox" name="agree" required>
-                            <span>I agree to the <a href="/privacy/" target="_blank">Privacy Policy</a>.</span></label>
-                        <button class="btn btn-primary" type="submit">Create free account</button>
+                        <div class="ofl-sign">
+                            <p class="ofl-sign__title">Sign the Terms of Service</p>
+                            <p class="ofl-muted">Read the <a href="/terms/" target="_blank">Terms of Service</a> and <a href="/privacy/" target="_blank">Privacy Policy</a>. To sign, type your full name exactly as entered above.</p>
+                            <label>Signature (your full name)
+                                <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                            <p class="ofl-sign__status" aria-live="polite"></p>
+                            <label class="ofl-check"><input type="checkbox" name="agree" required>
+                                <span>I have read and agree to the Terms of Service and Privacy Policy, and I confirm I am at least 18 years old or have my parent or guardian’s permission.</span></label>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Sign &amp; create free account</button>
                     </form>
                     <form id="login-form" class="ofl-form" data-panel="login" hidden>
                         <label>Email <input name="email" type="email" required autocomplete="email"></label>
@@ -95,6 +102,14 @@ page("account", "Log in or create an account",
                     <h2>Set a new password</h2>
                     <label>New password <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
                     <button class="btn btn-primary" type="submit">Save new password</button>
+                </form>
+                <form id="terms-form" class="ofl-card card ofl-form" hidden>
+                    <h2>Please sign the Terms of Service</h2>
+                    <p class="ofl-muted">Before taking quizzes or submitting projects, read the <a href="/terms/" target="_blank">Terms of Service</a> and sign by typing your registered full name: <strong id="terms-name"></strong></p>
+                    <label>Signature (your full name) <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                    <p class="ofl-sign__status" aria-live="polite"></p>
+                    <label class="ofl-check"><input type="checkbox" name="agree" required><span>I have read and agree to the Terms of Service and Privacy Policy.</span></label>
+                    <button class="btn btn-primary" type="submit">Sign &amp; accept</button>
                 </form>
                 <div id="profile-box" class="ofl-card card" hidden>
                     <h2>Your profile</h2>
@@ -125,9 +140,32 @@ page("account", "Log in or create an account",
             async function renderProfile(user) {
                 authBox.hidden = true; profileBox.hidden = false;
                 document.getElementById('me-email').textContent = user.email;
-                var res = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-                document.querySelector('#profile-form [name=full_name]').value = (res.data && res.data.full_name) || '';
+                var res = await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle();
+                registeredName = (res.data && res.data.full_name) || '';
+                document.querySelector('#profile-form [name=full_name]').value = registeredName;
+                document.getElementById('terms-name').textContent = registeredName || '(add your name below first)';
+                document.getElementById('terms-form').hidden = !!(res.data && res.data.terms_accepted_at);
+                return res.data;
             }
+
+            var TERMS_VERSION = '2026-10-01';
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            function wireSignature(form, getName) {
+                var input = form.querySelector('.ofl-sign__input'), status = form.querySelector('.ofl-sign__status');
+                function check() {
+                    var ok = norm(input.value) !== '' && norm(input.value) === norm(getName());
+                    input.setCustomValidity(ok || !input.value ? '' : 'Your signature must match your full name exactly.');
+                    status.textContent = !input.value ? '' : ok ? '\u2713 Signature matches your name' : 'Signature must match your full name exactly';
+                    status.className = 'ofl-sign__status ' + (!input.value ? '' : ok ? 'is-ok' : 'is-bad');
+                    return ok;
+                }
+                input.addEventListener('input', check);
+                form.addEventListener('input', function (e) { if (e.target !== input && input.value) check(); });
+                return check;
+            }
+            var signupCheck = wireSignature(document.getElementById('signup-form'), function () { return document.querySelector('#signup-form [name=full_name]').value; });
+            var registeredName = '';
+            var termsCheck = wireSignature(document.getElementById('terms-form'), function () { return registeredName; });
 
             var recovering = /type=recovery/.test(location.hash) || OFL.qs('reset') === '1';
             sb.auth.onAuthStateChange(function (event) {
@@ -136,15 +174,20 @@ page("account", "Log in or create an account",
 
             var user = await OFL.getUser();
             if (recovering && user) { resetForm.hidden = false; }
-            else if (user) { if (OFL.qs('next')) { location.href = next; return; } renderProfile(user); }
+            else if (user) {
+                var prof = await renderProfile(user);
+                if (OFL.qs('next') && prof && prof.terms_accepted_at) { location.href = next; return; }
+            }
             else { authBox.hidden = false; if (OFL.qs('mode') === 'login') show('login'); }
 
             document.getElementById('signup-form').addEventListener('submit', async function (e) {
                 e.preventDefault();
-                var f = e.target, btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+                var f = e.target;
+                if (!signupCheck()) return OFL.notice(msg, 'Your signature must match your full name exactly.', 'error');
+                var btn = f.querySelector('button[type=submit]'); btn.disabled = true;
                 var res = await sb.auth.signUp({
                     email: f.email.value.trim(), password: f.password.value,
-                    options: { data: { full_name: f.full_name.value.trim() }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
+                    options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.signature.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
                 });
                 btn.disabled = false;
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
@@ -177,6 +220,16 @@ page("account", "Log in or create an account",
                 resetForm.hidden = true;
                 OFL.notice(msg, 'Your password has been updated.', 'success');
                 renderProfile((await sb.auth.getUser()).data.user);
+            });
+
+            document.getElementById('terms-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (!termsCheck()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var res = await sb.rpc('accept_terms', { p_version: TERMS_VERSION, p_signature: e.target.signature.value.trim() });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                e.target.hidden = true;
+                OFL.notice(msg, 'Thank you. Your signed acceptance has been recorded.', 'success');
+                if (OFL.qs('next')) location.href = next;
             });
 
             document.getElementById('profile-form').addEventListener('submit', async function (e) {
@@ -222,6 +275,12 @@ page("learn/quiz", "Lesson quiz", "Check your understanding of each Data Science
                 return msg.appendChild(box);
             }
 
+            var tp = await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle();
+            if (!tp.data || !tp.data.terms_accepted_at) {
+                return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Please sign the Terms of Service first' }),
+                    el('p', { text: 'It only takes a moment: type your registered full name to sign.' }),
+                    el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Review & sign' }))));
+            }
             var q = await sb.from('quiz_questions').select('position, question, options').eq('course_slug', course).eq('lesson_n', lesson).order('position');
             if (q.error || !q.data.length) return OFL.notice(msg, 'The quiz for this lesson is being prepared. Please check back soon.', 'info');
             var prog = await sb.from('lesson_progress').select('best_score').eq('course_slug', course).eq('lesson_n', lesson).maybeSingle();
@@ -307,7 +366,13 @@ page("learn/capstone", "Capstone project: Data Science from Scratch",
                     <label>GitHub repository link <input name="repo_url" type="url" required placeholder="https://github.com/you/your-project"></label>
                     <label>Write-up <small>(your question and what you found)</small>
                         <textarea name="writeup" rows="7" required minlength="50" maxlength="5000"></textarea></label>
-                    <button class="btn btn-primary" type="submit">Submit for review</button>
+                    <div class="ofl-sign">
+                        <p class="ofl-sign__title">Declaration of own work</p>
+                        <p class="ofl-muted">I confirm this project is my own work, that I have credited any code, data or ideas I used from others, and that I have followed the <a href="/terms/" target="_blank">Terms of Service</a>. Sign by typing your registered full name: <strong id="cap-name"></strong></p>
+                        <label>Signature (your full name) <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                        <p class="ofl-sign__status" aria-live="polite"></p>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Sign &amp; submit for review</button>
                 </form>'''),
      r'''        (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -318,6 +383,22 @@ page("learn/capstone", "Capstone project: Data Science from Scratch",
                 return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Log in to submit your capstone' }),
                     el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Create free account / Log in' }))));
             }
+            var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
+            if (!prof.terms_accepted_at) {
+                return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Please sign the Terms of Service first' }),
+                    el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Review & sign' }))));
+            }
+            document.getElementById('cap-name').textContent = prof.full_name;
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            var sigIn = form.signature, sigStatus = form.querySelector('.ofl-sign__status');
+            function sigOk() {
+                var ok = norm(sigIn.value) !== '' && norm(sigIn.value) === norm(prof.full_name);
+                sigIn.setCustomValidity(ok || !sigIn.value ? '' : 'Your signature must match your registered full name exactly.');
+                sigStatus.textContent = !sigIn.value ? '' : ok ? '\u2713 Signature matches your registered name' : 'Signature must match your registered name exactly';
+                sigStatus.className = 'ofl-sign__status ' + (!sigIn.value ? '' : ok ? 'is-ok' : 'is-bad');
+                return ok;
+            }
+            sigIn.addEventListener('input', sigOk);
             async function loadHistory() {
                 var r = await sb.from('capstone_submissions').select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course).order('submitted_at', { ascending: false });
                 hist.textContent = '';
@@ -335,8 +416,9 @@ page("learn/capstone", "Capstone project: Data Science from Scratch",
             await loadHistory();
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                var btn = form.querySelector('button'); btn.disabled = true;
-                var res = await sb.from('capstone_submissions').insert({ user_id: user.id, course_slug: course, repo_url: form.repo_url.value.trim(), writeup: form.writeup.value.trim() });
+                if (!sigOk()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+                var res = await sb.from('capstone_submissions').insert({ user_id: user.id, course_slug: course, repo_url: form.repo_url.value.trim(), writeup: form.writeup.value.trim(), integrity_signature: sigIn.value.trim() });
                 btn.disabled = false;
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
                 form.reset();
@@ -354,7 +436,7 @@ page("my-learning", "My Learning", "Your courses, progress, capstone and certifi
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), box = document.getElementById('courses');
             var user = await OFL.requireUser('/my-learning/'); if (!user) return;
             var results = await Promise.all([
-                sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+                sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle(),
                 sb.from('courses').select('slug, title, total_lessons').eq('status', 'live'),
                 sb.from('lessons').select('course_slug, n, title, released').order('n'),
                 sb.from('lesson_progress').select('course_slug, lesson_n, best_score'),
@@ -366,6 +448,9 @@ page("my-learning", "My Learning", "Your courses, progress, capstone and certifi
             var name = profile && profile.full_name;
             document.getElementById('hello').textContent = name ? 'Welcome back, ' + name.split(' ')[0] : 'My Learning';
             if (!name) OFL.notice(msg, 'Add your full name in your account settings so it can appear on your certificate.', 'info');
+            if (profile && !profile.terms_accepted_at) {
+                msg.appendChild(OFL.el('div', { class: 'ofl-notice ofl-notice--info' }, 'Please ', OFL.el('a', { href: '/account/?next=/my-learning/', text: 'sign the Terms of Service' }), ' before taking quizzes.'));
+            }
 
             courses.forEach(function (c) {
                 var cl = lessons.filter(function (l) { return l.course_slug === c.slug; });
@@ -589,4 +674,73 @@ page("privacy", "Privacy Policy", "How Open Fraud Labs collects, uses and protec
                     <p>Data is sent over encrypted connections, and database access rules ensure each learner can only see their own records.</p>
                     <h2>Changes</h2>
                     <p>We may update this policy and will change the date above when we do.</p>
+                </div>'''))
+
+# ------------------------------------------------------------------ terms
+page("terms", "Terms of Service", "The terms that apply to Open Fraud Labs courses, accounts, quizzes, capstone projects and certificates.",
+     shell("Legal", "Terms of Service", "Version 2026-10-01 · Effective 1 October 2026",
+           '''                <div class="ofl-card card ofl-prose">
+                    <p>These Terms of Service (“Terms”) govern your use of the learning services at openfraudlabs.com, including courses, lessons, quizzes, capstone projects and certificates (the “Services”), provided by Open Fraud Labs, Lagos, Nigeria (“Open Fraud Labs”, “we”, “us”). Please read them carefully.</p>
+
+                    <h2>1. Agreement and electronic signature</h2>
+                    <p>By creating an account you agree to these Terms and our <a href="/privacy/">Privacy Policy</a>. You sign these Terms electronically by typing your full name, which must match the name you register with. Your typed name is your electronic signature and has the same effect as a handwritten signature. We keep a record of your signature, the Terms version and the date and time you signed.</p>
+
+                    <h2>2. Eligibility</h2>
+                    <p>You must be at least 18 years old, or have the permission of a parent or legal guardian who agrees to these Terms on your behalf.</p>
+
+                    <h2>3. Your account</h2>
+                    <ul>
+                        <li>Register under your <strong>real full legal name</strong>. It is the name that appears on any certificate you earn, and each account is for one person only.</li>
+                        <li>Keep your login details secure. You are responsible for activity on your account.</li>
+                        <li>Keep your details accurate. If your name changes, update it in your account before claiming a certificate.</li>
+                    </ul>
+
+                    <h2>4. The courses</h2>
+                    <p>Courses are currently free. Lessons are released over time, and we may update, reorder, pause or retire course content. Lessons are educational and general in nature; they are not professional, financial or legal advice.</p>
+
+                    <h2>5. Academic integrity</h2>
+                    <ul>
+                        <li>Quizzes and capstone projects must be your own work.</li>
+                        <li>Do not share quiz answers, complete work for another learner, use another person’s account, or submit work you did not create without clear credit.</li>
+                        <li>When you submit a capstone project you sign a declaration that it is your own work.</li>
+                        <li>If we find a breach, we may reset progress, reject submissions, revoke certificates and suspend or close accounts.</li>
+                    </ul>
+
+                    <h2>6. Certificates</h2>
+                    <ul>
+                        <li>A certificate is issued when you pass every lesson quiz in a course and your capstone project is approved.</li>
+                        <li>Certificates are <strong>certificates of course completion</strong> from Open Fraud Labs. They are not accredited academic or professional qualifications.</li>
+                        <li>Each certificate has a unique ID. Anyone with the ID can confirm your name, the course and the issue date on our verification page.</li>
+                        <li>We may revoke a certificate obtained through false information or a breach of these Terms.</li>
+                    </ul>
+
+                    <h2>7. Your content</h2>
+                    <p>You keep ownership of the projects and write-ups you submit. You give Open Fraud Labs permission to store, review and assess them, and to keep records of them for verifying certificates. We will not publish your work without asking you first.</p>
+
+                    <h2>8. Our content</h2>
+                    <p>Lessons, videos, quizzes, study notes and other course materials belong to Open Fraud Labs or its licensors. You may use them for your own personal, non-commercial learning. Do not copy, resell or republish them without permission. Course videos are also published on TikTok and are subject to TikTok’s own terms.</p>
+
+                    <h2>9. Acceptable use</h2>
+                    <p>Do not misuse the Services: no attempts to access other people’s accounts or data, interfere with the website, scrape quizzes or answers, upload harmful code, or use the Services for anything unlawful, harassing or misleading.</p>
+
+                    <h2>10. Third-party services</h2>
+                    <p>The Services link to and rely on third parties such as TikTok, GitHub and our hosting providers. We are not responsible for their content, availability or terms.</p>
+
+                    <h2>11. Disclaimer</h2>
+                    <p>The Services are provided “as is” and “as available”. We work to keep content accurate and the website running, but we do not guarantee that the Services will be uninterrupted or error-free, or that completing a course will lead to any job, admission or other outcome.</p>
+
+                    <h2>12. Limitation of liability</h2>
+                    <p>To the extent permitted by law, Open Fraud Labs is not liable for indirect or consequential losses arising from your use of the free Services. Nothing in these Terms limits any liability that cannot be limited by law.</p>
+
+                    <h2>13. Ending your account</h2>
+                    <p>You can stop using the Services and ask us to delete your account at any time by emailing <a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a>. If your account is deleted, your certificates can no longer be verified. We may suspend or close accounts that breach these Terms.</p>
+
+                    <h2>14. Changes to these Terms</h2>
+                    <p>We may update these Terms. When we make important changes, we will update the version and date above and may ask you to sign the new version before you continue using the Services.</p>
+
+                    <h2>15. Governing law</h2>
+                    <p>These Terms are governed by the laws of the Federal Republic of Nigeria. Disputes will be handled by the courts of Lagos State, Nigeria, unless the law requires otherwise.</p>
+
+                    <h2>16. Contact</h2>
+                    <p>Questions about these Terms: <a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a>.</p>
                 </div>'''))

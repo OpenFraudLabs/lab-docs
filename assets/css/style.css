@@ -2304,3 +2304,12 @@ img {
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .ofl-noprint, .site-header, .site-footer { display: none !important; }
 }
+
+/* Electronic signature */
+.ofl-sign { display: grid; gap: 0.75rem; padding: 1.25rem; border: 1px dashed rgba(37, 99, 235, 0.35); border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.03); }
+.ofl-sign__title { margin: 0; font-weight: 700; color: var(--text); }
+.ofl-sign .ofl-muted { margin: 0; }
+.ofl-sign__input { font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive; font-size: 1.35rem !important; }
+.ofl-sign__status { margin: 0; font-size: 0.88rem; font-weight: 600; min-height: 1.2em; }
+.ofl-sign__status.is-ok { color: #047857; }
+.ofl-sign__status.is-bad { color: #b91c1c; }

@@ -75,9 +75,16 @@
                         <label>Email <input name="email" type="email" required autocomplete="email"></label>
                         <label>Password <small>(at least 8 characters)</small>
                             <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
-                        <label class="ofl-check"><input type="checkbox" name="agree" required>
-                            <span>I agree to the <a href="/privacy/" target="_blank">Privacy Policy</a>.</span></label>
-                        <button class="btn btn-primary" type="submit">Create free account</button>
+                        <div class="ofl-sign">
+                            <p class="ofl-sign__title">Sign the Terms of Service</p>
+                            <p class="ofl-muted">Read the <a href="/terms/" target="_blank">Terms of Service</a> and <a href="/privacy/" target="_blank">Privacy Policy</a>. To sign, type your full name exactly as entered above.</p>
+                            <label>Signature (your full name)
+                                <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                            <p class="ofl-sign__status" aria-live="polite"></p>
+                            <label class="ofl-check"><input type="checkbox" name="agree" required>
+                                <span>I have read and agree to the Terms of Service and Privacy Policy, and I confirm I am at least 18 years old or have my parent or guardian’s permission.</span></label>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Sign &amp; create free account</button>
                     </form>
                     <form id="login-form" class="ofl-form" data-panel="login" hidden>
                         <label>Email <input name="email" type="email" required autocomplete="email"></label>
@@ -95,6 +102,14 @@
                     <h2>Set a new password</h2>
                     <label>New password <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
                     <button class="btn btn-primary" type="submit">Save new password</button>
+                </form>
+                <form id="terms-form" class="ofl-card card ofl-form" hidden>
+                    <h2>Please sign the Terms of Service</h2>
+                    <p class="ofl-muted">Before taking quizzes or submitting projects, read the <a href="/terms/" target="_blank">Terms of Service</a> and sign by typing your registered full name: <strong id="terms-name"></strong></p>
+                    <label>Signature (your full name) <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                    <p class="ofl-sign__status" aria-live="polite"></p>
+                    <label class="ofl-check"><input type="checkbox" name="agree" required><span>I have read and agree to the Terms of Service and Privacy Policy.</span></label>
+                    <button class="btn btn-primary" type="submit">Sign &amp; accept</button>
                 </form>
                 <div id="profile-box" class="ofl-card card" hidden>
                     <h2>Your profile</h2>
@@ -132,9 +147,32 @@
             async function renderProfile(user) {
                 authBox.hidden = true; profileBox.hidden = false;
                 document.getElementById('me-email').textContent = user.email;
-                var res = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-                document.querySelector('#profile-form [name=full_name]').value = (res.data && res.data.full_name) || '';
+                var res = await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle();
+                registeredName = (res.data && res.data.full_name) || '';
+                document.querySelector('#profile-form [name=full_name]').value = registeredName;
+                document.getElementById('terms-name').textContent = registeredName || '(add your name below first)';
+                document.getElementById('terms-form').hidden = !!(res.data && res.data.terms_accepted_at);
+                return res.data;
             }
+
+            var TERMS_VERSION = '2026-10-01';
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            function wireSignature(form, getName) {
+                var input = form.querySelector('.ofl-sign__input'), status = form.querySelector('.ofl-sign__status');
+                function check() {
+                    var ok = norm(input.value) !== '' && norm(input.value) === norm(getName());
+                    input.setCustomValidity(ok || !input.value ? '' : 'Your signature must match your full name exactly.');
+                    status.textContent = !input.value ? '' : ok ? '\u2713 Signature matches your name' : 'Signature must match your full name exactly';
+                    status.className = 'ofl-sign__status ' + (!input.value ? '' : ok ? 'is-ok' : 'is-bad');
+                    return ok;
+                }
+                input.addEventListener('input', check);
+                form.addEventListener('input', function (e) { if (e.target !== input && input.value) check(); });
+                return check;
+            }
+            var signupCheck = wireSignature(document.getElementById('signup-form'), function () { return document.querySelector('#signup-form [name=full_name]').value; });
+            var registeredName = '';
+            var termsCheck = wireSignature(document.getElementById('terms-form'), function () { return registeredName; });
 
             var recovering = /type=recovery/.test(location.hash) || OFL.qs('reset') === '1';
             sb.auth.onAuthStateChange(function (event) {
@@ -143,15 +181,20 @@
 
             var user = await OFL.getUser();
             if (recovering && user) { resetForm.hidden = false; }
-            else if (user) { if (OFL.qs('next')) { location.href = next; return; } renderProfile(user); }
+            else if (user) {
+                var prof = await renderProfile(user);
+                if (OFL.qs('next') && prof && prof.terms_accepted_at) { location.href = next; return; }
+            }
             else { authBox.hidden = false; if (OFL.qs('mode') === 'login') show('login'); }
 
             document.getElementById('signup-form').addEventListener('submit', async function (e) {
                 e.preventDefault();
-                var f = e.target, btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+                var f = e.target;
+                if (!signupCheck()) return OFL.notice(msg, 'Your signature must match your full name exactly.', 'error');
+                var btn = f.querySelector('button[type=submit]'); btn.disabled = true;
                 var res = await sb.auth.signUp({
                     email: f.email.value.trim(), password: f.password.value,
-                    options: { data: { full_name: f.full_name.value.trim() }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
+                    options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.signature.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
                 });
                 btn.disabled = false;
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
@@ -184,6 +227,16 @@
                 resetForm.hidden = true;
                 OFL.notice(msg, 'Your password has been updated.', 'success');
                 renderProfile((await sb.auth.getUser()).data.user);
+            });
+
+            document.getElementById('terms-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (!termsCheck()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var res = await sb.rpc('accept_terms', { p_version: TERMS_VERSION, p_signature: e.target.signature.value.trim() });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                e.target.hidden = true;
+                OFL.notice(msg, 'Thank you. Your signed acceptance has been recorded.', 'success');
+                if (OFL.qs('next')) location.href = next;
             });
 
             document.getElementById('profile-form').addEventListener('submit', async function (e) {
@@ -265,10 +318,10 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <p>© 2026 Open Fraud Labs. All rights reserved.</p>
             <div class="footer-bottom__links">
                 <a href="/privacy/">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="/terms/">Terms of Service</a>
             </div>
         </div>
     </footer>

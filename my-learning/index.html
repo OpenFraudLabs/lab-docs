@@ -76,7 +76,7 @@
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), box = document.getElementById('courses');
             var user = await OFL.requireUser('/my-learning/'); if (!user) return;
             var results = await Promise.all([
-                sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+                sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle(),
                 sb.from('courses').select('slug, title, total_lessons').eq('status', 'live'),
                 sb.from('lessons').select('course_slug, n, title, released').order('n'),
                 sb.from('lesson_progress').select('course_slug, lesson_n, best_score'),
@@ -88,6 +88,9 @@
             var name = profile && profile.full_name;
             document.getElementById('hello').textContent = name ? 'Welcome back, ' + name.split(' ')[0] : 'My Learning';
             if (!name) OFL.notice(msg, 'Add your full name in your account settings so it can appear on your certificate.', 'info');
+            if (profile && !profile.terms_accepted_at) {
+                msg.appendChild(OFL.el('div', { class: 'ofl-notice ofl-notice--info' }, 'Please ', OFL.el('a', { href: '/account/?next=/my-learning/', text: 'sign the Terms of Service' }), ' before taking quizzes.'));
+            }
 
             courses.forEach(function (c) {
                 var cl = lessons.filter(function (l) { return l.course_slug === c.slug; });
@@ -203,10 +206,10 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <p>© 2026 Open Fraud Labs. All rights reserved.</p>
             <div class="footer-bottom__links">
                 <a href="/privacy/">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="/terms/">Terms of Service</a>
             </div>
         </div>
     </footer>

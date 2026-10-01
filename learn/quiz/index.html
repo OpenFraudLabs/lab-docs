@@ -97,6 +97,12 @@
                 return msg.appendChild(box);
             }
 
+            var tp = await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle();
+            if (!tp.data || !tp.data.terms_accepted_at) {
+                return msg.appendChild(el('div', { class: 'ofl-card card' }, el('h2', { text: 'Please sign the Terms of Service first' }),
+                    el('p', { text: 'It only takes a moment: type your registered full name to sign.' }),
+                    el('div', { class: 'ofl-actions' }, el('a', { class: 'btn btn-primary', href: '/account/?next=' + encodeURIComponent(location.pathname + location.search), text: 'Review & sign' }))));
+            }
             var q = await sb.from('quiz_questions').select('position, question, options').eq('course_slug', course).eq('lesson_n', lesson).order('position');
             if (q.error || !q.data.length) return OFL.notice(msg, 'The quiz for this lesson is being prepared. Please check back soon.', 'info');
             var prog = await sb.from('lesson_progress').select('best_score').eq('course_slug', course).eq('lesson_n', lesson).maybeSingle();
@@ -218,10 +224,10 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>© 2025 Open Fraud Labs. All rights reserved.</p>
+            <p>© 2026 Open Fraud Labs. All rights reserved.</p>
             <div class="footer-bottom__links">
                 <a href="/privacy/">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="/terms/">Terms of Service</a>
             </div>
         </div>
     </footer>
