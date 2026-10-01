@@ -476,3 +476,12 @@ a.ac-row:hover { background: #F5F7FB; }
     .ac-account .ac-btn--sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; min-height: 36px; }
 }
 @media (max-width: 420px) { .ac-account .ac-btn--ghost { display: none; } }
+/* Saved quiz review */
+.ac-review .ac-result { margin-bottom: 1rem; }
+.ac-review .ac-q { margin-bottom: 0.85rem; }
+.ac-q__title { font-weight: 600; margin: 0 0 0.5rem; }
+.ac-opt.is-static { cursor: default; }
+.ac-opt.is-static:hover { background: transparent; border-color: transparent; }
+.ac-opt__mark { flex: none; width: 1.2rem; text-align: center; font-weight: 700; }
+.ac-opt.is-answer { color: var(--green-ink); font-weight: 600; }
+.ac-opt.is-chosen:not(.is-answer) { color: var(--red); text-decoration: line-through; text-decoration-thickness: 1px; }

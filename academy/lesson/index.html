@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001k">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261001l">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -116,10 +116,10 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261001k"></script>
-    <script src="/assets/js/academy.js?v=20261001k"></script>
+    <script src="/assets/js/learn.js?v=20261001l"></script>
+    <script src="/assets/js/academy.js?v=20261001l"></script>
     <script src="/assets/js/vendor/marked-18.0.14.js"></script>
-    <script src="/assets/js/codelab.js?v=20261001k"></script>
+    <script src="/assets/js/codelab.js?v=20261001l"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY;
@@ -350,6 +350,11 @@
                 var q = await sb.from('quiz_questions').select('position, question, options').eq('course_slug', course).eq('lesson_n', n).order('position');
                 qs = q.data || [];
                 if (!qs.length) { waitBox.appendChild(el('p', { class: 'ac-muted', text: 'The quiz for this lesson is being prepared. Please check back soon.' })); return; }
+                if (passed) {
+                    var best = (await sb.from('quiz_attempts').select('score, answers, results, created_at').eq('course_slug', course).eq('lesson_n', n)
+                        .eq('passed', true).order('score', { ascending: false }).order('created_at', { ascending: false }).limit(1)).data;
+                    return showPassed(best && best[0]);
+                }
                 var last = (await sb.from('quiz_attempts').select('passed, created_at').eq('course_slug', course).eq('lesson_n', n).order('created_at', { ascending: false }).limit(1)).data;
                 if (last && last[0] && !last[0].passed) {
                     var left = 600 - (Date.now() - new Date(last[0].created_at).getTime()) / 1000;
@@ -357,15 +362,47 @@
                 }
                 buildQuiz();
             }
+            // A passed quiz stays on record: show the learner's best passing attempt, answer by answer.
+            function showPassed(att) {
+                form.hidden = true; form.textContent = ''; result.textContent = ''; waitBox.textContent = '';
+                var box = el('div', { class: 'ac-review' });
+                var pct = att ? Math.round(att.score * 100) : Math.round((st.passed[n] || 0) * 100);
+                var res = att && att.results ? att.results : null;
+                var right = res ? res.filter(function (x) { return x.correct; }).length : null;
+                box.appendChild(el('div', { class: 'ac-result is-pass' },
+                    el('h3', { text: 'Passed: ' + pct + '%' + (res ? ' (' + right + ' of ' + res.length + ')' : '') }),
+                    el('p', { text: (att ? 'Your best result, saved on ' + OFL.formatDate(att.created_at) + '. ' : '') + 'This lesson is complete and stays complete.' })));
+                if (res) {
+                    var byPos = {}; qs.forEach(function (q) { byPos[q.position] = q; });
+                    res.forEach(function (x, k) {
+                        var q = byPos[x.position]; if (!q) return;
+                        var fs = el('div', { class: 'ac-q is-locked ' + (x.correct ? 'is-right' : 'is-wrong') }, el('p', { class: 'ac-q__title', text: (k + 1) + '. ' + q.question }));
+                        q.options.forEach(function (opt, j) {
+                            var cls = 'ac-opt is-static' + (j === x.answer ? ' is-chosen' : '') + (j === x.correct_index ? ' is-answer' : '');
+                            fs.appendChild(el('div', { class: cls }, el('span', { class: 'ac-opt__mark', 'aria-hidden': 'true', text: j === x.correct_index ? '✓' : (j === x.answer ? '✕' : '') }),
+                                el('span', { text: opt + (j === x.answer ? '  (your answer)' : '') })));
+                        });
+                        if (x.explanation) fs.appendChild(el('p', { class: 'ac-q__fb', text: (x.correct ? 'Correct. ' : 'The answer is “' + q.options[x.correct_index] + '”. ') + x.explanation }));
+                        box.appendChild(fs);
+                    });
+                }
+                var actions = el('div', { class: 'ofl-actions' });
+                actions.appendChild(el('button', { class: 'ac-btn ac-btn--secondary', type: 'button', text: 'Practise the quiz again', onclick: function () { result.textContent = ''; buildQuiz(); } }));
+                var nl = st.lessons.find(function (l) { return l.n === n + 1; });
+                if (nl && nl.released) actions.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/lesson/?course=' + course + '&n=' + (n + 1), text: 'Go to Lesson ' + (n + 1) }));
+                box.appendChild(actions);
+                result.appendChild(box);
+            }
             function buildQuiz() {
                 form.textContent = ''; result.textContent = '';
-                if (passed) form.appendChild(el('p', { class: 'ofl-notice ofl-notice--success', text: 'You’ve passed this lesson. You can take the quiz again to practise.' }));
+                if (passed) form.appendChild(el('p', { class: 'ofl-notice ofl-notice--info', text: 'Practice attempt: your lesson is already passed, and this attempt can’t undo that. Your best result stays saved.' }));
                 order = shuffle(qs.map(function (_, i) { return i; }));
                 order.forEach(function (qi, k) {
                     var item = qs[qi], fs = el('fieldset', { class: 'ac-q', 'data-q': qi }, el('legend', { text: (k + 1) + '. ' + item.question }));
                     shuffle(item.options.map(function (_, j) { return j; })).forEach(function (j) {
                         fs.appendChild(el('label', { class: 'ac-opt' }, el('input', { type: 'radio', name: 'q' + qi, value: j, required: true }), el('span', { text: item.options[j] })));
                     });
+                    fs.setAttribute('data-pos', item.position);
                     fs.appendChild(el('p', { class: 'ac-q__fb', hidden: true }));
                     form.appendChild(fs);
                 });
@@ -386,14 +423,15 @@
                 var res = r.data, pct = Math.round(res.score * 100);
                 btn.hidden = true; form.querySelectorAll('input').forEach(function (i) { i.disabled = true; });
                 res.results.forEach(function (x, i) {
-                    var fs = form.querySelector('[data-q="' + i + '"]'), fb = fs.querySelector('.ac-q__fb');
+                    var fs = form.querySelector('[data-pos="' + (x.position != null ? x.position : qs[i].position) + '"]') || form.querySelector('[data-q="' + i + '"]'), fb = fs.querySelector('.ac-q__fb');
                     fs.classList.add(x.correct ? 'is-right' : 'is-wrong'); fb.hidden = false;
                     fb.textContent = x.correct ? 'Correct. ' + (x.explanation || '') :
                         (res.passed ? 'The answer is “' + qs[i].options[x.correct_index] + '”. ' + (x.explanation || '') : 'Not quite.');
                 });
                 var actions = el('div', { class: 'ofl-actions' });
+                var wasPassed = passed;
                 if (res.passed) {
-                    passed = true; st.passed[n] = res.score; st.done = Object.keys(st.passed).length; refreshTabs();
+                    passed = true; st.passed[n] = Math.max(st.passed[n] || 0, res.score); st.done = Object.keys(st.passed).length; refreshTabs();
                     A.renderLedger(document.getElementById('ledger'), st, { course: course, currentN: n });
                     var nl = st.lessons.find(function (l) { return l.n === n + 1; });
                     if (nl && nl.released) actions.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/lesson/?course=' + course + '&n=' + (n + 1), text: 'Start Lesson ' + (n + 1) }));
@@ -405,15 +443,17 @@
                 var next = res.passed && !(st.lessons.find(function (l) { return l.n === n + 1 && l.released; })) && n < st.total;
                 result.textContent = '';
                 result.appendChild(el('div', { class: 'ac-result ' + (res.passed ? 'is-pass' : 'is-fail') },
-                    el('h3', { text: (res.passed ? 'Lesson complete: ' : 'Not passed yet: ') + pct + '% (' + res.correct + ' of ' + res.total + ')' }),
-                    el('p', { text: res.passed ? (next ? 'Lesson ' + (n + 1) + ' is released soon. Follow @_drhola on TikTok to catch it.' : 'Nice work. Your progress is saved.')
+                    el('h3', { text: (res.passed ? (wasPassed ? 'Practice result: ' : 'Lesson complete: ') : (wasPassed ? 'Practice result: ' : 'Not passed yet: ')) + pct + '% (' + res.correct + ' of ' + res.total + ')' }),
+                    el('p', { text: wasPassed ? 'Your lesson stays passed, and your best result is saved.'
+                        : res.passed ? (next ? 'Your result is saved. Lesson ' + (n + 1) + ' is released soon. Follow @_drhola on TikTok to catch it.' : 'Your result and answers are saved. Nice work.')
                         : 'You need 70% to pass. Answers are shown once you pass. You can try again in 10 minutes.' }), actions));
-                if (!res.passed) cooldown(600, true);
+                if (!res.passed && !wasPassed) cooldown(600, true);
                 result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
 
             // Start on the first unfinished step.
-            show(passed || !act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : 'quiz'));
+            // Passed lessons open on the saved quiz result; otherwise on the first unfinished step.
+            show(passed ? 'quiz' : (!act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : 'quiz')));
         })();
     </script>
 </body>
