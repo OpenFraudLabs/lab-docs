@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001e"
+V = "20261001f"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -51,7 +51,7 @@ def head(title, desc, noindex=False):
     <link rel="icon" href="/assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/academy.css?v={V}">
 </head>
 <body>
@@ -114,8 +114,8 @@ SCRIPTS = f"""    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
     <script src="/assets/js/academy.js?v={V}"></script>
 """
 
-def page(path, title, desc, main, script="", active="", noindex=False):
-    html = head(title, desc, noindex) + header(active) + f'    <main id="main">\n{main}\n    </main>\n' + FOOTER + SCRIPTS
+def page(path, title, desc, main, script="", active="", noindex=False, extra=""):
+    html = head(title, desc, noindex) + header(active) + f'    <main id="main">\n{main}\n    </main>\n' + FOOTER + SCRIPTS + extra
     if script:
         html += f"    <script>\n{script}\n    </script>\n"
     html += "</body>\n</html>\n"
@@ -360,9 +360,10 @@ lesson_main = """        <div class="ac-wrap ac-player">
                     <button class="ac-tab" role="tab" data-step="watch" aria-selected="true"><i>1</i><span>Watch<small id="tab-watch-sub">Video</small></span></button>
                     <button class="ac-tab" role="tab" data-step="read" aria-selected="false"><i>2</i><span>Read<small id="tab-read-sub">Study notes</small></span></button>
                     <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">5 questions</small></span></button>
+                    <button class="ac-tab ac-tab--lab" role="tab" data-step="lab" aria-selected="false" hidden><i>&lt;/&gt;</i><span>Practice<small id="tab-lab-sub">Code lab</small></span></button>
                 </div>
                 <div class="ac-panel" data-panel="watch" hidden>
-                    <div class="ac-watch">
+                    <div class="ac-watch" id="watch">
                         <div class="ac-video"><video id="video" playsinline preload="metadata" controls controlslist="nodownload noplaybackrate" disablepictureinpicture></video></div>
                         <div class="ac-watch__meta">
                             <h3>Watch the full video</h3>
@@ -383,6 +384,7 @@ lesson_main = """        <div class="ac-wrap ac-player">
                     <div id="notes-end" aria-hidden="true"></div>
                     <div class="ac-gate"><p id="read-hint">Read to the end of the notes to continue.</p><button class="ac-btn ac-btn--primary" type="button" id="read-done" disabled>I've read the notes</button></div>
                 </div>
+                <div class="ac-panel" data-panel="lab" hidden><div id="lab"></div></div>
                 <div class="ac-panel" data-panel="quiz" hidden>
                     <div id="quiz-wait"></div>
                     <form id="quiz" hidden></form>
@@ -431,11 +433,16 @@ lesson_script = r"""        (async function () {
             var act = (await sb.from('lesson_activity').select('*').eq('course_slug', course).eq('lesson_n', n).maybeSingle()).data || {};
             var passed = n in st.passed;
             var tabs = document.getElementById('tabs'); tabs.hidden = false;
+            // Long-form lessons (spec in longform/) add rich reading and a code lab.
+            var nn = (n < 10 ? '0' : '') + n, labDone = false;
+            try { labDone = localStorage.getItem('ofl-lab-done:' + course + ':' + n) === '1'; } catch (e) {}
+            var long = null;
+            try { var lr = await fetch(A.RAW + 'longform/ds' + nn + '.json', { cache: 'no-cache' }); if (lr.ok) long = await lr.json(); } catch (e) {}
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
 
             function unlocked(step) {
-                if (step === 'watch') return true;
+                if (step === 'watch' || step === 'lab') return true;
                 if (step === 'read') return !!act.video_completed_at || passed;
                 return !!act.notes_completed_at || passed;
             }
@@ -443,6 +450,7 @@ lesson_script = r"""        (async function () {
                 tabEls.watch.classList.toggle('is-done', !!act.video_completed_at || passed);
                 tabEls.read.classList.toggle('is-done', !!act.notes_completed_at || passed);
                 tabEls.quiz.classList.toggle('is-done', passed);
+                tabEls.lab.classList.toggle('is-done', !!labDone);
                 ['read', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
                 document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : '5 questions';
             }
@@ -451,7 +459,9 @@ lesson_script = r"""        (async function () {
                 Object.keys(panels).forEach(function (k) { panels[k].hidden = k !== step; tabEls[k].setAttribute('aria-selected', String(k === step)); });
                 if (step === 'read') openNotes();
                 if (step === 'quiz') loadQuiz();
+                if (step === 'lab') openLab();
             }
+            if (long && long.practice) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
             Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
             refreshTabs();
 
@@ -467,7 +477,11 @@ lesson_script = r"""        (async function () {
                 meterText.textContent = done ? 'Video complete' : fmt(maxSeen) + ' of ' + fmt(total) + ' watched';
             }
             paintMeter();
-            video.addEventListener('loadedmetadata', paintMeter);
+            video.addEventListener('loadedmetadata', function () {
+                document.getElementById('watch').classList.toggle('ac-watch--wide', video.videoWidth > video.videoHeight);
+                paintMeter();
+            });
+            if (long) document.getElementById('watch').classList.add('ac-watch--wide');
             video.addEventListener('ratechange', function () { if (!done && video.playbackRate !== 1) video.playbackRate = 1; });
             video.addEventListener('timeupdate', function () {
                 if (!video.seeking && video.currentTime - maxSeen < 1.5) maxSeen = Math.max(maxSeen, video.currentTime);
@@ -501,9 +515,8 @@ lesson_script = r"""        (async function () {
                 if (!notesLoaded) {
                     notesLoaded = true;
                     try {
-                        var nn = (n < 10 ? '0' : '') + n;
-                        var spec = await (await fetch(A.RAW + 'lessons/ds' + nn + '.json', { cache: 'no-cache' })).json();
-                        renderNotes(spec);
+                        if (long && long.reading) renderReading(long);
+                        else renderNotes(await (await fetch(A.RAW + 'lessons/ds' + nn + '.json', { cache: 'no-cache' })).json());
                     } catch (e) { document.getElementById('notes').textContent = 'The notes could not be loaded. Please refresh the page.'; }
                 }
                 if (act.notes_completed_at || passed) { readBtn.hidden = true; hint.textContent = 'Notes complete.'; return; }
@@ -531,6 +544,36 @@ lesson_script = r"""        (async function () {
                 if (r.error) { readBtn.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
                 act.notes_completed_at = new Date().toISOString(); refreshTabs(); show('quiz');
             });
+            function renderReading(spec) {
+                var box = document.getElementById('notes'); box.textContent = '';
+                if (spec.objectives) {
+                    var ob = el('div', { class: 'ac-objectives' }, el('h2', { text: 'By the end of this lesson you can' }));
+                    var ol = el('ul'); spec.objectives.forEach(function (o) { ol.appendChild(el('li', { text: o })); }); ob.appendChild(ol); box.appendChild(ob);
+                }
+                var body = el('div', { class: 'ac-reading' });
+                body.innerHTML = window.marked.parse(spec.reading); // our own course content, from the course repo
+                body.querySelectorAll('table').forEach(function (t) { var w = el('div', { class: 'ac-table-wrap' }); t.parentNode.insertBefore(w, t); w.appendChild(t); });
+                box.appendChild(body);
+                if (spec.practice) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: open the ', el('strong', { text: 'Practice' }), ' tab above to write and run the code yourself.'));
+                var d = el('details', {}, el('summary', { text: 'Full transcript' }));
+                spec.chapters.forEach(function (c) {
+                    d.appendChild(el('h3', { text: c.title }));
+                    c.segments.forEach(function (sg) {
+                        var parts = sg.steps ? sg.steps.map(function (x) { return x.say; }) : [sg.say, sg.run_say];
+                        parts.forEach(function (t) { if (t) d.appendChild(el('p', { text: t })); });
+                    });
+                });
+                box.appendChild(d);
+            }
+            var labMounted = false;
+            function openLab() {
+                if (labMounted || !long || !long.practice) return; labMounted = true;
+                CODELAB.mount(document.getElementById('lab'), long.practice, { course: course, lesson: n, onPass: function () {
+                    labDone = true; try { localStorage.setItem('ofl-lab-done:' + course + ':' + n, '1'); } catch (e) {} refreshTabs();
+                    document.getElementById('tab-lab-sub').textContent = 'Solved';
+                } });
+            }
+            if (labDone) document.getElementById('tab-lab-sub').textContent = 'Solved';
             function renderNotes(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
                 var skip = { 'NEXT LESSON': 1, 'THANKS FOR WATCHING': 1, 'NEXT': 1 };
@@ -640,8 +683,11 @@ lesson_script = r"""        (async function () {
             show(passed || !act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : 'quiz'));
         })();"""
 
-page("academy/lesson", "Lesson | Open Fraud Labs Academy", "Watch, read and take the quiz for this Open Fraud Labs Academy lesson.",
-     lesson_main, lesson_script, noindex=True)
+page("academy/lesson", "Lesson | Open Fraud Labs Academy", "Watch, read, practise and take the quiz for this Open Fraud Labs Academy lesson.",
+     lesson_main, lesson_script, noindex=True,
+     extra=f'''    <script src="/assets/js/vendor/marked-18.0.14.js"></script>
+    <script src="/assets/js/codelab.js?v={V}"></script>
+''')
 
 # ============================================================== Dashboard
 dash_main = """        <div class="ac-wrap">
