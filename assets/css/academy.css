@@ -541,3 +541,7 @@ a.ac-row:hover { background: #F5F7FB; }
 .rv-feedback h3 { font-size: 1rem; margin: 0 0 .5rem; }
 .rv-scores { list-style: none; padding: 0; margin: 0 0 .6rem; display: grid; gap: .25rem; }
 .rv-scores li { display: flex; justify-content: space-between; gap: 1rem; font-size: .92rem; }
+
+.ac-row.is-preview .ac-row__s:empty { display: none; }
+.ac-choose { border: 1px solid var(--line); border-radius: var(--radius-m); padding: 1.1rem 1.25rem; margin: 1rem 0; background: var(--paper); }
+.ac-choose h3 { margin: 0 0 .3rem; }

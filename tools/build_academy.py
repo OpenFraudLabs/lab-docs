@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002g"
+V = "20261002h"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -147,11 +147,8 @@ def static_ledger(rows, title, limit=None, demo=False):
                 out.append("</ol>")
             out.append(f'<div class="ac-ledger__module">{esc(m)}</div><ol>')
             cur = m
-        if demo:
-            st = ["done", "done", "current", "locked", "locked"][min(i, 4)]
-        else:
-            st = "open" if l["n"] <= released_n else "soon"
-        label = {"done": TICK + "Verified", "current": "Up next", "locked": LOCK + "Locked", "open": "Released", "soon": "Coming soon"}[st]
+        st = "preview" if l["n"] <= released_n else "soon"
+        label = {"preview": "", "soon": "Coming soon"}[st]
         out.append(f'<li><div class="ac-row is-{st}"><span class="ac-row__n">{l["n"]:02d}</span><span class="ac-row__t">{esc(l["title"])}</span><span class="ac-row__s">{label}</span></div></li>')
     out.append("</ol>")
     return "\n".join(out)
@@ -170,12 +167,12 @@ home_main = f"""        <section class="ac-hero">
                     <h1>Practical data skills, one lesson at a time.</h1>
                     <p class="ac-lead">Free courses from Open Fraud Labs. Watch a 10-minute lesson with real examples, read the notes, practise the code in your browser, pass the quiz, and work towards a certificate anyone can verify.</p>
                     <div class="ac-hero__actions">
-                        <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/" id="hero-cta">Start Data Science from Scratch</a>
+                        <a class="ac-btn ac-btn--primary" href="#courses" id="hero-cta">Browse courses</a>
                         <a class="ac-btn ac-btn--secondary" href="#how">How it works</a>
                     </div>
                     <p class="ac-hero__note">No experience needed. Nothing to install.</p>
                 </div>
-                <div class="ac-ledger" aria-label="Example of course progress">
+                <div class="ac-ledger" aria-label="Course preview: Data Science from Scratch">
 {static_ledger(curriculum, "Data Science from Scratch", limit=5, demo=True)}
                 </div>
             </div>
@@ -191,15 +188,15 @@ home_main = f"""        <section class="ac-hero">
                     <div class="ac-feature__body">
                         <span class="ac-status ac-status--live">Open for enrolment</span>
                         <h3>Data Science from Scratch</h3>
-                        <p class="ac-muted">From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from lending, payments and fraud.</p>
+                        <p class="ac-muted">From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from retail, health, transport, media and finance.</p>
                         <ul class="ac-outcomes">
                             <li>Describe and clean real datasets with confidence</li>
                             <li>Understand the statistics behind everyday analysis</li>
                             <li>Train, evaluate and explain simple machine learning models</li>
-                            <li>Build three portfolio projects: credit risk, clinic no-shows and Lagos rents</li>
+                            <li>Build three portfolio projects: credit risk, clinic no-shows and city rents</li>
                         </ul>
                         <div class="ac-hero__actions">
-                            <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/">View course</a>
+                            <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/">View course and enrol</a>
                         </div>
                     </div>
                     <div class="ac-feature__aside">
@@ -231,7 +228,7 @@ home_main = f"""        <section class="ac-hero">
                     <li><h3>Watch</h3><p>A 10-minute video with worked examples in Python. It has to be watched to the end.</p></li>
                     <li><h3>Read and practise</h3><p>Study notes, then three coding exercises in your browser. Solve them all to unlock the quiz.</p></li>
                     <li><h3>Quiz</h3><p>A short quiz. Score 70% to complete the lesson and unlock the next.</p></li>
-                    <li><h3>Projects and capstone</h3><p>Three guided portfolio projects in finance, health and real estate, then your own capstone, reviewed by us.</p></li>
+                    <li><h3>Projects and capstone</h3><p>Three guided portfolio projects in finance, health and real estate, then your own capstone, each peer reviewed with a published rubric.</p></li>
                     <li><h3>Certificate</h3><p>Earn a certificate with an ID employers can check.</p></li>
                 </ol>
             </div>
@@ -265,6 +262,7 @@ home_script = r"""        (async function () {
             if (!user) return;
             var st = await ACADEMY.courseState('data-science');
             var cta = document.getElementById('hero-cta');
+            if (!st.enrolled) { cta.textContent = 'Choose a course'; cta.href = '#courses'; return; }
             if (st.next) { cta.textContent = 'Continue: Lesson ' + st.next.n; cta.href = '/academy/lesson/?course=data-science&n=' + st.next.n; }
             else if (st.done) { cta.textContent = 'Go to my learning'; cta.href = '/academy/dashboard/'; }
         })();"""
@@ -280,7 +278,7 @@ course_main = f"""        <section class="ac-course-hero">
                     <nav class="ac-crumbs" aria-label="Breadcrumb"><a href="/academy/">Academy</a> / <a href="/academy/#courses">Courses</a> / Data Science from Scratch</nav>
                     <span class="ac-status ac-status--live">Open for enrolment</span>
                     <h1>Data Science from Scratch</h1>
-                    <p class="ac-lead">Learn how data becomes decisions: describing and cleaning data, the statistics behind it, and building and explaining your first machine learning models. Examples come from lending, payments and fraud.</p>
+                    <p class="ac-lead">Learn how data becomes decisions: describing and cleaning data, the statistics behind it, and building and explaining your first machine learning models. Examples come from retail, health, transport, media and finance.</p>
                     <p class="ac-muted">Taught by Ayodele Odugbile, data and analytics professional and founder of Open Fraud Labs.</p>
                 </div>
                 <aside class="ac-facts">
@@ -291,9 +289,9 @@ course_main = f"""        <section class="ac-course-hero">
                         <dt>Cost</dt><dd>Free</dd>
                         <dt>Certificate</dt><dd>Certificate of completion</dd>
                     </dl>
-                    <a class="ac-btn ac-btn--primary" id="start-btn" href="/account/?next=/academy/lesson/%3Fcourse%3Ddata-science%26n%3D1">Start the course</a>
+                    <a class="ac-btn ac-btn--primary" id="start-btn" href="/account/?next=/academy/courses/data-science/">Sign up free to enrol</a>
                     <a class="ac-btn ac-btn--secondary" href="{TT}" target="_blank" rel="noopener noreferrer">Follow on TikTok</a>
-                    <p class="ac-muted" id="start-note" style="margin:0.8rem 0 0;font-size:0.9rem">Free account required to track progress.</p>
+                    <p class="ac-muted" id="start-note" style="margin:0.8rem 0 0;font-size:0.9rem">Browse the outline freely. Enrol (free) to open the lessons.</p>
                 </aside>
             </div>
         </section>
@@ -302,7 +300,7 @@ course_main = f"""        <section class="ac-course-hero">
             <div class="ac-wrap ac-two">
                 <div>
                     <h2>Course outline</h2>
-                    <p class="ac-muted">Lessons unlock in order. Complete each one by watching the video, reading the notes and passing the quiz.</p>
+                    <p class="ac-muted">Enrol to open the lessons. They unlock in order: watch the video, read the notes, solve the practice and pass the quiz to complete each one.</p>
                     <div class="ac-ledger" id="ledger">
 {static_ledger(curriculum, "Data Science from Scratch")}
                     </div>
@@ -338,6 +336,18 @@ course_script = r"""        (async function () {
             document.querySelectorAll('[data-released]').forEach(function (e) { e.textContent = rel; });
             var btn = document.getElementById('start-btn'), note = document.getElementById('start-note');
             if (!st.user) return;
+            if (!st.enrolled) {
+                var b2 = OFL.el('button', { class: 'ac-btn ac-btn--primary', type: 'button', id: 'start-btn', text: 'Enrol for free' });
+                btn.replaceWith(b2);
+                note.textContent = 'Enrolling adds the course to My learning and opens Lesson 1.';
+                b2.addEventListener('click', async function () {
+                    b2.disabled = true;
+                    var r = await OFL.sb.rpc('enroll', { p_course: 'data-science' });
+                    if (r.error) { b2.disabled = false; note.textContent = OFL.friendlyError(r.error); if (/Terms of Service/.test(r.error.message)) location.href = '/account/?next=/academy/courses/data-science/'; return; }
+                    location.href = '/academy/lesson/?course=data-science&n=1';
+                });
+                return;
+            }
             note.textContent = st.done + ' of ' + st.total + ' lessons complete';
             if (st.next) { btn.textContent = st.done ? 'Continue: Lesson ' + st.next.n : 'Start Lesson 1'; btn.href = '/academy/lesson/?course=data-science&n=' + st.next.n; }
             else { btn.textContent = 'Go to my learning'; btn.href = '/academy/dashboard/'; note.textContent = 'You’re up to date. The next lesson is released soon.'; }
@@ -427,6 +437,10 @@ lesson_script = r"""        (async function () {
             var fullTitle = /^Project \d/.test(lesson.title) ? lesson.title : 'Lesson ' + n + ': ' + lesson.title;
             titleEl.textContent = fullTitle;
             document.title = fullTitle + ' | Open Fraud Labs Academy';
+            if (!st.enrolled) {
+                return lockedPanel('Enrol to start this course', 'You can browse the course outline, but lessons open once you enrol. It\u2019s free.',
+                    '/academy/courses/' + course + '/', 'Go to the course and enrol');
+            }
             if (n > 1 && !st.unlockAll && !((n - 1) in st.passed)) {
                 return lockedPanel('Lesson ' + n + ' is locked', 'Lessons unlock in order. Complete Lesson ' + (st.next ? st.next.n : n - 1) + ' first.',
                     '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
@@ -819,6 +833,19 @@ dash_script = r"""        (async function () {
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var course = 'data-science';
             var st = await A.courseState(course);
+            if (!st.enrolled) {
+                document.getElementById('hello').textContent = prof.full_name ? 'Welcome, ' + prof.full_name.split(' ')[0] : 'Welcome';
+                document.querySelector('.ac-two').hidden = true;
+                document.getElementById('next').appendChild(el('div', { class: 'ac-panel' },
+                    el('h2', { text: 'Choose your first course' }),
+                    el('p', { class: 'ac-muted', text: 'Look through what each course covers, then enrol in the one you want. Your progress, projects and certificates will appear here.' }),
+                    el('div', { class: 'ac-choose' },
+                        el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
+                            el('p', { text: st.total + ' lessons and projects · beginner · certificate' }),
+                            el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'View course and enrol' }))),
+                    el('p', { class: 'ac-muted ac-small' }, 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/#courses', text: 'See all courses' }))));
+                return;
+            }
             A.renderLedger(document.getElementById('ledger'), st, { course: course });
             var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).eq('assignment', 'capstone').order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
             var cert = ((await sb.from('certificates').select('id').eq('course_slug', course)).data || [])[0];
