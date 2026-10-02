@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002j">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002k">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -87,15 +87,15 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002j"></script>
-    <script src="/assets/js/academy.js?v=20261002j"></script>
+    <script src="/assets/js/learn.js?v=20261002k"></script>
+    <script src="/assets/js/academy.js?v=20261002k"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
             var user = await OFL.getUser();
             var params = new URLSearchParams(location.search), ref = params.get('reference') || params.get('trxref');
             function money(minor, cur) {
-                try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(minor / 100); }
+                try { return new Intl.NumberFormat(cur === 'NGN' ? 'en-NG' : undefined, { style: 'currency', currency: cur, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 }).format(minor / 100); }
                 catch (e) { return cur + ' ' + (minor / 100).toLocaleString(); }
             }
             async function call(body) {
@@ -129,15 +129,16 @@
             var plans = (await sb.from('plans').select('*').eq('active', true).order('sort')).data || [];
             var box = document.getElementById('plans'); box.textContent = '';
             if (!plans.length) { box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Early access: everything is free' }), el('p', { text: 'Plans will appear here soon. For now, every released lesson is open to anyone with a free account.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'Browse the course' }))); return; }
-            plans.forEach(function (p) {
-                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
+            var featured = plans.length === 3 ? 1 : -1;
+            plans.forEach(function (p, pi) {
+                var btn = el('button', { class: 'ac-btn ' + (featured === -1 || pi === featured ? 'ac-btn--primary' : 'ac-btn--secondary'), type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
                 btn.addEventListener('click', async function () {
                     if (!user) { location.href = '/account/?next=' + encodeURIComponent('/academy/pricing/'); return; }
                     btn.disabled = true; msg.textContent = '';
                     try { var r = await call({ action: 'start', plan_id: p.id }); location.href = r.url; }
                     catch (e) { btn.disabled = false; OFL.notice(msg, e.message, 'error'); }
                 });
-                box.appendChild(el('div', { class: 'ac-plan' },
+                box.appendChild(el('div', { class: 'ac-plan' + (pi === featured ? ' is-featured' : '') },
                     el('h2', { text: p.name }),
                     el('p', { class: 'ac-plan__price', text: money(p.amount_minor, p.currency) }),
                     el('p', { class: 'ac-muted', text: p.months + (p.months === 1 ? ' month' : ' months') + ' of full access' }),

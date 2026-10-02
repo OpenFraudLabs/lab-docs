@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002j"
+V = "20261002k"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -144,21 +144,23 @@ TICK = '<span class="ac-tick"><svg viewBox="0 0 12 12" aria-hidden="true"><path 
 LOCK = '<svg class="ac-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
 
 def static_ledger(rows, title, limit=None, demo=False):
-    """Server-rendered ledger (works without JS; replaced with live state when signed in)."""
-    out = [f'<div class="ac-ledger__head"><strong>{esc(title)}</strong><span class="num">{released_n} of {len(curriculum)} lessons released</span></div>',
-           '<div class="ac-ledger__bar"><span style="width:0%"></span></div>']
-    cur = None
-    for i, l in enumerate(rows[:limit] if limit else rows):
+    """Server-rendered outline (works without JS; replaced with live state when signed in)."""
+    out = [f'<div class="ac-ledger__head"><strong>{esc(title)}</strong><span class="num">{len(curriculum)} lessons and projects</span></div>']
+    groups = []
+    for l in (rows[:limit] if limit else rows):
         m = module_of(l["n"])
-        if m != cur:
-            if cur is not None:
-                out.append("</ol>")
-            out.append(f'<div class="ac-ledger__module">{esc(m)}</div><ol>')
-            cur = m
-        st = "preview" if l["n"] <= released_n else "soon"
-        label = {"preview": "", "soon": "Coming soon"}[st]
-        out.append(f'<li><div class="ac-row is-{st}"><span class="ac-row__n">{l["n"]:02d}</span><span class="ac-row__t">{esc(l["title"])}</span><span class="ac-row__s">{label}</span></div></li>')
-    out.append("</ol>")
+        if not groups or groups[-1][0] != m:
+            groups.append((m, []))
+        groups[-1][1].append(l)
+    for gi, (m, ls) in enumerate(groups):
+        name = re.sub(r"^Module \d+:\s*", "", m)
+        out.append(f'<details class="ac-mod"{" open" if gi == 0 else ""}><summary class="ac-mod__sum"><span class="ac-mod__name">{esc(name)}</span>'
+                   f'<span class="ac-mod__meta num">{len(ls)} {"lesson" if len(ls) == 1 else "lessons"}</span></summary><ol>')
+        for l in ls:
+            st = "preview" if l["n"] <= released_n else "soon"
+            label = "" if st == "preview" else "Coming soon"
+            out.append(f'<li><div class="ac-row is-{st}"><span class="ac-row__n">{l["n"]:02d}</span><span class="ac-row__t">{esc(l["title"])}</span><span class="ac-row__s">{label}</span></div></li>')
+        out.append("</ol></details>")
     return "\n".join(out)
 
 # ============================================================== Academy home
@@ -173,16 +175,22 @@ home_main = f"""        <section class="ac-hero">
             <div class="ac-wrap ac-hero__grid">
                 <div>
                     <h1>Practical data skills, one lesson at a time.</h1>
-                    <p class="ac-lead">Free courses from Open Fraud Labs. Watch a 10-minute lesson with real examples, read the notes, practise the code in your browser, pass the quiz, and work towards a certificate anyone can verify.</p>
+                    <p class="ac-lead">Short video lessons built on real code and real data, with practice that runs in your browser and a certificate anyone can verify.</p>
                     <div class="ac-hero__actions">
                         <a class="ac-btn ac-btn--primary" href="#courses" id="hero-cta">Browse courses</a>
                         <a class="ac-btn ac-btn--secondary" href="#how">How it works</a>
                     </div>
                     <p class="ac-hero__note">No experience needed. Nothing to install.</p>
                 </div>
-                <div class="ac-ledger" aria-label="Course preview: Data Science from Scratch">
-{static_ledger(curriculum, "Data Science from Scratch", limit=5, demo=True)}
-                </div>
+                <figure class="ac-showcase">
+                    <div class="ac-showcase__frame"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="A frame from Lesson 25, Feature engineering: Python code that groups subscribers into four bands, and the bar chart it produces showing churn rising from about 10% to 29%."></div>
+                    <ol class="ac-path" aria-label="Every lesson follows four steps">
+                        <li><b>Watch</b><span>10-minute video</span></li>
+                        <li><b>Read</b><span>Study notes</span></li>
+                        <li><b>Practise</b><span>Code in your browser</span></li>
+                        <li><b>Quiz</b><span>70% to pass</span></li>
+                    </ol>
+                </figure>
             </div>
         </section>
 
@@ -291,7 +299,7 @@ course_main = f"""        <section class="ac-course-hero">
                 </div>
                 <aside class="ac-facts">
                     <dl>
-                        <dt>Lessons</dt><dd class="num">30 lessons + 3 projects (<span data-released>{released_n}</span> of 39 released)</dd>
+                        <dt>Lessons</dt><dd class="num">30 video lessons and 3 portfolio projects (39 parts, <span data-released>{released_n}</span> released)</dd>
                         <dt>Length</dt><dd>About 30 minutes per lesson, including practice</dd>
                         <dt>Level</dt><dd>Beginner</dd>
                         <dt>Cost</dt><dd>Free</dd>
@@ -328,7 +336,7 @@ course_main = f"""        <section class="ac-course-hero">
                     </div>
                     <div class="ac-aside-card">
                         <h3>Earn your certificate</h3>
-                        <p>Complete all 30 lessons and the 3 portfolio projects (each with practice and a quiz), then get your capstone project approved. Your certificate shows your registered name and an ID anyone can verify.</p>
+                        <p>Complete all 30 lessons and the 3 portfolio projects (each with practice and a quiz), then get your capstone approved through peer review. Your certificate shows your registered name and an ID anyone can verify.</p>
                         <div class="ac-mini-cert"><small>Certificate of Completion</small><b>Your name here</b><small>Data Science from Scratch</small></div>
                         <p style="margin:1rem 0 0"><a href="/academy/capstone/?course=data-science">Read the capstone brief</a></p>
                     </div>
@@ -869,13 +877,14 @@ dash_script = r"""        (async function () {
                     el('h2', { text: 'Choose your first course' }),
                     el('p', { class: 'ac-muted', text: 'Look through what each course covers, then enrol in the one you want. Your progress, projects and certificates will appear here.' }),
                     el('div', { class: 'ac-choose' },
+                        el('img', { src: '/assets/academy/lesson-frame.jpg', alt: '', width: '320', height: '180', loading: 'lazy' }),
                         el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
-                            el('p', { text: st.total + ' lessons and projects · beginner · certificate' }),
+                            el('p', { class: 'ac-muted', text: 'From your first dataset to machine learning models you can explain. ' + st.total + ' lessons and projects for beginners, with a certificate.' }),
                             el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'View course and enrol' }))),
                     el('p', { class: 'ac-muted ac-small' }, 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/#courses', text: 'See all courses' }))));
                 return;
             }
-            A.renderLedger(document.getElementById('ledger'), st, { course: course });
+            A.renderLedger(document.getElementById('ledger'), st, { course: course, title: false });
             var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).eq('assignment', 'capstone').order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
             var cert = ((await sb.from('certificates').select('id').eq('course_slug', course)).data || [])[0];
 
@@ -1191,7 +1200,6 @@ admin_script = r"""        (async function () {
 # ============================================================== Peer review (projects and capstone)
 review_main = """        <div class="ac-wrap">
             <div class="ac-dash-head">
-                <p class="ac-muted" id="rv-kicker">Peer review</p>
                 <h1 id="rv-title">Peer review</h1>
                 <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Open Fraud Labs can step in and review any project.</p>
                 <div id="msg"></div>
@@ -1369,7 +1377,7 @@ pricing_script = """        (async function () {
             var user = await OFL.getUser();
             var params = new URLSearchParams(location.search), ref = params.get('reference') || params.get('trxref');
             function money(minor, cur) {
-                try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(minor / 100); }
+                try { return new Intl.NumberFormat(cur === 'NGN' ? 'en-NG' : undefined, { style: 'currency', currency: cur, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 }).format(minor / 100); }
                 catch (e) { return cur + ' ' + (minor / 100).toLocaleString(); }
             }
             async function call(body) {
@@ -1403,15 +1411,16 @@ pricing_script = """        (async function () {
             var plans = (await sb.from('plans').select('*').eq('active', true).order('sort')).data || [];
             var box = document.getElementById('plans'); box.textContent = '';
             if (!plans.length) { box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Early access: everything is free' }), el('p', { text: 'Plans will appear here soon. For now, every released lesson is open to anyone with a free account.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'Browse the course' }))); return; }
-            plans.forEach(function (p) {
-                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
+            var featured = plans.length === 3 ? 1 : -1;
+            plans.forEach(function (p, pi) {
+                var btn = el('button', { class: 'ac-btn ' + (featured === -1 || pi === featured ? 'ac-btn--primary' : 'ac-btn--secondary'), type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
                 btn.addEventListener('click', async function () {
                     if (!user) { location.href = '/account/?next=' + encodeURIComponent('/academy/pricing/'); return; }
                     btn.disabled = true; msg.textContent = '';
                     try { var r = await call({ action: 'start', plan_id: p.id }); location.href = r.url; }
                     catch (e) { btn.disabled = false; OFL.notice(msg, e.message, 'error'); }
                 });
-                box.appendChild(el('div', { class: 'ac-plan' },
+                box.appendChild(el('div', { class: 'ac-plan' + (pi === featured ? ' is-featured' : '') },
                     el('h2', { text: p.name }),
                     el('p', { class: 'ac-plan__price', text: money(p.amount_minor, p.currency) }),
                     el('p', { class: 'ac-muted', text: p.months + (p.months === 1 ? ' month' : ' months') + ' of full access' }),

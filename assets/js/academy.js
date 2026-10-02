@@ -53,30 +53,57 @@
         return prevOk ? 'open' : 'locked';
     }
 
-    // Renders the ledger (lesson list grouped by module) into a container.
+    // Renders the ledger: lessons grouped into collapsible modules, each with its own progress.
+    // Only the module you're working in (or the first one) starts open, so the next step stands out.
     function renderLedger(box, st, opts) {
         opts = opts || {};
         box.textContent = '';
-        var head = el('div', { class: 'ac-ledger__head' }, el('strong', { text: opts.title || (st.course ? st.course.title : 'Course') }),
-            el('span', { class: 'num', text: st.enrolled ? st.done + ' of ' + st.total + ' complete' : st.total + ' lessons and projects' }));
-        var bar = el('div', { class: 'ac-ledger__bar' }, el('span', { style: 'width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%' }));
-        box.appendChild(head); box.appendChild(bar);
-        var current = null, list = null;
+        var cur = opts.currentN || (st.next && st.next.n);
+        var headText = st.enrolled ? st.done + ' of ' + st.total + ' complete' : st.total + ' lessons and projects';
+        var head = el('div', { class: 'ac-ledger__head' + (opts.title === false ? ' ac-ledger__head--bare' : '') },
+            opts.title === false ? null : el('strong', { text: opts.title || (st.course ? st.course.title : 'Course') }),
+            el('span', { class: 'num', text: headText }));
+        box.appendChild(head);
+        if (st.enrolled) box.appendChild(el('div', { class: 'ac-ledger__bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(st.total), 'aria-valuenow': String(st.done), 'aria-label': 'Course progress' },
+            el('span', { style: 'width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%' })));
+        var groups = [];
         st.lessons.forEach(function (l) {
-            var m = moduleOf(l.n);
-            if (m !== current) { current = m; box.appendChild(el('div', { class: 'ac-ledger__module', text: m })); list = el('ol'); box.appendChild(list); }
-            var state = rowState(l, st, opts.currentN || (st.next && st.next.n));
-            var label = { done: 'Verified', current: opts.currentN ? 'Now' : 'Up next', open: 'Open', locked: 'Locked', soon: 'Coming soon', preview: '' }[state];
-            var s = el('span', { class: 'ac-row__s' });
-            if (state === 'done') s.innerHTML = '<span class="ac-tick">' + TICK + '</span>' + label;
-            else if (state === 'locked') s.innerHTML = LOCK + label;
-            else s.textContent = label;
-            var linkable = st.user && (state === 'done' || state === 'current' || state === 'open');
-            var row = el(linkable ? 'a' : 'div', { class: 'ac-row is-' + state, href: linkable ? '/academy/lesson/?course=' + opts.course + '&n=' + l.n : null,
-                'aria-current': opts.currentN === l.n ? 'step' : null },
-                el('span', { class: 'ac-row__n', text: (l.n < 10 ? '0' : '') + l.n }), el('span', { class: 'ac-row__t', text: l.title }), s);
-            list.appendChild(el('li', {}, row));
+            var m = moduleOf(l.n), g = groups[groups.length - 1];
+            if (!g || g.name !== m) { g = { name: m, lessons: [] }; groups.push(g); }
+            g.lessons.push(l);
         });
+        var openIdx = 0;
+        groups.forEach(function (g, i) { if (g.lessons.some(function (l) { return l.n === cur; })) openIdx = i; });
+        groups.forEach(function (g, gi) {
+            var done = g.lessons.filter(function (l) { return l.n in st.passed; }).length;
+            var meta = st.enrolled ? done + ' of ' + g.lessons.length : g.lessons.length + (g.lessons.length === 1 ? ' lesson' : ' lessons');
+            var sum = el('summary', { class: 'ac-mod__sum' },
+                el('span', { class: 'ac-mod__name', text: g.name.replace(/^Module \d+:\s*/, '') }),
+                el('span', { class: 'ac-mod__meta num' + (st.enrolled && done === g.lessons.length ? ' is-complete' : ''), text: meta }));
+            var det = el('details', { class: 'ac-mod' }, sum);
+            if (gi === openIdx || opts.openAll) det.open = true;
+            var list = el('ol');
+            g.lessons.forEach(function (l) {
+                var state = rowState(l, st, cur);
+                var s = el('span', { class: 'ac-row__s' });
+                if (state === 'done') { s.innerHTML = '<span class="ac-tick">' + TICK + '</span>'; s.setAttribute('aria-label', 'Passed'); }
+                else if (state === 'locked') { s.innerHTML = LOCK; s.setAttribute('aria-label', 'Locked'); }
+                else if (state === 'current' && opts.currentN !== l.n) s.textContent = 'Up next';
+                else if (state === 'soon') s.textContent = 'Coming soon';
+                var linkable = st.user && (state === 'done' || state === 'current' || state === 'open');
+                var row = el(linkable ? 'a' : 'div', { class: 'ac-row is-' + state, href: linkable ? '/academy/lesson/?course=' + opts.course + '&n=' + l.n : null,
+                    'aria-current': opts.currentN === l.n ? 'step' : null },
+                    el('span', { class: 'ac-row__n', text: (l.n < 10 ? '0' : '') + l.n }), el('span', { class: 'ac-row__t', text: l.title }), s);
+                list.appendChild(el('li', {}, row));
+            });
+            det.appendChild(list);
+            box.appendChild(det);
+        });
+        if (opts.currentN) {
+            var here = box.querySelector('[aria-current="step"]');
+            var scroller = box.closest('.ac-player__side');
+            if (here && scroller) setTimeout(function () { var y = here.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop; scroller.scrollTop = Math.max(0, y - scroller.clientHeight / 3); }, 0);
+        }
     }
 
     async function header() {

@@ -6,3 +6,4 @@
 
 # Allow only sample synthetic data
 !sample_data/synthetic_*.csv
+.uxfonts/
