@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002s">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002t">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -102,8 +102,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002s"></script>
-    <script src="/assets/js/academy.js?v=20261002s"></script>
+    <script src="/assets/js/learn.js?v=20261002t"></script>
+    <script src="/assets/js/academy.js?v=20261002t"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY, msg = document.getElementById('msg');
@@ -116,6 +116,22 @@
             if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
             else if (!bg.completed_at) msg.appendChild(el('div', { class: 'ofl-notice ac-nudge' }, 'Help us build better lessons: ', el('a', { href: '/academy/welcome/?next=/academy/dashboard/', text: 'tell us a little about you' }), ' (about a minute).'));
             var course = 'data-science';
+            var acc = (await sb.rpc('my_access')).data || {}, live = ((await sb.from('courses').select('slug, title, description, status').eq('status', 'live').order('sort')).data || []);
+            var titles = {}; live.forEach(function (c) { titles[c.slug] = c.title; });
+            (acc.scholarships || []).forEach(function (x) {
+                msg.appendChild(el('div', { class: 'ac-sch-banner' }, '\uD83C\uDF93 Scholarship: full access to ' + (x.course ? (titles[x.course] || x.course) : 'every Academy course') +
+                    (x.until ? ' until ' + new Date(new Date(x.until).getTime() - 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '') + '.'));
+            });
+            var mine = ((await sb.from('enrollments').select('course_slug').eq('user_id', user.id)).data || []).map(function (e) { return e.course_slug; });
+            var others = live.filter(function (c) { return c.slug !== course; });
+            function otherCourses(box, heading) {
+                if (!others.length) return;
+                var wrap = el('div', { class: 'lp-more' });
+                others.forEach(function (c) { var on = mine.indexOf(c.slug) >= 0;
+                    wrap.appendChild(el('article', { class: 'lp-more__card' }, el('h3', { text: c.title }), c.description ? el('p', { text: c.description }) : null,
+                        el('a', { class: 'ac-btn ac-btn--' + (on ? 'primary' : 'secondary') + ' ac-btn--sm', href: '/academy/courses/?c=' + encodeURIComponent(c.slug), text: on ? 'Continue' : 'View course and enrol' }))); });
+                box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: heading }), wrap));
+            }
             var st = await A.courseState(course);
             if (!st.enrolled) {
                 document.getElementById('hello').textContent = prof.full_name ? 'Welcome, ' + prof.full_name.split(' ')[0] : 'Welcome';
@@ -128,7 +144,8 @@
                         el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
                             el('p', { class: 'ac-muted', text: 'From your first dataset to machine learning models you can explain. ' + st.total + ' lessons and projects for beginners, with a certificate.' }),
                             el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'View course and enrol' }))),
-                    el('p', { class: 'ac-muted ac-small' }, 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/#courses', text: 'See all courses' }))));
+                    el('p', { class: 'ac-muted ac-small' }, others.length ? '' : 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/courses/', text: 'See all courses' }))));
+                otherCourses(document.getElementById('next'), mine.length ? 'Your other courses' : 'Also open for enrolment');
                 return;
             }
             A.renderLedger(document.getElementById('ledger'), st, { course: course, title: false });
@@ -154,6 +171,7 @@
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
+            otherCourses(next, 'More courses');
             var list = document.getElementById('checklist');
             function item(isDone, text, link) {
                 list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));

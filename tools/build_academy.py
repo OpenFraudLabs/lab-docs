@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002s"
+V = "20261002t"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -285,9 +285,10 @@ Monthly    0.250</pre></div>
                         <div><dt>Certificate</dt><dd>Yes, with public verification</dd></div>
                     </dl>
                 </article>
+                <div class="lp-more" id="more-courses" hidden></div>
                 <div class="ac-coming">
                     <h3>Coming to the Academy</h3>
-                    <ul>
+                    <ul id="coming-list">
 {coming_html}
                     </ul>
                 </div>
@@ -342,6 +343,25 @@ home_script = r"""        (function () {
                 code.textContent = full.slice(0, ++i);
                 if (i < full.length) setTimeout(tick, 28); else setTimeout(function () { cell.classList.remove('is-typing'); cell.classList.add('is-done'); }, 260);
             }, 700);
+        })();
+        (async function courses() {
+            var r = await OFL.sb.from('courses').select('slug, title, description, level, status, access, total_lessons, sort').neq('status', 'hidden').order('sort');
+            if (r.error || !r.data) return;
+            var el = OFL.el, more = document.getElementById('more-courses'), ul = document.getElementById('coming-list');
+            var live = r.data.filter(function (c) { return c.status === 'live' && c.slug !== 'data-science'; });
+            more.textContent = '';
+            live.forEach(function (c) {
+                more.appendChild(el('article', { class: 'lp-more__card' }, el('span', { class: 'ac-status ac-status--live', text: 'Open for enrolment' }),
+                    el('h3', { text: c.title }), c.description ? el('p', { text: c.description }) : null,
+                    el('small', { class: 'ac-muted', text: [c.level, c.total_lessons ? c.total_lessons + ' lessons' : null, c.access === 'paid' ? 'Paid' : 'Free'].filter(Boolean).join(' · ') }),
+                    el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/courses/?c=' + encodeURIComponent(c.slug), text: 'View course and enrol' })));
+            });
+            more.hidden = !live.length;
+            var soon = r.data.filter(function (c) { return c.status === 'coming_soon'; });
+            var keep = Array.prototype.filter.call(ul.children, function (li) { return /Live classes/.test(li.textContent); });
+            ul.textContent = '';
+            soon.forEach(function (c) { ul.appendChild(el('li', {}, el('strong', { text: c.title }), el('span', { text: c.description || '' }), el('em', { text: 'In preparation' }))); });
+            keep.forEach(function (li) { ul.appendChild(li); });
         })();
         (async function () {
             var user = await OFL.getUser();
@@ -507,6 +527,94 @@ COURSE_LD = '''    <script type="application/ld+json">
 page("academy/courses/data-science", "Data Science from Scratch | Open Fraud Labs Academy",
      "A free beginner course: 30 video lessons, 3 portfolio projects in finance, health and real estate, in-browser coding practice, quizzes, a capstone project and a verifiable certificate.",
      course_main, course_script, active="courses", extra=COURSE_LD)
+
+# ============================================================== Generic course page (courses added from the staff dashboard)
+gc_main = """        <section class="cp-hero">
+            <div class="ac-wrap cp-layout">
+                <div class="cp-hero__copy">
+                    <nav class="cp-crumbs" aria-label="Breadcrumb"><a href="/academy/">Academy</a><span aria-hidden="true">/</span><a href="/academy/courses/">Courses</a><span aria-hidden="true" id="gc-crumb-sep" hidden>/</span><span id="gc-crumb"></span></nav>
+                    <p class="ac-eyebrow" id="gc-eyebrow">Courses</p>
+                    <h1 id="gc-title">All courses</h1>
+                    <p class="cp-hero__lead" id="gc-lead">Everything in Open Fraud Labs Academy, open now and in preparation.</p>
+                    <div id="msg"></div>
+                </div>
+                <aside class="cp-card" id="gc-card" hidden>
+                    <div class="cp-card__body">
+                        <dl class="gc-facts" id="gc-facts"></dl>
+                        <a class="ac-btn ac-btn--primary cp-card__cta" id="gc-cta" href="/account/">Create a free account</a>
+                        <p class="cp-card__note" id="gc-note"></p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+        <section class="ac-section">
+            <div class="ac-wrap">
+                <div class="lp-more" id="gc-catalog"></div>
+                <div id="gc-outline" hidden><h2>Lessons</h2><ol class="gc-lessons" id="gc-lessons"></ol></div>
+            </div>
+        </section>"""
+
+gc_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, slug = OFL.qs('c');
+            if (slug === 'data-science') { location.replace('/academy/courses/data-science/'); return; }
+            function link(c) { return c.slug === 'data-science' ? '/academy/courses/data-science/' : '/academy/courses/?c=' + encodeURIComponent(c.slug); }
+            if (!slug) {
+                var r = await sb.from('courses').select('slug, title, description, level, status, access, total_lessons, sort').neq('status', 'hidden').order('sort');
+                var box = document.getElementById('gc-catalog');
+                (r.data || []).forEach(function (c) {
+                    box.appendChild(el('article', { class: 'lp-more__card' },
+                        el('span', { class: 'ac-status ac-status--' + (c.status === 'live' ? 'live' : 'soon'), text: c.status === 'live' ? 'Open for enrolment' : 'In preparation' }),
+                        el('h3', { text: c.title }), c.description ? el('p', { text: c.description }) : null,
+                        el('small', { class: 'ac-muted', text: [c.level, c.total_lessons ? c.total_lessons + ' lessons' : null, c.access === 'paid' ? 'Paid' : 'Free'].filter(Boolean).join(' · ') }),
+                        c.status === 'live' ? el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: link(c), text: 'View course' }) : null));
+                });
+                return;
+            }
+            var st = await ACADEMY.courseState(slug), c = st.course;
+            if (!c) {
+                document.getElementById('gc-title').textContent = 'Course not found';
+                document.getElementById('gc-lead').textContent = 'This course doesn’t exist or isn’t available yet.';
+                document.getElementById('gc-catalog').appendChild(el('a', { class: 'ac-btn ac-btn--secondary', href: '/academy/courses/', text: 'See all courses' }));
+                return;
+            }
+            document.title = c.title + ' | Open Fraud Labs Academy';
+            document.getElementById('gc-crumb').textContent = c.title; document.getElementById('gc-crumb-sep').hidden = false;
+            document.getElementById('gc-eyebrow').textContent = c.status === 'live' ? 'Open for enrolment' : c.status === 'coming_soon' ? 'In preparation' : 'Hidden: staff preview';
+            document.getElementById('gc-title').textContent = c.title;
+            document.getElementById('gc-lead').textContent = c.description || '';
+            var released = st.lessons.filter(function (l) { return l.released; }).length;
+            var facts = document.getElementById('gc-facts');
+            [['Level', c.level || '—'], ['Lessons', released + ' released' + (st.lessons.length > released ? ' of ' + st.lessons.length : '')], ['Access', c.access === 'paid' ? 'Paid pass' : 'Free']]
+                .forEach(function (f) { facts.appendChild(el('div', {}, el('dt', { text: f[0] }), el('dd', { text: f[1] }))); });
+            document.getElementById('gc-card').hidden = false;
+            var ol = document.getElementById('gc-lessons');
+            st.lessons.forEach(function (l) {
+                var s = ACADEMY.rowState(l, st), done = s === 'done';
+                var t = (s === 'open' || s === 'current' || done) ? el('a', { href: '/academy/lesson/?course=' + encodeURIComponent(slug) + '&n=' + l.n, text: l.title }) : el('span', { text: l.title });
+                ol.appendChild(el('li', {}, el('span', { text: String(l.n).padStart(2, '0') }), t, el('em', { text: !l.released ? 'Coming soon' : done ? 'Done' : '' })));
+            });
+            document.getElementById('gc-outline').hidden = !st.lessons.length;
+            var cta = document.getElementById('gc-cta'), note = document.getElementById('gc-note');
+            if (c.status !== 'live') { cta.replaceWith(el('span', { class: 'ac-btn ac-btn--secondary cp-card__cta', 'aria-disabled': 'true', text: c.status === 'coming_soon' ? 'In preparation' : 'Not published' })); note.textContent = c.status === 'coming_soon' ? 'Enrolment opens when the first lessons are ready.' : 'Only staff who manage content can see this page.'; return; }
+            if (!st.user) { cta.href = '/account/?next=' + encodeURIComponent(location.pathname + location.search); cta.textContent = 'Create a free account to enrol'; return; }
+            if (!st.enrolled) {
+                var b = el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', text: c.access === 'paid' ? 'Enrol' : 'Enrol for free' });
+                cta.replaceWith(b); note.textContent = 'Enrolling adds the course to My learning and opens Lesson 1.';
+                b.addEventListener('click', async function () {
+                    b.disabled = true;
+                    var r = await sb.rpc('enroll', { p_course: slug });
+                    if (r.error) { b.disabled = false; note.textContent = OFL.friendlyError(r.error); if (/Terms of Service/.test(r.error.message)) location.href = '/account/?next=' + encodeURIComponent(location.pathname + location.search); return; }
+                    location.href = '/academy/lesson/?course=' + encodeURIComponent(slug) + '&n=1&enrolled=1';
+                });
+                return;
+            }
+            note.textContent = st.done + ' of ' + st.total + ' lessons complete';
+            if (st.next) { cta.textContent = st.done ? 'Continue: Lesson ' + st.next.n : 'Start Lesson 1'; cta.href = '/academy/lesson/?course=' + encodeURIComponent(slug) + '&n=' + st.next.n; }
+            else { cta.textContent = 'Go to my learning'; cta.href = '/academy/dashboard/'; }
+        })();"""
+
+page("academy/courses", "Courses | Open Fraud Labs Academy", "All Open Fraud Labs Academy courses: open for enrolment and in preparation.",
+     gc_main, gc_script, active="courses")
 
 # ============================================================== Lesson player
 lesson_main = """        <div class="ac-wrap ac-player">
@@ -1055,6 +1163,22 @@ dash_script = r"""        (async function () {
             if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
             else if (!bg.completed_at) msg.appendChild(el('div', { class: 'ofl-notice ac-nudge' }, 'Help us build better lessons: ', el('a', { href: '/academy/welcome/?next=/academy/dashboard/', text: 'tell us a little about you' }), ' (about a minute).'));
             var course = 'data-science';
+            var acc = (await sb.rpc('my_access')).data || {}, live = ((await sb.from('courses').select('slug, title, description, status').eq('status', 'live').order('sort')).data || []);
+            var titles = {}; live.forEach(function (c) { titles[c.slug] = c.title; });
+            (acc.scholarships || []).forEach(function (x) {
+                msg.appendChild(el('div', { class: 'ac-sch-banner' }, '\uD83C\uDF93 Scholarship: full access to ' + (x.course ? (titles[x.course] || x.course) : 'every Academy course') +
+                    (x.until ? ' until ' + new Date(new Date(x.until).getTime() - 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '') + '.'));
+            });
+            var mine = ((await sb.from('enrollments').select('course_slug').eq('user_id', user.id)).data || []).map(function (e) { return e.course_slug; });
+            var others = live.filter(function (c) { return c.slug !== course; });
+            function otherCourses(box, heading) {
+                if (!others.length) return;
+                var wrap = el('div', { class: 'lp-more' });
+                others.forEach(function (c) { var on = mine.indexOf(c.slug) >= 0;
+                    wrap.appendChild(el('article', { class: 'lp-more__card' }, el('h3', { text: c.title }), c.description ? el('p', { text: c.description }) : null,
+                        el('a', { class: 'ac-btn ac-btn--' + (on ? 'primary' : 'secondary') + ' ac-btn--sm', href: '/academy/courses/?c=' + encodeURIComponent(c.slug), text: on ? 'Continue' : 'View course and enrol' }))); });
+                box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: heading }), wrap));
+            }
             var st = await A.courseState(course);
             if (!st.enrolled) {
                 document.getElementById('hello').textContent = prof.full_name ? 'Welcome, ' + prof.full_name.split(' ')[0] : 'Welcome';
@@ -1067,7 +1191,8 @@ dash_script = r"""        (async function () {
                         el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
                             el('p', { class: 'ac-muted', text: 'From your first dataset to machine learning models you can explain. ' + st.total + ' lessons and projects for beginners, with a certificate.' }),
                             el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'View course and enrol' }))),
-                    el('p', { class: 'ac-muted ac-small' }, 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/#courses', text: 'See all courses' }))));
+                    el('p', { class: 'ac-muted ac-small' }, others.length ? '' : 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/courses/', text: 'See all courses' }))));
+                otherCourses(document.getElementById('next'), mine.length ? 'Your other courses' : 'Also open for enrolment');
                 return;
             }
             A.renderLedger(document.getElementById('ledger'), st, { course: course, title: false });
@@ -1093,6 +1218,7 @@ dash_script = r"""        (async function () {
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
+            otherCourses(next, 'More courses');
             var list = document.getElementById('checklist');
             function item(isDone, text, link) {
                 list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));
@@ -1435,6 +1561,76 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div id="manage-msg"></div>
                     <div id="manage-body"></div>
                 </dialog>
+                <section class="ac-admin__sec" data-cap="manage_scholarships" id="sch-sec">
+                    <div class="ac-admin__head"><h2>Scholarships</h2><p class="ac-muted">Full access to a course, or every course, without paying. Each scholarship records how long it lasts and why it was given. The learner is told on the site and by email.</p>
+                        <button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="sch-new">Give a scholarship</button></div>
+                    <div class="ac-kpis ac-kpis--sm" id="sch-kpis"></div>
+                    <div class="ofl-tabs" id="sch-tabs">
+                        <button type="button" class="ofl-tab is-active" data-f="active">Active</button>
+                        <button type="button" class="ofl-tab" data-f="ended">Ended</button>
+                        <button type="button" class="ofl-tab" data-f="all">All</button>
+                    </div>
+                    <div class="ac-table-wrap"><table class="ac-table" id="sch-table"></table></div>
+                </section>
+                <dialog class="ac-dialog" id="sch-dlg" aria-labelledby="sch-title">
+                    <div class="ac-dialog__head"><h2 id="sch-title">Give a scholarship</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="sch-msg"></div>
+                    <form id="sch-form" class="ac-form sch-form" novalidate>
+                        <fieldset class="sch-step">
+                            <legend>1. Learner</legend>
+                            <div id="sch-who"></div>
+                            <div id="sch-find"><input type="search" id="sch-q" placeholder="Search by name or email (at least 3 letters)" aria-label="Find a learner" autocomplete="off">
+                                <ul class="sch-results" id="sch-results"></ul></div>
+                        </fieldset>
+                        <fieldset class="sch-step">
+                            <legend>2. Course</legend>
+                            <select id="sch-course" aria-label="Course"></select>
+                        </fieldset>
+                        <fieldset class="sch-step">
+                            <legend>3. Duration</legend>
+                            <div class="sch-chips" id="sch-dur" role="radiogroup" aria-label="Duration"></div>
+                            <label class="sch-until" id="sch-until-wrap" hidden>Ends on <input type="date" id="sch-until"></label>
+                        </fieldset>
+                        <fieldset class="sch-step">
+                            <legend>4. Why</legend>
+                            <textarea id="sch-reason" rows="3" maxlength="500" placeholder="e.g. Winner of the 2026 women in data essay competition; partner programme with ABC University; financial hardship application approved"></textarea>
+                            <small class="ac-muted">Kept in the scholarship record and the staff log. The learner doesn't see this.</small>
+                        </fieldset>
+                        <p class="sch-summary" id="sch-summary"></p>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="sch-save">Give scholarship</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
+                <section class="ac-admin__sec" data-cap="manage_content" id="courses-sec">
+                    <div class="ac-admin__head"><h2>Courses</h2><p class="ac-muted">Add a course, edit what learners see, and choose whether it's live, coming soon or hidden. Hidden courses are visible only to staff who manage content.</p>
+                        <button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="course-new">Add a course</button></div>
+                    <div class="cm-list" id="cm-list"><p class="ac-muted">Loading…</p></div>
+                </section>
+                <dialog class="ac-dialog" id="course-dlg" aria-labelledby="course-title">
+                    <div class="ac-dialog__head"><h2 id="course-title">Add a course</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="course-msg"></div>
+                    <form id="course-form" class="ac-form" novalidate>
+                        <label>Title<input id="cf-title" maxlength="80" required placeholder="e.g. Data Analysis"></label>
+                        <label>Course link<span class="cf-slug"><span class="ac-muted">/academy/courses/?c=</span><input id="cf-slug" maxlength="40" pattern="[a-z0-9-]+" placeholder="data-analysis"></span>
+                            <small class="ac-muted">Lowercase letters, numbers and dashes. Can't be changed later.</small></label>
+                        <label>Short description<textarea id="cf-desc" rows="3" maxlength="400" placeholder="One or two sentences on what learners will be able to do."></textarea></label>
+                        <div class="cf-row">
+                            <label>Level<select id="cf-level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+                            <label>Access<select id="cf-access"><option value="free">Free</option><option value="paid">Paid (needs a pass)</option></select></label>
+                        </div>
+                        <fieldset class="cf-status"><legend>Status</legend>
+                            <label><input type="radio" name="cf-status" value="live"> <b>Live</b><span>Listed and open for enrolment.</span></label>
+                            <label><input type="radio" name="cf-status" value="coming_soon"> <b>Coming soon</b><span>Listed as in preparation; nobody can enrol yet.</span></label>
+                            <label><input type="radio" name="cf-status" value="hidden"> <b>Hidden</b><span>Not listed anywhere. Only content staff can see it, to build and check lessons.</span></label>
+                        </fieldset>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save course</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
+                <dialog class="ac-dialog ac-dialog--wide" id="lessons-dlg" aria-labelledby="lessons-title">
+                    <div class="ac-dialog__head"><h2 id="lessons-title">Lessons</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="lessons-msg"></div>
+                    <p class="ac-muted ac-small">Rename lessons, add new ones, and release or hide them. A hidden lesson stays in the outline as &ldquo;Coming soon&rdquo; and can't be opened. Notes, quiz and video for each lesson are uploaded with the content import tool.</p>
+                    <div class="ac-table-wrap"><table class="ac-table cm-lessons" id="lessons-table"></table></div>
+                </dialog>
                 <section class="ac-admin__sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
                     <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
@@ -1463,10 +1659,12 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <details class="ac-roles"><summary>What each role can do</summary>
                         <ul>
                             <li><b>Owner</b>: everything, including giving and removing roles. Can't be removed from the website.</li>
-                            <li><b>Admin</b>: manage learners (suspend, unlock, free access, certificates), grade projects, see learners and stats. Can't change roles or other staff.</li>
+                            <li><b>Admin</b>: manage learners (suspend, unlock, certificates), scholarships, courses and lessons, grade projects, see learners and stats. Can't change roles or other staff.</li>
                             <li><b>Reviewer</b>: grade projects and capstones, see learners and stats.</li>
                             <li><b>Finance</b> (CFO, account officer): payments, passes, plans and prices, and stats.</li>
                             <li><b>HR</b>: see learners, the staff list and stats. Can't change anything.</li>
+                            <li><b>Scholarship officer</b>: give and end scholarships (course, duration and reason), and see stats. Can find a learner by name or email to do this, but can't change their account.</li>
+                            <li><b>Instructor</b> (content editor): add and edit courses and lessons, release or hide them, open any lesson without studying, grade projects, and see stats. Can't take a course off live once learners are enrolled, or make it paid; the owner or an admin does that.</li>
                             <li><b>Analyst</b>: stats, the lesson funnel and learner totals only; no names or emails.</li>
                         </ul>
                     </details>
@@ -1540,15 +1738,219 @@ admin_script = r"""        (async function () {
             var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
             var role = (await sb.rpc('my_staff_role')).data;
             if (!role) return OFL.notice(msg, 'This page is only for Open Fraud Labs staff.', 'error');
-            var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer'],
+            var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
-                manage_plans: ['owner', 'finance'], view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr'] };
+                manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'],
+                view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
-            var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR' };
+            var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
+            var ROLE_OPTS = [['admin', 'Admin'], ['instructor', 'Instructor'], ['reviewer', 'Reviewer'], ['scholarship', 'Scholarship officer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']];
             document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
             if (!can('view_people')) document.getElementById('bg-csv').hidden = true;
             document.getElementById('admin-sub').prepend(el('span', { class: 'ac-rolebadge', text: 'Your role: ' + ROLE_NAME[role] }), ' ');
             document.getElementById('admin-body').hidden = false;
+            document.querySelectorAll('dialog [data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+            function dOnly(v) { return v ? new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
+            function schUntil(x) { return x.ends_at ? 'until ' + dOnly(new Date(new Date(x.ends_at).getTime() - 1000)) : 'with no end date'; }
+            var allCourses = [];
+            async function loadCourses() { allCourses = (await sb.from('courses').select('slug, title, status, access, sort').order('sort')).data || []; }
+
+            // ---- Scholarships
+            var schRows = [], schFilter = 'active', schPick = null, schDur = '90';
+            async function loadScholarships() {
+                if (!can('manage_scholarships')) return;
+                var r = await sb.rpc('scholarship_list');
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                schRows = r.data || []; drawScholarships();
+            }
+            function drawScholarships() {
+                var active = schRows.filter(function (x) { return x.status === 'active'; });
+                var soon = active.filter(function (x) { return x.ends_at && new Date(x.ends_at) - Date.now() < 14 * 864e5; });
+                var k = document.getElementById('sch-kpis'); k.textContent = '';
+                [['Active', active.length], ['Ending in the next 14 days', soon.length], ['Given in total', schRows.length]]
+                    .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
+                var t = document.getElementById('sch-table'); t.textContent = '';
+                var hr = el('tr'); ['Learner', 'Course', 'Duration', 'Why', 'Given by', 'Status', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody'); t.appendChild(tb);
+                var list = schRows.filter(function (x) { return schFilter === 'all' || (schFilter === 'active' ? x.status === 'active' : x.status !== 'active'); });
+                if (!list.length) tb.appendChild(el('tr', {}, el('td', { colspan: '7', class: 'ac-muted', text: schFilter === 'active' ? 'No active scholarships. Use “Give a scholarship” to add one.' : 'Nothing here yet.' })));
+                list.forEach(function (x) {
+                    var left = x.ends_at && x.status === 'active' ? Math.ceil((new Date(x.ends_at) - Date.now()) / 864e5) : null;
+                    var dur = el('td', {}, el('div', { text: dOnly(x.starts_at) + ' → ' + (x.ends_at ? dOnly(new Date(new Date(x.ends_at).getTime() - 1000)) : 'no end date') }),
+                        left != null ? el('small', { class: 'ac-muted', text: left + (left === 1 ? ' day' : ' days') + ' left' }) : null);
+                    var st = el('td', {}, el('span', { class: 'sch-status sch-status--' + x.status, text: x.status === 'active' ? 'Active' : x.status === 'expired' ? 'Ended' : 'Ended early' }),
+                        x.revoke_reason ? el('small', { class: 'ac-muted', text: x.revoke_reason }) : null);
+                    var end = x.status === 'active' ? el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'End', onclick: async function () {
+                        var why = window.prompt('End the scholarship for ' + (x.full_name || x.email) + '? Give a reason (kept in the record):', ''); if (!why) return;
+                        var res = await sb.rpc('scholarship_revoke', { p_id: x.id, p_reason: why });
+                        if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                        OFL.notice(msg, 'Scholarship ended for ' + (x.full_name || x.email) + '.', 'success'); loadScholarships();
+                    } }) : null;
+                    tb.appendChild(el('tr', {}, el('td', {}, el('div', { text: x.full_name || '(no name)' }), el('small', { class: 'ac-muted', text: x.email })),
+                        el('td', { text: x.course_title }), dur, el('td', { class: 'sch-why', text: x.reason }),
+                        el('td', {}, el('div', { text: x.granted_by_name || x.granted_by_email || '—' }), el('small', { class: 'ac-muted', text: dOnly(x.granted_at) })), st, el('td', {}, end)));
+                });
+            }
+            document.querySelectorAll('#sch-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
+                document.querySelectorAll('#sch-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); schFilter = b.dataset.f; drawScholarships(); }); });
+            var schDlg = document.getElementById('sch-dlg');
+            var DUR = [['30', '30 days'], ['90', '3 months'], ['180', '6 months'], ['365', '1 year'], ['date', 'Until a date'], ['none', 'No end date']];
+            function schEnd() {
+                if (schDur === 'none') return null;
+                if (schDur === 'date') { var v = document.getElementById('sch-until').value; return v ? new Date(v + 'T00:00:00') : undefined; }
+                return new Date(Date.now() + (+schDur) * 864e5);
+            }
+            function schSummary() {
+                var c = document.getElementById('sch-course'), end = schEnd(), s = document.getElementById('sch-summary');
+                if (!schPick) { s.textContent = 'Choose a learner to continue.'; return; }
+                s.textContent = (schPick.full_name || schPick.email) + ' will get full access to ' + c.options[c.selectedIndex].text +
+                    (end === null ? ' with no end date.' : end ? ' until ' + dOnly(end) + '.' : ' until the date you choose.') + ' They’ll get a message on the site and by email' + (c.value !== 'all' ? ', and be enrolled in the course if it’s live.' : '.');
+            }
+            function schSetWho(p) {
+                schPick = p; var who = document.getElementById('sch-who'); who.textContent = '';
+                document.getElementById('sch-find').hidden = !!p;
+                if (p) who.appendChild(el('div', { class: 'sch-picked' }, el('span', {}, el('strong', { text: p.full_name || '(no name)' }), ' ', el('span', { class: 'ac-muted', text: p.email })),
+                    el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Change', onclick: function () { schSetWho(null); document.getElementById('sch-q').focus(); } })));
+                schSummary();
+            }
+            function openScholarship(person) {
+                document.getElementById('sch-msg').textContent = '';
+                document.getElementById('sch-form').reset(); document.getElementById('sch-results').textContent = '';
+                var c = document.getElementById('sch-course'); c.textContent = '';
+                c.appendChild(el('option', { value: 'all', text: 'All courses' }));
+                allCourses.forEach(function (x) { c.appendChild(el('option', { value: x.slug, text: x.title + (x.status === 'live' ? '' : x.status === 'coming_soon' ? ' (coming soon)' : ' (hidden)') })); });
+                schDur = '90'; drawDur(); schSetWho(person || null);
+                schDlg.showModal(); if (!person) document.getElementById('sch-q').focus();
+            }
+            function drawDur() {
+                var box = document.getElementById('sch-dur'); box.textContent = '';
+                DUR.forEach(function (d) { box.appendChild(el('button', { type: 'button', role: 'radio', 'aria-checked': String(d[0] === schDur), class: 'sch-chip' + (d[0] === schDur ? ' is-on' : ''), text: d[1],
+                    onclick: function () { schDur = d[0]; drawDur(); if (d[0] === 'date') document.getElementById('sch-until').focus(); } })); });
+                document.getElementById('sch-until-wrap').hidden = schDur !== 'date';
+                document.getElementById('sch-until').min = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+                schSummary();
+            }
+            document.getElementById('sch-new').addEventListener('click', function () { openScholarship(null); });
+            document.getElementById('sch-course').addEventListener('change', schSummary);
+            document.getElementById('sch-until').addEventListener('input', schSummary);
+            var schTimer;
+            document.getElementById('sch-q').addEventListener('input', function (e) {
+                clearTimeout(schTimer); var q = e.target.value.trim(), ul = document.getElementById('sch-results');
+                if (q.length < 3) { ul.textContent = ''; return; }
+                schTimer = setTimeout(async function () {
+                    var r = await sb.rpc('scholarship_find_learner', { p_q: q }); ul.textContent = '';
+                    if (r.error) return OFL.notice(document.getElementById('sch-msg'), OFL.friendlyError(r.error), 'error');
+                    if (!(r.data || []).length) return ul.appendChild(el('li', { class: 'ac-muted', text: 'No learner matches. They need an Academy account first.' }));
+                    r.data.forEach(function (p) { ul.appendChild(el('li', {}, el('button', { type: 'button', onclick: function () { schSetWho(p); } },
+                        el('strong', { text: p.full_name || '(no name)' }), el('span', { class: 'ac-muted', text: p.email + ' · ' + p.courses + (p.courses == 1 ? ' course' : ' courses') })))); });
+                }, 250);
+            });
+            document.getElementById('sch-form').addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = document.getElementById('sch-msg');
+                if (!schPick) return OFL.notice(m, 'Choose the learner first.', 'error');
+                var end = schEnd(); if (end === undefined) return OFL.notice(m, 'Choose the end date.', 'error');
+                var reason = document.getElementById('sch-reason').value.trim();
+                if (reason.length < 5) { document.getElementById('sch-reason').focus(); return OFL.notice(m, 'Say why this scholarship is being given.', 'error'); }
+                var btnS = document.getElementById('sch-save'); btnS.disabled = true;
+                var res = await sb.rpc('scholarship_grant', { p_user: schPick.id, p_course: document.getElementById('sch-course').value,
+                    p_days: /^\d+$/.test(schDur) ? +schDur : null, p_until: schDur === 'date' ? document.getElementById('sch-until').value : null, p_reason: reason });
+                btnS.disabled = false;
+                if (res.error) return OFL.notice(m, OFL.friendlyError(res.error), 'error');
+                schDlg.close(); OFL.notice(msg, 'Scholarship given to ' + (schPick.full_name || schPick.email) + '.', 'success'); loadScholarships();
+            });
+
+            // ---- Courses and lessons
+            var cmData = [], cmEdit = null;
+            var STATUS = { live: ['Live', 'live'], coming_soon: ['Coming soon', 'soon'], hidden: ['Hidden', 'hidden'] };
+            async function loadContent() {
+                if (!can('manage_content')) return;
+                var r = await sb.rpc('content_courses');
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                cmData = r.data || []; drawContent();
+                if (lessonsCourse) drawLessons(lessonsCourse);
+            }
+            function drawContent() {
+                var box = document.getElementById('cm-list'); box.textContent = '';
+                cmData.forEach(function (c) {
+                    var rel = c.lessons.filter(function (l) { return l.released; }).length;
+                    box.appendChild(el('article', { class: 'cm-card' },
+                        el('div', { class: 'cm-card__main' },
+                            el('div', { class: 'cm-card__top' }, el('span', { class: 'cm-status cm-status--' + STATUS[c.status][1], text: STATUS[c.status][0] }),
+                                el('span', { class: 'ac-muted ac-small', text: (c.access === 'paid' ? 'Paid' : 'Free') + (c.level ? ' · ' + c.level : '') })),
+                            el('h3', { text: c.title }), c.description ? el('p', { class: 'ac-muted', text: c.description }) : null,
+                            el('p', { class: 'cm-card__facts num' }, rel + ' of ' + c.lessons.length + ' lessons released · ' + c.enrolled + ' enrolled')),
+                        el('div', { class: 'cm-card__actions' },
+                            el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Edit', onclick: function () { openCourse(c); } }),
+                            el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Lessons', onclick: function () { openLessons(c.slug); } }),
+                            el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: c.slug === 'data-science' ? '/academy/courses/data-science/' : '/academy/courses/?c=' + c.slug, target: '_blank', rel: 'noopener', text: 'View page' }))));
+                });
+            }
+            var courseDlg = document.getElementById('course-dlg');
+            function slugify(t) { return t.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
+            function openCourse(c) {
+                cmEdit = c || null; document.getElementById('course-msg').textContent = '';
+                var f = document.getElementById('course-form'); f.reset();
+                document.getElementById('course-title').textContent = c ? 'Edit ' + c.title : 'Add a course';
+                document.getElementById('cf-title').value = c ? c.title : '';
+                var sl = document.getElementById('cf-slug'); sl.value = c ? c.slug : ''; sl.readOnly = !!c; sl.dataset.auto = c ? '' : '1';
+                document.getElementById('cf-desc').value = c && c.description || '';
+                document.getElementById('cf-level').value = c && c.level || 'Beginner';
+                var acc = document.getElementById('cf-access'); acc.value = c ? c.access : 'free'; acc.disabled = !can('manage_learners');
+                f.querySelector('input[name="cf-status"][value="' + (c ? c.status : 'hidden') + '"]').checked = true;
+                courseDlg.showModal(); document.getElementById('cf-title').focus();
+            }
+            document.getElementById('cf-title').addEventListener('input', function (e) { var sl = document.getElementById('cf-slug'); if (sl.dataset.auto) sl.value = slugify(e.target.value); });
+            document.getElementById('cf-slug').addEventListener('input', function (e) { e.target.dataset.auto = ''; });
+            document.getElementById('course-new').addEventListener('click', function () { openCourse(null); });
+            document.getElementById('course-form').addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = document.getElementById('course-msg');
+                var status = (e.target.querySelector('input[name="cf-status"]:checked') || {}).value;
+                if (cmEdit && cmEdit.status === 'live' && status !== 'live' && cmEdit.enrolled > 0 &&
+                    !window.confirm(cmEdit.enrolled + ' learners are enrolled. Taking the course off live stops them opening lessons until it’s live again. Continue?')) return;
+                if (status === 'live' && !(cmEdit && cmEdit.lessons.some(function (l) { return l.released; })) &&
+                    !window.confirm('This course has no released lessons yet. Learners will be able to enrol but won’t find anything to open. Make it live anyway?')) return;
+                var res = await sb.rpc('content_save_course', { p_slug: document.getElementById('cf-slug').value, p_title: document.getElementById('cf-title').value,
+                    p_description: document.getElementById('cf-desc').value, p_level: document.getElementById('cf-level').value,
+                    p_access: document.getElementById('cf-access').value, p_status: status, p_sort: null });
+                if (res.error) return OFL.notice(m, OFL.friendlyError(res.error), 'error');
+                courseDlg.close(); OFL.notice(msg, (cmEdit ? 'Saved ' : 'Added ') + document.getElementById('cf-title').value.trim() + '.', 'success');
+                await loadCourses(); loadContent();
+                if (!cmEdit) openLessons(res.data.slug);
+            });
+            var lessonsDlg = document.getElementById('lessons-dlg'), lessonsCourse = null;
+            function openLessons(slug) { lessonsCourse = slug; document.getElementById('lessons-msg').textContent = ''; drawLessons(slug); if (!lessonsDlg.open) lessonsDlg.showModal(); }
+            lessonsDlg.addEventListener('close', function () { lessonsCourse = null; });
+            function drawLessons(slug) {
+                var c = cmData.filter(function (x) { return x.slug === slug; })[0]; if (!c) return;
+                document.getElementById('lessons-title').textContent = 'Lessons: ' + c.title;
+                var t = document.getElementById('lessons-table'); t.textContent = '';
+                var hr = el('tr'); ['#', 'Title', 'Released', c.access === 'paid' ? 'Free preview' : '', 'Content', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                function row(l, isNew) {
+                    var title = el('input', { value: l.title || '', 'aria-label': 'Lesson title', placeholder: isNew ? 'Title of the new lesson' : '', maxlength: '120' });
+                    var rel = el('input', { type: 'checkbox', 'aria-label': 'Released' }); rel.checked = !!l.released;
+                    var fp = el('input', { type: 'checkbox', 'aria-label': 'Free preview' }); fp.checked = !!l.free_preview;
+                    var content = isNew ? el('span', { class: 'ac-muted', text: '—' }) : el('span', { class: 'cm-content' + (l.has_content ? ' is-ok' : ''), text: l.has_content ? 'Notes' + (l.has_video ? ' + video' : '') : 'Not uploaded' });
+                    var save = el('button', { class: 'ac-btn ac-btn--' + (isNew ? 'primary' : 'secondary') + ' ac-btn--sm', type: 'button', text: isNew ? 'Add lesson' : 'Save' });
+                    function dirty() { save.classList.toggle('is-dirty', title.value !== (l.title || '') || rel.checked !== !!l.released || fp.checked !== !!l.free_preview); }
+                    [title, rel, fp].forEach(function (i) { i.addEventListener('input', dirty); i.addEventListener('change', dirty); });
+                    save.addEventListener('click', async function () {
+                        if (!title.value.trim()) { title.focus(); return OFL.notice(document.getElementById('lessons-msg'), 'Give the lesson a title.', 'error'); }
+                        if (rel.checked && !l.released && !l.has_content && !window.confirm('Lesson ' + (l.n || 'new') + ' has no notes or quiz uploaded yet. Learners will see “not available” if they open it. Release anyway?')) return;
+                        save.disabled = true;
+                        var res = await sb.rpc('content_save_lesson', { p_course: slug, p_n: isNew ? null : l.n, p_title: title.value, p_released: rel.checked, p_free_preview: fp.checked });
+                        save.disabled = false;
+                        if (res.error) return OFL.notice(document.getElementById('lessons-msg'), OFL.friendlyError(res.error), 'error');
+                        OFL.notice(document.getElementById('lessons-msg'), isNew ? 'Lesson ' + res.data.n + ' added.' : 'Lesson ' + l.n + ' saved.', 'success');
+                        loadContent();
+                    });
+                    tb.appendChild(el('tr', { class: isNew ? 'cm-new' : (l.released ? '' : 'is-hidden') }, el('td', { class: 'num', text: isNew ? '+' : String(l.n) }), el('td', {}, title), el('td', {}, rel),
+                        el('td', {}, c.access === 'paid' ? fp : null), el('td', {}, content), el('td', {}, save)));
+                }
+                c.lessons.forEach(function (l) { row(l, false); }); row({}, true);
+            }
+            await loadCourses(); loadScholarships(); loadContent();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
                 var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');
@@ -1560,7 +1962,7 @@ admin_script = r"""        (async function () {
                     var cell = el('td');
                     if (can('manage_roles') && x.staff_role !== 'owner') {
                         var sel = el('select', { 'aria-label': 'Role for ' + (x.full_name || x.email) });
-                        [['admin', 'Admin'], ['reviewer', 'Reviewer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst'], ['none', 'Remove role']].forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === x.staff_role ? 'selected' : null })); });
+                        ROLE_OPTS.concat([['none', 'Remove role']]).forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === x.staff_role ? 'selected' : null })); });
                         sel.addEventListener('change', async function () {
                             if (!window.confirm((sel.value === 'none' ? 'Remove the staff role from ' : 'Change the role of ') + (x.full_name || x.email) + (sel.value === 'none' ? '?' : ' to ' + ROLE_NAME[sel.value] + '?'))) { sel.value = x.staff_role; return; }
                             var res = await sb.rpc('admin_manage_user', { p_user: x.user_id, p_action: 'set_role', p_value: sel.value });
@@ -1689,18 +2091,17 @@ admin_script = r"""        (async function () {
                     var row = el('div', { class: 'ofl-actions' }); buttons.forEach(function (b) { if (b) row.appendChild(b); }); g.appendChild(row); body.appendChild(g);
                 }
                 function btn(label, kind, fn, disabled) { return el('button', { class: 'ac-btn ac-btn--' + kind + ' ac-btn--sm', type: 'button', text: label, onclick: fn, disabled: disabled ? 'disabled' : null }); }
-                var days = el('select', { 'aria-label': 'Length of free access' });
-                [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'No end date']].forEach(function (o) { days.appendChild(el('option', { value: o[0], text: o[1] })); });
                 group('Account', r.suspended_at ? 'Suspended on ' + dt(r.suspended_at) + '. They can’t log in, open lessons or take quizzes.' : 'Suspending blocks log-in and all learning. Their records are kept, and you can reactivate them at any time.',
                     [r.suspended_at ? btn('Reactivate', 'primary', act('reactivate')) : btn('Suspend account', 'danger', function () { var why = window.prompt('Reason for suspending (kept in the admin log):', ''); if (why === null) return; act('suspend', why)(); }, self)]);
                 group('Unlock all lessons', r.unlock_all ? 'This learner can open any released lesson in any order.' : 'Let this learner open released lessons in any order, without passing the previous lesson first. Video, notes and quiz rules still apply.',
                     [r.unlock_all ? btn('Lock again', 'secondary', act('relock')) : btn('Unlock all lessons', 'primary', act('unlock_all'))]);
-                var grant = btn('Grant free access', 'primary', function () { act('grant_access', days.value)(); });
-                group('Free access to paid courses', r.access_until ? 'Active: free access ' + (r.access_until === 'no end date' ? 'with no end date' : 'until ' + r.access_until) + '.' : 'For scholarships, interns or partners: full access to paid courses without paying. Data Science from Scratch is already free for everyone.',
-                    r.access_until ? [btn('Remove free access', 'secondary', act('revoke_access'))] : [days, grant]);
+                var mine = schRows.filter(function (x) { return x.user_id === r.user_id && x.status === 'active'; });
+                group('Scholarship', mine.length ? 'Active: ' + mine.map(function (x) { return x.course_title + ' ' + schUntil(x); }).join('; ') + '.' : 'Full access to a course, or every course, for a set time, with the reason recorded.',
+                    [can('manage_scholarships') ? btn(mine.length ? 'Give another scholarship' : 'Give a scholarship', 'primary', function () { dlg.close(); openScholarship({ id: r.user_id, email: r.email, full_name: r.full_name }); }) : null]);
+                if (r.access_until) group('Older free access', 'Given before scholarships existed: free access ' + (r.access_until === 'no end date' ? 'with no end date' : 'until ' + r.access_until) + '.', [btn('Remove free access', 'secondary', act('revoke_access'))]);
                 if (can('manage_roles') && !self) {
                     var roleSel = el('select', { 'aria-label': 'Staff role' });
-                    [['none', 'No staff role'], ['admin', 'Admin'], ['reviewer', 'Reviewer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']].forEach(function (o) { roleSel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === (targetRole || 'none') ? 'selected' : null })); });
+                    [['none', 'No staff role']].concat(ROLE_OPTS).forEach(function (o) { roleSel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === (targetRole || 'none') ? 'selected' : null })); });
                     group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
                         [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
                 }

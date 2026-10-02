@@ -23,10 +23,10 @@
         var sb = OFL.sb;
         var user = await OFL.getUser();
         var res = await Promise.all([
-            sb.from('courses').select('slug, title, total_lessons').eq('slug', course).maybeSingle(),
+            sb.from('courses').select('slug, title, total_lessons, description, level, status, access').eq('slug', course).maybeSingle(),
             sb.from('lessons').select('n, title, released, video_url, video_path, video_seconds').eq('course_slug', course).order('n'),
             user ? sb.from('lesson_progress').select('lesson_n, best_score').eq('course_slug', course) : Promise.resolve({ data: [] }),
-            user ? sb.from('profiles').select('is_admin, unlock_all').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),
+            user ? sb.from('profiles').select('is_admin, unlock_all, staff_role').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),
             user ? sb.from('enrollments').select('course_slug').eq('user_id', user.id).eq('course_slug', course).maybeSingle() : Promise.resolve({ data: null })
         ]);
         var prof = res[3].data || {};
@@ -41,7 +41,7 @@
         var core = (res[0].data && res[0].data.total_lessons) || lessons.length;
         var done = Object.keys(passed).filter(function (n) { return +n <= core; }).length;
         return { user: user, course: res[0].data, lessons: lessons, passed: passed, next: next, done: done, total: core,
-                 isAdmin: !!prof.is_admin, unlockAll: !!(prof.unlock_all || prof.is_admin), enrolled: !!(res[4].data || prof.is_admin) };
+                 isAdmin: !!prof.is_admin, unlockAll: !!(prof.unlock_all || prof.is_admin || prof.staff_role === 'instructor'), enrolled: !!(res[4].data || prof.is_admin || prof.staff_role === 'instructor') };
     }
 
     function rowState(l, st, currentN) {
@@ -68,7 +68,7 @@
             el('span', { style: 'width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%' })));
         var groups = [];
         st.lessons.forEach(function (l) {
-            var m = moduleOf(l.n), g = groups[groups.length - 1];
+            var m = (!st.course || st.course.slug === 'data-science') ? moduleOf(l.n) : 'Lessons', g = groups[groups.length - 1];
             if (!g || g.name !== m) { g = { name: m, lessons: [] }; groups.push(g); }
             g.lessons.push(l);
         });

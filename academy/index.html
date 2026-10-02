@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002s">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002t">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -162,9 +162,10 @@ Monthly    0.250</pre></div>
                         <div><dt>Certificate</dt><dd>Yes, with public verification</dd></div>
                     </dl>
                 </article>
+                <div class="lp-more" id="more-courses" hidden></div>
                 <div class="ac-coming">
                     <h3>Coming to the Academy</h3>
-                    <ul>
+                    <ul id="coming-list">
 <li><strong>Data Analysis</strong><span>Spreadsheets, SQL and dashboards that turn raw data into clear business answers.</span><em>In preparation</em></li>
 <li><strong>Data Engineering</strong><span>Pipelines, warehouses and data models: how reliable data reaches analysts and models.</span><em>In preparation</em></li>
 <li><strong>Machine Learning</strong><span>Build, evaluate and explain models, from regression to gradient boosting.</span><em>In preparation</em></li>
@@ -242,8 +243,8 @@ Monthly    0.250</pre></div>
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002s"></script>
-    <script src="/assets/js/academy.js?v=20261002s"></script>
+    <script src="/assets/js/learn.js?v=20261002t"></script>
+    <script src="/assets/js/academy.js?v=20261002t"></script>
     <script>
         (function () {
             var cell = document.getElementById('lp-cell'); if (!cell) return;
@@ -254,6 +255,25 @@ Monthly    0.250</pre></div>
                 code.textContent = full.slice(0, ++i);
                 if (i < full.length) setTimeout(tick, 28); else setTimeout(function () { cell.classList.remove('is-typing'); cell.classList.add('is-done'); }, 260);
             }, 700);
+        })();
+        (async function courses() {
+            var r = await OFL.sb.from('courses').select('slug, title, description, level, status, access, total_lessons, sort').neq('status', 'hidden').order('sort');
+            if (r.error || !r.data) return;
+            var el = OFL.el, more = document.getElementById('more-courses'), ul = document.getElementById('coming-list');
+            var live = r.data.filter(function (c) { return c.status === 'live' && c.slug !== 'data-science'; });
+            more.textContent = '';
+            live.forEach(function (c) {
+                more.appendChild(el('article', { class: 'lp-more__card' }, el('span', { class: 'ac-status ac-status--live', text: 'Open for enrolment' }),
+                    el('h3', { text: c.title }), c.description ? el('p', { text: c.description }) : null,
+                    el('small', { class: 'ac-muted', text: [c.level, c.total_lessons ? c.total_lessons + ' lessons' : null, c.access === 'paid' ? 'Paid' : 'Free'].filter(Boolean).join(' · ') }),
+                    el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/courses/?c=' + encodeURIComponent(c.slug), text: 'View course and enrol' })));
+            });
+            more.hidden = !live.length;
+            var soon = r.data.filter(function (c) { return c.status === 'coming_soon'; });
+            var keep = Array.prototype.filter.call(ul.children, function (li) { return /Live classes/.test(li.textContent); });
+            ul.textContent = '';
+            soon.forEach(function (c) { ul.appendChild(el('li', {}, el('strong', { text: c.title }), el('span', { text: c.description || '' }), el('em', { text: 'In preparation' }))); });
+            keep.forEach(function (li) { ul.appendChild(li); });
         })();
         (async function () {
             var user = await OFL.getUser();
