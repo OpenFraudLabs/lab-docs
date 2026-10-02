@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002k"
+V = "20261002l"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -171,62 +171,122 @@ COMING = [("Data Analysis", "Spreadsheets, SQL and dashboards that turn raw data
           ("Live classes", "Live sessions with Q&A for the Academy community.")]
 coming_html = "\n".join(f'<li><strong>{esc(t)}</strong><span>{esc(d)}</span><em>In preparation</em></li>' for t, d in COMING)
 
-home_main = f"""        <section class="ac-hero">
-            <div class="ac-wrap ac-hero__grid">
-                <div>
+home_main = f"""        <section class="lp-hero">
+            <div class="ac-wrap lp-hero__grid">
+                <div class="lp-hero__copy">
                     <h1>Practical data skills, one lesson at a time.</h1>
-                    <p class="ac-lead">Short video lessons built on real code and real data, with practice that runs in your browser and a certificate anyone can verify.</p>
-                    <div class="ac-hero__actions">
-                        <a class="ac-btn ac-btn--primary" href="#courses" id="hero-cta">Browse courses</a>
-                        <a class="ac-btn ac-btn--secondary" href="#how">How it works</a>
+                    <p class="lp-hero__lead">Short video lessons built on real code and real data. Practise in your browser, build a portfolio, and earn a certificate anyone can verify.</p>
+                    <div class="lp-hero__actions">
+                        <a class="ac-btn ac-btn--primary lp-btn-lg" href="#courses" id="hero-cta">Browse courses</a>
+                        <a class="ac-btn lp-btn-ghost lp-btn-lg" href="#inside">See inside a lesson</a>
                     </div>
-                    <p class="ac-hero__note">No experience needed. Nothing to install.</p>
+                    <dl class="lp-facts">
+                        <div><dt>Lessons and project parts</dt><dd class="num">39</dd></div>
+                        <div><dt>Hours of video</dt><dd class="num">6.6</dd></div>
+                        <div><dt>Coding exercises</dt><dd class="num">117</dd></div>
+                    </dl>
                 </div>
-                <figure class="ac-showcase">
-                    <div class="ac-showcase__frame"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="A frame from Lesson 25, Feature engineering: Python code that groups subscribers into four bands, and the bar chart it produces showing churn rising from about 10% to 29%."></div>
-                    <ol class="ac-path" aria-label="Every lesson follows four steps">
-                        <li><b>Watch</b><span>10-minute video</span></li>
-                        <li><b>Read</b><span>Study notes</span></li>
-                        <li><b>Practise</b><span>Code in your browser</span></li>
-                        <li><b>Quiz</b><span>70% to pass</span></li>
-                    </ol>
-                </figure>
+                <div class="lp-stage" aria-hidden="true">
+                    <div class="lp-window">
+                        <div class="lp-window__bar"><i></i><i></i><i></i><span>Lesson 25 · Feature engineering</span></div>
+                        <img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="">
+                    </div>
+                    <div class="lp-cell" id="lp-cell">
+                        <div class="lp-cell__in"><span class="lp-cell__p">In [3]</span><code id="lp-code">subs.groupby("contract")["churned"].mean().round(3)</code></div>
+                        <div class="lp-cell__out" id="lp-out"><span class="lp-cell__p">Out</span><pre>contract
+Annual     0.076
+Monthly    0.250</pre></div>
+                    </div>
+                    <div class="lp-badge"><span class="ac-tick">{TICK}</span>Correct! Well done.</div>
+                </div>
             </div>
         </section>
 
-        <section class="ac-section ac-section--white" id="courses">
+        <section class="lp-section" id="inside">
             <div class="ac-wrap">
-                <div class="ac-section__head">
+                <div class="lp-head">
+                    <h2>Inside every lesson</h2>
+                    <p>The same four steps every time. Each one unlocks the next, so finishing a lesson means you really did the work.</p>
+                </div>
+                <ol class="lp-steps">
+                    <li>
+                        <div class="lp-mock lp-mock--video"><img src="/assets/academy/lesson-frame.jpg" alt="" loading="lazy"><div class="lp-mock__play"></div><div class="lp-mock__meter"><span style="width:64%"></span></div></div>
+                        <h3>Watch</h3><p>A 10-minute video with worked examples in Python, explained line by line.</p>
+                    </li>
+                    <li>
+                        <div class="lp-mock lp-mock--notes"><b>Mean or median?</b><table><tr><th>Measure</th><th>Outliers?</th></tr><tr><td>Mean</td><td>Pulled a lot</td></tr><tr><td>Median</td><td>Barely moves</td></tr></table></div>
+                        <h3>Read</h3><p>Study notes with the code, key terms and common mistakes, ready to revisit.</p>
+                    </li>
+                    <li>
+                        <div class="lp-mock lp-mock--code"><code>median_income = income.median()</code><div class="lp-mock__ok"><span class="ac-tick">{TICK}</span>Correct! Well done.</div></div>
+                        <h3>Practise</h3><p>Three coding exercises that run in your browser. Nothing to install.</p>
+                    </li>
+                    <li>
+                        <div class="lp-mock lp-mock--quiz"><b>Which average suits skewed incomes?</b><span>The mean</span><span class="is-picked">The median</span><span>The range</span></div>
+                        <h3>Quiz</h3><p>A short quiz to check you understood. Score 70% to complete the lesson.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="lp-section lp-section--white">
+            <div class="ac-wrap">
+                <div class="lp-head">
+                    <h2>Finish with a portfolio, not just a certificate</h2>
+                    <p>Three guided projects in different industries: the kind of problems working data scientists are asked to solve. Each one is peer reviewed against a published rubric.</p>
+                </div>
+                <div class="lp-projects">
+                    <article class="lp-project">
+                        <span class="lp-project__field">Finance</span>
+                        <h3>Credit risk</h3>
+                        <p>Which loan applications are likely to default, and where should a lender set its approval cut-off?</p>
+                        <p class="lp-project__out">You deliver a default model, a costed approval policy and a write-up.</p>
+                    </article>
+                    <article class="lp-project">
+                        <span class="lp-project__field">Health</span>
+                        <h3>Clinic no-shows</h3>
+                        <p>Who is likely to miss an appointment, and which patients should get a reminder call?</p>
+                        <p class="lp-project__out">You deliver a risk model and a reminder plan the clinic could run.</p>
+                    </article>
+                    <article class="lp-project">
+                        <span class="lp-project__field">Real estate</span>
+                        <h3>City rents</h3>
+                        <p>What drives rent across a city, and what should a new listing be priced at?</p>
+                        <p class="lp-project__out">You deliver a price model, error analysis and a valuation tool.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="courses">
+            <div class="ac-wrap">
+                <div class="lp-head">
                     <h2>Courses</h2>
                     <p>Start with Data Science from Scratch. More tracks open as they're ready.</p>
                 </div>
-                <article class="ac-feature">
-                    <div class="ac-feature__body">
+                <article class="lp-course">
+                    <div class="lp-course__body">
                         <span class="ac-status ac-status--live">Open for enrolment</span>
                         <h3>Data Science from Scratch</h3>
-                        <p class="ac-muted">From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from retail, health, transport, media and finance.</p>
+                        <p>From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from retail, health, transport, media and finance.</p>
                         <ul class="ac-outcomes">
                             <li>Describe and clean real datasets with confidence</li>
                             <li>Understand the statistics behind everyday analysis</li>
-                            <li>Train, evaluate and explain simple machine learning models</li>
-                            <li>Build three portfolio projects: credit risk, clinic no-shows and city rents</li>
+                            <li>Train, evaluate and explain machine learning models</li>
+                            <li>Build three portfolio projects in finance, health and real estate</li>
                         </ul>
-                        <div class="ac-hero__actions">
-                            <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/">View course and enrol</a>
-                        </div>
+                        <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/">View course and enrol</a>
                     </div>
-                    <div class="ac-feature__aside">
-                        <dl>
-                            <dt>Lessons</dt><dd class="num">30 video lessons (about 10 minutes each) and 3 portfolio projects</dd>
-                            <dt>Each lesson</dt><dd>Video, study notes, coding practice, quiz</dd>
-                            <dt>Final step</dt><dd>Capstone project</dd>
-                            <dt>Cost</dt><dd>Free</dd>
-                            <dt>Certificate</dt><dd>Yes, with public verification</dd>
-                        </dl>
-                    </div>
+                    <dl class="lp-course__facts">
+                        <div><dt>Format</dt><dd>30 video lessons and 3 portfolio projects</dd></div>
+                        <div><dt>Each lesson</dt><dd>Video, study notes, coding practice, quiz</dd></div>
+                        <div><dt>Level</dt><dd>Beginner, no experience needed</dd></div>
+                        <div><dt>Final step</dt><dd>Peer-reviewed capstone project</dd></div>
+                        <div><dt>Certificate</dt><dd>Yes, with public verification</dd></div>
+                    </dl>
                 </article>
                 <div class="ac-coming">
-                    <h3 style="margin:1.75rem 0 0.25rem">Coming to the Academy</h3>
+                    <h3>Coming to the Academy</h3>
                     <ul>
 {coming_html}
                     </ul>
@@ -234,19 +294,19 @@ home_main = f"""        <section class="ac-hero">
             </div>
         </section>
 
-        <section class="ac-section" id="how">
-            <div class="ac-wrap">
-                <div class="ac-section__head">
-                    <h2>How a course works</h2>
-                    <p>Every lesson follows the same path, and each step unlocks the next. It keeps learning honest, so a certificate means something.</p>
+        <section class="lp-section lp-section--white" id="how">
+            <div class="ac-wrap lp-cert">
+                <div>
+                    <h2>A certificate that means something</h2>
+                    <p>Pass every lesson and project, get your capstone approved by your peers, and claim a certificate with your registered name and a unique ID. Anyone can check it on our verification page, so it holds up on a CV or LinkedIn.</p>
+                    <a class="ac-btn ac-btn--secondary" href="/verify/">How verification works</a>
                 </div>
-                <ol class="ac-steps">
-                    <li><h3>Watch</h3><p>A 10-minute video with worked examples in Python. It has to be watched to the end.</p></li>
-                    <li><h3>Read and practise</h3><p>Study notes, then three coding exercises in your browser. Solve them all to unlock the quiz.</p></li>
-                    <li><h3>Quiz</h3><p>A short quiz. Score 70% to complete the lesson and unlock the next.</p></li>
-                    <li><h3>Projects and capstone</h3><p>Three guided portfolio projects in finance, health and real estate, then your own capstone, each peer reviewed with a published rubric.</p></li>
-                    <li><h3>Certificate</h3><p>Earn a certificate with an ID employers can check.</p></li>
-                </ol>
+                <div class="lp-cert__card" aria-hidden="true">
+                    <small>Certificate of completion</small>
+                    <b>Your name here</b>
+                    <span>Data Science from Scratch</span>
+                    <em>ID OFL-XXXX-XXXX · verify at openfraudlabs.com/verify</em>
+                </div>
             </div>
         </section>
 
@@ -254,8 +314,8 @@ home_main = f"""        <section class="ac-hero">
             <div class="ac-wrap">
                 <div class="ac-social">
                     <div>
-                        <h2>New lessons drop daily on TikTok</h2>
-                        <p>Follow @_drhola, then like, share and comment. Your questions shape the next lessons.</p>
+                        <h2>New lessons on TikTok</h2>
+                        <p>Follow @_drhola for short lessons, then like, share and comment. Your questions shape what we teach next.</p>
                     </div>
                     <a class="ac-btn ac-btn--primary" href="{TT}" target="_blank" rel="noopener noreferrer">Follow @_drhola</a>
                 </div>
@@ -265,15 +325,25 @@ home_main = f"""        <section class="ac-hero">
         <section class="ac-section">
             <div class="ac-narrow ac-faq">
                 <h2>Questions</h2>
-                <details><summary>Is it really free?</summary><p>Yes. Data Science from Scratch, its quizzes, practice and certificate are free. You only need an account so we can save your progress. If we add paid courses or features in future, we'll say clearly what's included before you sign up.</p></details>
                 <details><summary>Do I need any experience?</summary><p>No. Data Science from Scratch starts from zero. You'll see real Python from Lesson 1, explained line by line, and practise it in your browser. There's nothing to install.</p></details>
                 <details><summary>How long does a course take?</summary><p>Plan for about 30 minutes per lesson: a 10-minute video, the study notes, a few practice exercises and the quiz. You can stop and pick up where you left off at any time.</p></details>
+                <details><summary>How much does it cost?</summary><p>Creating an account is free, and every released lesson is open during early access. If parts of a course become paid, the Plans page will show exactly what's included before you pay.</p></details>
                 <details><summary>Is the certificate accredited?</summary><p>It's a certificate of course completion from Open Fraud Labs, not an accredited academic qualification. Each one has a unique ID that anyone can check on our <a href="/verify/">verification page</a>.</p></details>
                 <details><summary>How is my data used?</summary><p>Only to run your account and track your learning. Read the <a href="/privacy/">Privacy Policy</a>.</p></details>
             </div>
         </section>"""
 
-home_script = r"""        (async function () {
+home_script = r"""        (function () {
+            var cell = document.getElementById('lp-cell'); if (!cell) return;
+            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var code = document.getElementById('lp-code'), full = code.textContent, i = 0;
+            cell.classList.add('is-typing'); code.textContent = '';
+            setTimeout(function tick() {
+                code.textContent = full.slice(0, ++i);
+                if (i < full.length) setTimeout(tick, 28); else setTimeout(function () { cell.classList.remove('is-typing'); cell.classList.add('is-done'); }, 260);
+            }, 700);
+        })();
+        (async function () {
             var user = await OFL.getUser();
             if (!user) return;
             var st = await ACADEMY.courseState('data-science');
