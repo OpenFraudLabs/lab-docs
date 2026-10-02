@@ -237,7 +237,9 @@
             });
             if (opts.onProgress) opts.onProgress(count(), exercises.length);
         }
+        var current = 0;
         function open(i) {
+            current = i;
             mount(inner, exercises[i], { course: opts.course, lesson: opts.lesson, ex: i ? String(i + 1) : '',
                 onEvent: function (ev) { if (opts.onEvent) return opts.onEvent(ev, i + 1); },
                 getSolution: opts.getSolution ? function () { return opts.getSolution(i + 1); } : null,
@@ -253,7 +255,7 @@
         });
         var first = 0; while (first < exercises.length - 1 && solved(first)) first++;
         open(first);
-        return { solved: count, total: exercises.length };
+        return { solved: count, total: exercises.length, refresh: function () { paint(current); } };
     }
 
     // Warm up Python in the background (e.g. while the learner reads the notes), so Practice opens instantly.

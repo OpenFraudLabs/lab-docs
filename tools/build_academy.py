@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002o"
+V = "20261002p"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -546,7 +546,7 @@ lesson_main = """        <div class="ac-wrap ac-player">
                     <div id="notes-end" aria-hidden="true"></div>
                     <div class="ac-gate"><p id="read-hint">Read to the end of the notes to continue.</p><button class="ac-btn ac-btn--primary" type="button" id="read-done" disabled>I've read the notes</button></div>
                 </div>
-                <div class="ac-panel" data-panel="lab" hidden><div id="lab"></div></div>
+                <div class="ac-panel" data-panel="lab" hidden><div id="colab"></div><div id="lab"></div></div>
                 <div class="ac-panel" data-panel="quiz" hidden>
                     <div id="quiz-wait"></div>
                     <form id="quiz" hidden></form>
@@ -777,20 +777,60 @@ lesson_script = r"""        (async function () {
                         el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Go to the quiz', onclick: function () { show('quiz'); } })), box.firstChild);
                 }
             }
+            // Practise in Google Colab: a public, practice-only notebook that reports passing checks with the learner's key.
+            var labCtl = null, pollTimer = null;
+            async function syncSolved() {
+                var ev2 = (await sb.from('learner_events').select('detail').eq('event', 'practice_solved').eq('course_slug', course).eq('lesson_n', n)).data || [];
+                var got = {}; ev2.forEach(function (e) { if (e.detail && e.detail.exercise) got[e.detail.exercise] = true; });
+                Object.keys(got).forEach(function (k) { try { localStorage.setItem('ofl-lab-done:' + course + ':' + n + ':' + (k - 1), '1'); } catch (e) {} });
+                if (labCtl && labCtl.refresh) labCtl.refresh();
+                labSub(Object.keys(got).length, exercisesOf(long).length);
+                return Object.keys(got).length;
+            }
+            function startPolling() {
+                if (pollTimer) return;
+                var until = Date.now() + 45 * 60 * 1000;
+                pollTimer = setInterval(async function () {
+                    if (document.hidden) return;
+                    var c = await syncSolved();
+                    if (c >= exercisesOf(long).length || Date.now() > until) { clearInterval(pollTimer); pollTimer = null; }
+                }, 8000);
+            }
+            async function renderColab() {
+                var box = document.getElementById('colab'); if (box.childNodes.length) return;
+                var url = 'https://colab.research.google.com/github/OpenFraudLabs/lab-docs/blob/main/practice/ds' + nn + '.ipynb';
+                var keyEl = el('code', { class: 'cl-key__val', text: 'Loading\u2026' });
+                var copy = el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Copy key' });
+                var open = el('a', { class: 'ac-btn ac-btn--primary', href: url, target: '_blank', rel: 'noopener noreferrer', text: 'Open in Google Colab' });
+                var status = el('p', { class: 'cl-status', role: 'status' });
+                box.appendChild(el('div', { class: 'cl' },
+                    el('div', { class: 'cl-head' }, el('h2', { text: 'Practise in Google Colab' }),
+                        el('p', { text: 'Run the exercises in a real notebook. Every check that passes in Colab is saved here automatically, and the quiz unlocks when all three are solved.' })),
+                    el('ol', { class: 'cl-steps' },
+                        el('li', {}, el('span', { text: 'Copy your practice key' }), el('div', { class: 'cl-key' }, keyEl, copy)),
+                        el('li', {}, el('span', { text: 'Open the notebook, paste the key into the first cell and run it' }), open),
+                        el('li', {}, el('span', { text: 'Solve each exercise and run its check. Progress appears here within a few seconds.' }), status)),
+                    el('p', { class: 'cl-alt', text: 'Prefer not to leave the page? Use the practice right here instead.' })));
+                var k = await sb.rpc('my_practice_key');
+                keyEl.textContent = k.error ? 'Could not load your key. Refresh the page.' : k.data;
+                copy.addEventListener('click', async function () {
+                    try { await navigator.clipboard.writeText(keyEl.textContent); copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy key'; }, 2000); }
+                    catch (e) { var r = document.createRange(); r.selectNodeContents(keyEl); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+                });
+                open.addEventListener('click', function () { OFL.track('practice_run', course, n, { via: 'colab' }); status.textContent = 'Watching for your progress from Colab\u2026'; startPolling(); });
+                document.addEventListener('visibilitychange', function () { if (!document.hidden && pollTimer) syncSolved(); });
+            }
             function openLab() {
+                renderColab();
                 if (labMounted || !long) return; labMounted = true;
-                CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub,
+                labCtl = CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub,
                     onEvent: function (ev, ex) { return OFL.track(ev, course, n, { exercise: ex }); },
                     getSolution: async function (ex) {
                         var r = await sb.rpc('get_exercise_solution', { p_course: course, p_lesson: n, p_exercise: ex });
                         if (r.error) throw new Error(OFL.friendlyError(r.error));
                         return r.data || '';
                     },
-                    getNotebook: long.has_notebook ? async function () {
-                        var r = await sb.rpc('get_lesson_notebook', { p_course: course, p_lesson: n });
-                        if (r.error || !r.data) throw new Error('The notebook could not be downloaded.');
-                        return r.data;
-                    } : null });
+                    getNotebook: null });
             }
             if (hasLab) {
                 // Practice progress is saved on the server (so it counts on any device); this device's record fills any gaps.

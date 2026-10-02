@@ -979,3 +979,17 @@ body:has(.au) .ac-footer { margin-top: 0; }
 .bg-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue-wash); z-index: 0; border-radius: 6px; }
 .bg-bar span { position: relative; z-index: 1; }
 .bg-bar__n { color: var(--ink-3); white-space: nowrap; }
+
+/* Practise in Google Colab */
+.cl { border: 1px solid var(--line); border-radius: 14px; padding: 1.4rem 1.5rem; margin-bottom: 1.5rem; background: linear-gradient(180deg, #F5F8FF, var(--surface)); }
+.cl-head h2 { font-size: 1.2rem; margin: 0 0 0.35rem; }
+.cl-head p { color: var(--ink-3); margin: 0 0 1.1rem; max-width: 62ch; }
+.cl-steps { list-style: none; margin: 0; padding: 0; counter-reset: cl; display: grid; gap: 0.9rem; }
+.cl-steps li { counter-increment: cl; display: grid; grid-template-columns: 28px 1fr; column-gap: 0.75rem; row-gap: 0.5rem; align-items: center; }
+.cl-steps li::before { content: counter(cl); grid-row: span 2; align-self: start; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
+.cl-steps li > span { font-weight: 600; font-size: 0.95rem; }
+.cl-steps li > .ac-btn { justify-self: start; }
+.cl-key { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.cl-key__val { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.88rem; padding: 0.45rem 0.7rem; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 8px; user-select: all; word-break: break-all; }
+.cl-status { margin: 0; color: var(--blue-ink); font-size: 0.9rem; min-height: 1.2em; }
+.cl-alt { margin: 1.1rem 0 0; padding-top: 0.9rem; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 0.9rem; }
