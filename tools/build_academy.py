@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261001o"
+V = "20261002a"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -228,7 +228,7 @@ home_main = f"""        <section class="ac-hero">
                 </div>
                 <ol class="ac-steps">
                     <li><h3>Watch</h3><p>A 10-minute video with worked examples in Python. It has to be watched to the end.</p></li>
-                    <li><h3>Read and practise</h3><p>Study notes, then short coding exercises that run in your browser with instant feedback.</p></li>
+                    <li><h3>Read and practise</h3><p>Study notes, then three coding exercises in your browser. Solve them all to unlock the quiz.</p></li>
                     <li><h3>Quiz</h3><p>A short quiz. Score 70% to complete the lesson and unlock the next.</p></li>
                     <li><h3>Capstone</h3><p>Analyse a real public dataset and submit it for review.</p></li>
                     <li><h3>Certificate</h3><p>Earn a certificate with an ID employers can check.</p></li>
@@ -359,8 +359,8 @@ lesson_main = """        <div class="ac-wrap ac-player">
                 <div class="ac-tabs" role="tablist" id="tabs" hidden>
                     <button class="ac-tab" role="tab" data-step="watch" aria-selected="true"><i>1</i><span>Watch<small id="tab-watch-sub">Video</small></span></button>
                     <button class="ac-tab" role="tab" data-step="read" aria-selected="false"><i>2</i><span>Read<small id="tab-read-sub">Study notes</small></span></button>
-                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i>3</i><span>Quiz<small id="tab-quiz-sub">Pass mark 70%</small></span></button>
-                    <button class="ac-tab ac-tab--lab" role="tab" data-step="lab" aria-selected="false" hidden><i>&lt;/&gt;</i><span>Practice<small id="tab-lab-sub">Code lab</small></span></button>
+                    <button class="ac-tab ac-tab--lab" role="tab" data-step="lab" aria-selected="false" hidden><i>3</i><span>Practice<small id="tab-lab-sub">Code lab</small></span></button>
+                    <button class="ac-tab" role="tab" data-step="quiz" aria-selected="false"><i id="tab-quiz-num">3</i><span>Quiz<small id="tab-quiz-sub">Pass mark 70%</small></span></button>
                 </div>
                 <div class="ac-panel" data-panel="watch" hidden>
                     <div class="ac-watch" id="watch">
@@ -441,18 +441,20 @@ lesson_script = r"""        (async function () {
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
 
+            var hasLab = !!(long && (long.exercises || long.practice));
             function unlocked(step) {
-                if (step === 'watch' || step === 'lab') return true;
+                if (step === 'watch') return true;
                 if (step === 'read') return !!act.video_completed_at || passed;
-                return !!act.notes_completed_at || passed;
+                if (step === 'lab') return !!act.notes_completed_at || passed;
+                return passed || (!!act.notes_completed_at && (!hasLab || labDone));   // quiz: practice first
             }
             function refreshTabs() {
                 tabEls.watch.classList.toggle('is-done', !!act.video_completed_at || passed);
                 tabEls.read.classList.toggle('is-done', !!act.notes_completed_at || passed);
                 tabEls.quiz.classList.toggle('is-done', passed);
                 tabEls.lab.classList.toggle('is-done', !!labDone);
-                ['read', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
-                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : 'Pass mark 70%';
+                ['read', 'lab', 'quiz'].forEach(function (s) { tabEls[s].disabled = !unlocked(s); });
+                document.getElementById('tab-quiz-sub').textContent = passed ? 'Passed' : (hasLab && !labDone ? 'After practice' : 'Pass mark 70%');
             }
             function show(step) {
                 if (!unlocked(step)) return;
@@ -461,7 +463,7 @@ lesson_script = r"""        (async function () {
                 if (step === 'quiz') loadQuiz();
                 if (step === 'lab') openLab();
             }
-            if (long && (long.exercises || long.practice)) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); }
+            if (hasLab) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); document.getElementById('tab-quiz-num').textContent = '4'; }
             Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
             refreshTabs();
 
@@ -532,7 +534,7 @@ lesson_script = r"""        (async function () {
                 var left = Math.ceil(45 - (Date.now() - openedAt) / 1000);
                 if (!sawEnd) hint.textContent = 'Read to the end of the notes to continue.';
                 else if (left > 0) hint.textContent = 'Take a moment with the notes. You can continue in ' + left + 's.';
-                else hint.textContent = 'Done reading? Continue to the quiz.';
+                else hint.textContent = 'Done reading? Continue to the practice.';
                 readBtn.disabled = !(sawEnd && left <= 0);
                 if (left > 0 || !sawEnd) timer = setTimeout(tick, 1000);
             }
@@ -542,7 +544,7 @@ lesson_script = r"""        (async function () {
                 readBtn.disabled = true;
                 var r = await sb.rpc('complete_notes', { p_course: course, p_lesson: n });
                 if (r.error) { readBtn.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
-                act.notes_completed_at = new Date().toISOString(); refreshTabs(); show('quiz');
+                act.notes_completed_at = new Date().toISOString(); refreshTabs(); show(hasLab && !labDone ? 'lab' : 'quiz');
             });
             function renderReading(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
@@ -569,17 +571,30 @@ lesson_script = r"""        (async function () {
             function exercisesOf(spec) { return spec.exercises || (spec.practice ? [spec.practice] : []); }
             function labSub(done, total) {
                 document.getElementById('tab-lab-sub').textContent = done ? done + ' of ' + total + ' solved' : total + (total === 1 ? ' exercise' : ' exercises');
-                labDone = done === total; refreshTabs();
+                var was = labDone; labDone = done === total; refreshTabs();
+                if (labDone && !was && !passed && document.getElementById('lab-next') === null && labMounted) {
+                    var box = document.getElementById('lab');
+                    box.insertBefore(el('div', { class: 'ofl-notice ofl-notice--success', id: 'lab-next' }, 'All practice exercises solved. The quiz is unlocked. ',
+                        el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Go to the quiz', onclick: function () { show('quiz'); } })), box.firstChild);
+                }
             }
             function openLab() {
                 if (labMounted || !long) return; labMounted = true;
                 CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub,
                     onEvent: function (ev, ex) { OFL.track(ev, course, n, { exercise: ex }); } });
             }
-            if (long) {
-                var exs = exercisesOf(long), dn = 0;
-                exs.forEach(function (_, i) { try { if (localStorage.getItem('ofl-lab-done:' + course + ':' + n + ':' + i) === '1') dn++; } catch (e) {} });
-                labSub(dn, exs.length);
+            if (hasLab) {
+                // Practice progress is saved on the server (so it counts on any device); this device's record fills any gaps.
+                var exs = exercisesOf(long), solved = {};
+                var ev = (await sb.from('learner_events').select('detail').eq('event', 'practice_solved').eq('course_slug', course).eq('lesson_n', n)).data || [];
+                ev.forEach(function (e) { if (e.detail && e.detail.exercise) solved[e.detail.exercise] = true; });
+                for (var xi = 0; xi < exs.length; xi++) {
+                    var key = 'ofl-lab-done:' + course + ':' + n + ':' + xi, local = false;
+                    try { local = localStorage.getItem(key) === '1'; } catch (e) {}
+                    if (solved[xi + 1]) { try { localStorage.setItem(key, '1'); } catch (e) {} }
+                    else if (local) { await OFL.track('practice_solved', course, n, { exercise: xi + 1 }); solved[xi + 1] = true; }
+                }
+                labSub(Object.keys(solved).length, exs.length);
             }
             function renderNotes(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
@@ -727,7 +742,7 @@ lesson_script = r"""        (async function () {
 
             // Start on the first unfinished step.
             // Passed lessons open on the saved quiz result; otherwise on the first unfinished step.
-            show(passed ? 'quiz' : (!act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : 'quiz')));
+            show(passed ? 'quiz' : (!act.video_completed_at ? 'watch' : (!act.notes_completed_at ? 'read' : (hasLab && !labDone ? 'lab' : 'quiz'))));
         })();"""
 
 page("academy/lesson", "Lesson | Open Fraud Labs Academy", "Watch, read, practise and take the quiz for this Open Fraud Labs Academy lesson.",

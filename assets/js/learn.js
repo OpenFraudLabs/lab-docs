@@ -45,6 +45,7 @@
         if (/rate limit/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
         if (/not authorized/i.test(m)) return 'Sign-ups are being switched on right now. Please try again shortly, or email hello@openfraudlabs.com.';
         if (/^SUSPENDED:|banned/i.test(m)) return 'This account is suspended. If you think this is a mistake, email hello@openfraudlabs.com.';
+        if (/^PRACTICE:/.test(m)) return m.replace(/^PRACTICE:\s*/, '') + '. Open the Practice tab.';
         if (/^PAID:/.test(m)) return 'This lesson is part of a paid plan. Paid plans are coming soon; email hello@openfraudlabs.com to be told when they open.';
         if (/already registered/i.test(m)) return 'An account with this email already exists. Try logging in instead.';
         return m;
