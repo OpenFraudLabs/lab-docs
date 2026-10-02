@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002l"
+V = "20261002m"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -358,61 +358,116 @@ page("academy", "Open Fraud Labs Academy: free practical data courses",
      home_main, home_script, active="courses")
 
 # ============================================================== Course overview
-course_main = f"""        <section class="ac-course-hero">
-            <div class="ac-wrap ac-course-hero__grid">
-                <div>
-                    <nav class="ac-crumbs" aria-label="Breadcrumb"><a href="/academy/">Academy</a> / <a href="/academy/#courses">Courses</a> / Data Science from Scratch</nav>
-                    <span class="ac-status ac-status--live">Open for enrolment</span>
+course_main = f"""        <section class="cp-hero">
+            <div class="ac-wrap cp-layout">
+                <div class="cp-hero__copy">
+                    <nav class="cp-crumbs" aria-label="Breadcrumb"><a href="/academy/">Academy</a><span aria-hidden="true">/</span><a href="/academy/#courses">Courses</a><span aria-hidden="true">/</span><span>Data Science from Scratch</span></nav>
                     <h1>Data Science from Scratch</h1>
-                    <p class="ac-lead">Learn how data becomes decisions: describing and cleaning data, the statistics behind it, and building and explaining your first machine learning models. Examples come from retail, health, transport, media and finance.</p>
-                    <p class="ac-muted">Taught by Ayodele Odugbile, data and analytics professional and founder of Open Fraud Labs.</p>
+                    <p class="cp-hero__lead">Learn how data becomes decisions: describing and cleaning data, the statistics behind it, and building and explaining machine learning models, with examples from retail, health, transport, media and finance.</p>
+                    <ul class="cp-meta">
+                        <li><b>Beginner</b>No experience needed</li>
+                        <li><b class="num">6.6 hours</b>of video</li>
+                        <li><b class="num">39</b>lessons and project parts</li>
+                        <li><b>Certificate</b>with public verification</li>
+                    </ul>
+                    <p class="cp-by">Taught by <strong>Ayodele Odugbile</strong>, data and analytics professional and founder of Open Fraud Labs</p>
                 </div>
-                <aside class="ac-facts">
-                    <dl>
-                        <dt>Lessons</dt><dd class="num">30 video lessons and 3 portfolio projects (39 parts, <span data-released>{released_n}</span> released)</dd>
-                        <dt>Length</dt><dd>About 30 minutes per lesson, including practice</dd>
-                        <dt>Level</dt><dd>Beginner</dd>
-                        <dt>Cost</dt><dd>Free</dd>
-                        <dt>Certificate</dt><dd>Certificate of completion</dd>
-                    </dl>
-                    <a class="ac-btn ac-btn--primary" id="start-btn" href="/account/?next=/academy/courses/data-science/">Sign up free to enrol</a>
-                    <a class="ac-btn ac-btn--secondary" href="{TT}" target="_blank" rel="noopener noreferrer">Follow on TikTok</a>
-                    <p class="ac-muted" id="start-note" style="margin:0.8rem 0 0;font-size:0.9rem">Browse the outline freely. Enrol (free) to open the lessons.</p>
-                </aside>
             </div>
         </section>
 
-        <section class="ac-section ac-section--white">
-            <div class="ac-wrap ac-two">
-                <div>
-                    <h2>Course outline</h2>
-                    <p class="ac-muted">Enrol to open the lessons. They unlock in order: watch the video, read the notes, solve the practice and pass the quiz to complete each one.</p>
+        <div class="ac-wrap cp-layout cp-body">
+            <aside class="cp-aside">
+                <div class="cp-card">
+                    <div class="cp-card__media"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="A frame from Lesson 25: Python code and the chart it produces."></div>
+                    <div class="cp-card__body">
+                        <span class="ac-status ac-status--live">Open for enrolment</span>
+                        <p class="cp-card__price">Free during early access</p>
+                        <a class="ac-btn ac-btn--primary cp-card__cta" id="start-btn" href="/account/?next=/academy/courses/data-science/">Sign up free to enrol</a>
+                        <p class="cp-card__note" id="start-note">Browse the outline freely. Enrol to open the lessons.</p>
+                        <h3>This course includes</h3>
+                        <ul class="cp-includes">
+                            <li>30 video lessons, about 10 minutes each</li>
+                            <li>3 portfolio projects in 9 guided parts</li>
+                            <li class="num">117 coding exercises that run in your browser</li>
+                            <li>A quiz for every lesson and project part</li>
+                            <li>Downloadable notebooks for Colab or Jupyter</li>
+                            <li>Peer-reviewed projects and capstone</li>
+                            <li>Certificate with a public verification ID</li>
+                        </ul>
+                        <a class="cp-card__link" href="{TT}" target="_blank" rel="noopener noreferrer">Follow new lessons on TikTok</a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="cp-main">
+                <section class="cp-sec cp-learn">
+                    <h2>What you'll learn</h2>
+                    <ul class="cp-checks">
+                        <li>Explain what data science is and how a project runs from question to answer</li>
+                        <li>Read a dataset's structure and identify data types correctly</li>
+                        <li>Summarise data with averages, spread and distributions</li>
+                        <li>Find outliers, handle missing data and clean messy datasets</li>
+                        <li>Choose the right chart and avoid common statistical traps</li>
+                        <li>Query data with SQL and work fluently with pandas</li>
+                        <li>Train, test and fairly evaluate machine learning models</li>
+                        <li>Explain model decisions and check them for bias</li>
+                    </ul>
+                </section>
+
+                <section class="cp-sec">
+                    <h2>Skills you'll practise</h2>
+                    <ul class="cp-tags">
+                        <li>Python</li><li>pandas</li><li>Statistics</li><li>Data cleaning</li><li>Data visualisation</li><li>SQL</li>
+                        <li>scikit-learn</li><li>Model evaluation</li><li>Imbalanced data</li><li>Explainable AI</li><li>Data ethics</li>
+                    </ul>
+                </section>
+
+                <section class="cp-sec">
+                    <div class="cp-sec__head">
+                        <h2>Course outline</h2>
+                        <p>Six modules. Lessons unlock in order: watch the video, read the notes, solve the practice and pass the quiz to complete each one.</p>
+                    </div>
                     <div class="ac-ledger" id="ledger">
 {static_ledger(curriculum, "Data Science from Scratch")}
                     </div>
-                </div>
-                <div>
-                    <div class="ac-aside-card">
-                        <h3>What you'll be able to do</h3>
-                        <ul class="ac-outcomes">
-                            <li>Explain what data science is and how projects run</li>
-                            <li>Identify data types and read a dataset's structure</li>
-                            <li>Summarise data with averages, spread and distributions</li>
-                            <li>Spot outliers, handle missing data and clean datasets</li>
-                            <li>Choose the right chart and avoid common traps</li>
-                            <li>Train, test and evaluate simple models, including for fraud</li>
-                            <li>Explain model decisions and recognise bias</li>
-                        </ul>
+                </section>
+
+                <section class="cp-sec">
+                    <h2>Portfolio projects</h2>
+                    <p class="cp-sec__intro">Three guided projects in different industries, each peer reviewed against a published rubric. You finish with work you can show employers.</p>
+                    <div class="cp-projects">
+                        <div><span>Finance</span><h3>Credit risk</h3><p>Predict loan default and set a costed approval cut-off.</p></div>
+                        <div><span>Health</span><h3>Clinic no-shows</h3><p>Find who is likely to miss appointments and target reminders.</p></div>
+                        <div><span>Real estate</span><h3>City rents</h3><p>Model rents across a city and price new listings.</p></div>
                     </div>
-                    <div class="ac-aside-card">
-                        <h3>Earn your certificate</h3>
-                        <p>Complete all 30 lessons and the 3 portfolio projects (each with practice and a quiz), then get your capstone approved through peer review. Your certificate shows your registered name and an ID anyone can verify.</p>
+                </section>
+
+                <section class="cp-sec">
+                    <h2>How you earn the certificate</h2>
+                    <ol class="cp-path">
+                        <li><b>Complete every lesson</b><span>Watch, read, practise and pass the quiz for all 30 lessons.</span></li>
+                        <li><b>Finish the three projects</b><span>Follow each one through its three parts and pass the quizzes.</span></li>
+                        <li><b>Pass your capstone</b><span>Analyse a dataset of your choice; three learners review it with the rubric.</span></li>
+                        <li><b>Claim your certificate</b><span>It shows your registered name and an ID anyone can verify.</span></li>
+                    </ol>
+                    <div class="cp-certrow">
                         <div class="ac-mini-cert"><small>Certificate of Completion</small><b>Your name here</b><small>Data Science from Scratch</small></div>
-                        <p style="margin:1rem 0 0"><a href="/academy/capstone/?course=data-science">Read the capstone brief</a></p>
+                        <p><a href="/academy/capstone/?course=data-science">Read the capstone brief</a><br><a href="/verify/">See how verification works</a></p>
                     </div>
-                </div>
+                </section>
+
+                <section class="cp-sec cp-instructor">
+                    <h2>Your instructor</h2>
+                    <div class="cp-instructor__row">
+                        <img src="/assets/logo.png" alt="" width="64" height="64">
+                        <div>
+                            <h3>Ayodele Odugbile</h3>
+                            <p>Data and analytics professional and founder of Open Fraud Labs. Every lesson is built on real code and checked numbers, so what you see on screen is exactly what you'll get when you run it.</p>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>"""
+        </div>"""
 
 course_script = r"""        (async function () {
             var st = await ACADEMY.courseState('data-science');
@@ -423,7 +478,7 @@ course_script = r"""        (async function () {
             var btn = document.getElementById('start-btn'), note = document.getElementById('start-note');
             if (!st.user) return;
             if (!st.enrolled) {
-                var b2 = OFL.el('button', { class: 'ac-btn ac-btn--primary', type: 'button', id: 'start-btn', text: 'Enrol for free' });
+                var b2 = OFL.el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', id: 'start-btn', text: 'Enrol for free' });
                 btn.replaceWith(b2);
                 note.textContent = 'Enrolling adds the course to My learning and opens Lesson 1.';
                 b2.addEventListener('click', async function () {

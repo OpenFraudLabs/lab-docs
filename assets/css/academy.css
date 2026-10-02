@@ -793,3 +793,87 @@ a.ac-row:hover .ac-row__t { color: var(--blue-ink); }
     .lp-cell__out { transition: none; }
     .lp-cell.is-typing code::after { animation: none; }
 }
+
+/* ==========================================================================
+   Course page: navy header, enrolment card that stays in view, calm body.
+   ========================================================================== */
+.cp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 3rem; }
+.cp-hero { background: var(--ink); color: #DCE3EF; padding: 3.25rem 0 3.5rem;
+    background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size: 56px 56px; }
+.cp-hero__copy { grid-column: 1; }
+.cp-crumbs { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.9rem; color: #8E9DB5; margin-bottom: 1.5rem; }
+.cp-crumbs a { color: #B9C5D8; text-decoration: none; }
+.cp-crumbs a:hover { color: #fff; text-decoration: underline; }
+.cp-hero h1 { color: #fff; font-size: clamp(2.3rem, 4.6vw, 3.4rem); line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.1rem; }
+.cp-hero__lead { font-size: 1.15rem; line-height: 1.6; color: #B9C5D8; max-width: 58ch; margin: 0 0 1.75rem; }
+.cp-meta { list-style: none; margin: 0 0 1.5rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 2.25rem; }
+.cp-meta li { display: flex; flex-direction: column; font-size: 0.85rem; color: #8E9DB5; line-height: 1.35; }
+.cp-meta b { color: #fff; font-size: 1.05rem; font-weight: 600; }
+.cp-by { margin: 0; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,.12); color: #B9C5D8; font-size: 0.97rem; max-width: 58ch; }
+.cp-by strong { color: #fff; font-weight: 600; }
+.cp-hero :focus-visible { outline-color: #9FB8FF; }
+
+.cp-body { padding: 0 0 4.5rem; }
+.cp-aside { grid-column: 2; grid-row: 1; margin-top: -19rem; }
+.cp-main { grid-column: 1; grid-row: 1; padding-top: 3rem; min-width: 0; }
+.cp-card { position: sticky; top: 88px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(14,26,43,.06), 0 28px 56px -24px rgba(14,26,43,.35); }
+.cp-card__media { aspect-ratio: 16 / 9; background: var(--ink); overflow: hidden; }
+.cp-card__media img { width: 100%; height: 100%; object-fit: cover; }
+.cp-card__body { padding: 1.4rem 1.5rem 1.5rem; }
+.cp-card__price { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.015em; margin: 0.75rem 0 1rem; }
+.cp-card__cta { width: 100%; min-height: 52px; font-size: 1.02rem; }
+.cp-card__note { font-size: 0.88rem; color: var(--ink-3); margin: 0.7rem 0 1.25rem; text-align: center; }
+.cp-card h3 { font-size: 0.98rem; margin: 0 0 0.6rem; padding-top: 1.1rem; border-top: 1px solid var(--line); }
+.cp-includes { list-style: none; margin: 0 0 1.1rem; padding: 0; display: grid; gap: 0.5rem; }
+.cp-includes li { position: relative; padding-left: 1.5rem; font-size: 0.92rem; color: var(--ink-2); line-height: 1.45; }
+.cp-includes li::before { content: ""; position: absolute; left: 0.15rem; top: 0.42em; width: 0.5rem; height: 0.28rem; border-left: 2px solid var(--blue); border-bottom: 2px solid var(--blue); transform: rotate(-45deg); }
+.cp-card__link { font-size: 0.9rem; }
+
+.cp-sec { padding: 2.5rem 0; border-bottom: 1px solid var(--line); }
+.cp-sec:last-child { border-bottom: 0; }
+.cp-sec h2 { font-size: 1.6rem; letter-spacing: -0.015em; margin-bottom: 1.1rem; }
+.cp-sec__head p, .cp-sec__intro { color: var(--ink-3); max-width: 62ch; margin: -0.4rem 0 1.4rem; }
+.cp-learn { padding-top: 0; }
+.cp-checks { list-style: none; margin: 0; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 2rem; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.cp-checks li { position: relative; padding-left: 1.8rem; color: var(--ink-2); font-size: 0.98rem; line-height: 1.45; }
+.cp-checks li::before { content: ""; position: absolute; left: 0; top: 0.1em; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--green-wash); }
+.cp-checks li::after { content: ""; position: absolute; left: 0.36rem; top: 0.42em; width: 0.42rem; height: 0.24rem; border-left: 2px solid var(--green-ink); border-bottom: 2px solid var(--green-ink); transform: rotate(-45deg); }
+.cp-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.cp-tags li { padding: 0.4rem 0.85rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--line-2); font-size: 0.9rem; font-weight: 500; color: var(--ink-2); }
+.cp-projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.cp-projects > div { border: 1px solid var(--line); border-radius: 14px; padding: 1.25rem; background: var(--surface); }
+.cp-projects span { display: inline-block; font-size: 0.78rem; font-weight: 600; color: var(--blue-ink); background: var(--blue-wash); padding: 0.15rem 0.6rem; border-radius: 999px; }
+.cp-projects h3 { margin: 0.7rem 0 0.35rem; font-size: 1.1rem; }
+.cp-projects p { margin: 0; color: var(--ink-3); font-size: 0.93rem; }
+.cp-path { list-style: none; margin: 0 0 1.5rem; padding: 0; counter-reset: cp; display: grid; gap: 0; }
+.cp-path li { counter-increment: cp; position: relative; padding: 0 0 1.25rem 3rem; }
+.cp-path li::before { content: counter(cp); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; }
+.cp-path li::after { content: ""; position: absolute; left: 14px; top: 32px; bottom: 2px; width: 2px; background: var(--line-2); }
+.cp-path li:last-child::after { display: none; }
+.cp-path li:last-child::before { background: var(--green); }
+.cp-path b { display: block; font-size: 1.02rem; }
+.cp-path span { color: var(--ink-3); font-size: 0.95rem; }
+.cp-certrow { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.cp-certrow .ac-mini-cert { flex: 0 0 260px; margin: 0; }
+.cp-certrow p { margin: 0; line-height: 1.9; }
+.cp-instructor__row { display: flex; gap: 1.1rem; align-items: flex-start; }
+.cp-instructor__row img { width: 64px; height: 64px; border-radius: 50%; flex: none; border: 1px solid var(--line); }
+.cp-instructor h3 { margin: 0 0 0.3rem; }
+.cp-instructor p { color: var(--ink-2); margin: 0; max-width: 62ch; }
+
+@media (max-width: 1020px) {
+    .cp-layout { grid-template-columns: 1fr; gap: 0; }
+    .cp-aside { grid-column: 1; grid-row: auto; margin-top: -1.5rem; }
+    .cp-main { grid-row: auto; padding-top: 1rem; }
+    .cp-card { position: static; display: grid; grid-template-columns: 300px 1fr; }
+    .cp-card__media { aspect-ratio: auto; }
+}
+@media (max-width: 680px) {
+    .cp-hero { padding: 2.25rem 0 3rem; }
+    .cp-card { grid-template-columns: 1fr; }
+    .cp-card__media { aspect-ratio: 16 / 9; }
+    .cp-checks, .cp-projects { grid-template-columns: 1fr; }
+    .cp-meta { gap: 0.75rem 1.5rem; }
+}
