@@ -942,3 +942,40 @@ a.ac-row:hover .ac-row__t { color: var(--blue-ink); }
     .au-main { padding: 2.25rem 1.25rem 3rem; }
 }
 body:has(.au) .ac-footer { margin-top: 0; }
+
+/* About-you step */
+.wb { padding: 3rem 0 4rem; }
+.wb-head h1 { font-size: clamp(1.9rem, 3vw, 2.4rem); letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+.wb-head p { color: var(--ink-3); max-width: 62ch; margin-bottom: 1.75rem; }
+.wb-form { display: grid; gap: 1.25rem; }
+.wb-group { margin: 0; padding: 1.4rem 1.5rem 1.5rem; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); display: grid; gap: 1.15rem; }
+.wb-group legend { font-weight: 700; font-size: 1.02rem; padding: 0 0.4rem; margin-left: -0.4rem; }
+.wb-group legend em, .au-field em { font-style: normal; font-weight: 400; color: var(--ink-3); font-size: 0.88rem; }
+.wb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.au-field select { width: 100%; min-height: 48px; padding: 0.6rem 2.2rem 0.6rem 0.9rem; border: 1.5px solid var(--line-2); border-radius: 10px; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%235B6782' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 0.9rem center; appearance: none; font: inherit; font-size: 1rem; color: var(--ink); }
+.au-field select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(36,83,230,.15); }
+.au-field select.is-invalid { border-color: var(--red); }
+.wb-q { display: grid; gap: 0.5rem; }
+.wb-q__label { font-weight: 600; font-size: 0.93rem; }
+.wb-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; border-radius: 12px; }
+.wb-chips.is-invalid { outline: 2px solid var(--red); outline-offset: 4px; }
+.wb-chip { position: relative; display: inline-flex; cursor: pointer; }
+.wb-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.wb-chip span { display: inline-block; padding: 0.5rem 0.9rem; border: 1.5px solid var(--line-2); border-radius: 999px; font-size: 0.92rem; color: var(--ink-2); background: var(--surface); transition: border-color .12s ease, background .12s ease; }
+.wb-chip:hover span { border-color: #AEB8CB; }
+.wb-chip input:checked + span { border-color: var(--blue); background: var(--blue-wash); color: var(--blue-ink); font-weight: 600; }
+.wb-chip input:focus-visible + span { outline: 3px solid rgba(36,83,230,.45); outline-offset: 2px; }
+.wb-actions { display: grid; gap: 0.75rem; justify-items: center; }
+.wb-privacy { text-align: center; font-size: 0.88rem; color: var(--ink-3); margin: 0; }
+.ac-nudge a { font-weight: 600; }
+.au-edit-bg { margin: 1.25rem 0 0; font-size: 0.93rem; }
+@media (max-width: 640px) { .wb-row { grid-template-columns: 1fr; } .wb-group { padding: 1.1rem; } }
+/* Admin: who's learning */
+.ac-admin__head #bg-csv { margin-top: 0.5rem; }
+.bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.bg-card { border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; background: var(--surface); }
+.bg-card h3 { font-size: 0.95rem; margin: 0 0 0.6rem; }
+.bg-bar { position: relative; display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.86rem; padding: 0.3rem 0.5rem; margin-bottom: 0.25rem; border-radius: 6px; overflow: hidden; }
+.bg-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue-wash); z-index: 0; border-radius: 6px; }
+.bg-bar span { position: relative; z-index: 1; }
+.bg-bar__n { color: var(--ink-3); white-space: nowrap; }

@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002n">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002o">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -69,6 +69,11 @@
                     <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
                     <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
+                </section>
+                <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Who's learning</h2><p class="ac-muted" id="bg-note">Answers from the About you step. Totals only; use the download for your own analysis.</p>
+                        <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="bg-csv">Download answers (CSV)</button></div>
+                    <div class="bg-grid" id="bg-grid"><p class="ac-muted">Loading…</p></div>
                 </section>
                 <section class="ac-admin__sec">
                     <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
@@ -114,11 +119,50 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002n"></script>
-    <script src="/assets/js/academy.js?v=20261002n"></script>
+    <script src="/assets/js/learn.js?v=20261002o"></script>
+    <script src="/assets/js/academy.js?v=20261002o"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            (async function background() {
+                var grid = document.getElementById('bg-grid');
+                var r = await sb.rpc('admin_background_summary');
+                if (r.error || !r.data) { grid.textContent = ''; return; }
+                var d = r.data, regionName = null; try { regionName = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) {}
+                document.getElementById('bg-note').textContent = d.answered + ' of ' + d.learners + ' learners have answered. Totals only; use the download for your own analysis.';
+                var L = { woman: 'Woman', man: 'Man', another: 'Another gender', prefer_not: 'Prefer not to say', under_18: 'Under 18', '18_24': '18–24', '25_34': '25–34', '35_44': '35–44', '45_54': '45–54', '55_plus': '55+',
+                    student: 'Student', employed_full: 'Employed full-time', employed_part: 'Employed part-time', self_employed: 'Self-employed', looking: 'Looking for work', not_working: 'Not working', other: 'Other',
+                    secondary: 'Secondary', diploma: 'Diploma, OND or HND', bachelors: 'Bachelor’s', masters: 'Master’s', doctorate: 'Doctorate',
+                    none: 'None', beginner: 'Tried a little', some: 'Some', confident: 'Regular user', work: 'At work',
+                    first_job: 'First data job', switch_career: 'Switch careers', upskill: 'Upskill in current job', study: 'Support studies', business: 'Own business', curious: 'Curiosity',
+                    tiktok: 'TikTok', linkedin: 'LinkedIn', friend: 'Friend or colleague', search: 'Search', school: 'School or employer', XX: 'Prefer not to say', '?': 'No answer' };
+                var T = [['country', 'Country'], ['gender', 'Gender'], ['age_range', 'Age'], ['employment', 'Doing now'], ['education', 'Education'], ['python_level', 'Python'], ['data_level', 'Data analysis'], ['goal', 'Goal'], ['heard_from', 'Heard about us']];
+                grid.textContent = '';
+                if (!d.answered) return grid.appendChild(el('p', { class: 'ac-muted', text: 'No answers yet. New learners see the questions after they sign up.' }));
+                T.forEach(function (t) {
+                    var obj = d[t[0]] || {}, rows = Object.keys(obj).map(function (k) { return [k, obj[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+                    var box = el('div', { class: 'bg-card' }, el('h3', { text: t[1] }));
+                    rows.forEach(function (x) {
+                        var label = t[0] === 'country' && x[0].length === 2 && x[0] !== 'XX' && regionName ? regionName.of(x[0]) : (L[x[0]] || x[0]);
+                        var pct = Math.round(100 * x[1] / d.answered);
+                        box.appendChild(el('div', { class: 'bg-bar' }, el('span', { class: 'bg-bar__l', text: label }), el('span', { class: 'bg-bar__n num', text: x[1] + ' · ' + pct + '%' }),
+                            el('i', { style: 'width:' + pct + '%' })));
+                    });
+                    grid.appendChild(box);
+                });
+            })();
+            document.getElementById('bg-csv').addEventListener('click', async function () {
+                var r = await sb.from('learner_background').select('*').not('completed_at', 'is', null);
+                var who = {}; ((await sb.rpc('admin_learners')).data || []).forEach(function (x) { who[x.user_id] = x; });
+                var cols = ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from', 'completed_at'];
+                var lines = [['name', 'email'].concat(cols).join(',')];
+                (r.data || []).forEach(function (x) {
+                    var w = who[x.user_id] || {};
+                    lines.push([w.full_name || '', w.email || ''].concat(cols.map(function (c) { return x[c] == null ? '' : x[c]; })).map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','));
+                });
+                var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+                a.download = 'learner-background.csv'; document.body.appendChild(a); a.click(); a.remove();
+            });
             (async function activity() {
                 var ul = document.getElementById('activity');
                 var r = await sb.from('notifications').select('user_id, kind, title, created_at, email_status').neq('kind', 'welcome').order('created_at', { ascending: false }).limit(40);

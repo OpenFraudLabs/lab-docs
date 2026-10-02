@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002n"
+V = "20261002o"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -993,6 +993,10 @@ dash_script = r"""        (async function () {
             var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
+            var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
+            if (!bg) { location.replace('/academy/welcome/?next=/academy/dashboard/'); return; }
+            if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
+            else if (!bg.completed_at) msg.appendChild(el('div', { class: 'ofl-notice ac-nudge' }, 'Help us build better lessons: ', el('a', { href: '/academy/welcome/?next=/academy/dashboard/', text: 'tell us a little about you' }), ' (about a minute).'));
             var course = 'data-science';
             var st = await A.courseState(course);
             if (!st.enrolled) {
@@ -1196,6 +1200,7 @@ account_main = """        <div class="au">
                             <label class="au-field"><span class="u-sr-only">Full name</span><input name="full_name" required maxlength="120" autocomplete="name"></label>
                             <button class="ac-btn ac-btn--secondary" type="submit">Save name</button>
                         </form>
+                        <p class="au-edit-bg"><a href="/academy/welcome/?next=/account/">Edit your background and goals</a></p>
                         <button class="au-link au-logout" type="button" id="logout">Log out</button>
                     </div>
                 </div>
@@ -1379,6 +1384,11 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
                 <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Who's learning</h2><p class="ac-muted" id="bg-note">Answers from the About you step. Totals only; use the download for your own analysis.</p>
+                        <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="bg-csv">Download answers (CSV)</button></div>
+                    <div class="bg-grid" id="bg-grid"><p class="ac-muted">Loading…</p></div>
+                </section>
+                <section class="ac-admin__sec">
                     <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
                     <ul class="ac-activity" id="activity"><li class="ac-muted">Loading…</li></ul>
                 </section>
@@ -1396,6 +1406,45 @@ admin_main = """        <div class="ac-wrap ac-admin">
 
 admin_script = r"""        (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            (async function background() {
+                var grid = document.getElementById('bg-grid');
+                var r = await sb.rpc('admin_background_summary');
+                if (r.error || !r.data) { grid.textContent = ''; return; }
+                var d = r.data, regionName = null; try { regionName = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) {}
+                document.getElementById('bg-note').textContent = d.answered + ' of ' + d.learners + ' learners have answered. Totals only; use the download for your own analysis.';
+                var L = { woman: 'Woman', man: 'Man', another: 'Another gender', prefer_not: 'Prefer not to say', under_18: 'Under 18', '18_24': '18–24', '25_34': '25–34', '35_44': '35–44', '45_54': '45–54', '55_plus': '55+',
+                    student: 'Student', employed_full: 'Employed full-time', employed_part: 'Employed part-time', self_employed: 'Self-employed', looking: 'Looking for work', not_working: 'Not working', other: 'Other',
+                    secondary: 'Secondary', diploma: 'Diploma, OND or HND', bachelors: 'Bachelor’s', masters: 'Master’s', doctorate: 'Doctorate',
+                    none: 'None', beginner: 'Tried a little', some: 'Some', confident: 'Regular user', work: 'At work',
+                    first_job: 'First data job', switch_career: 'Switch careers', upskill: 'Upskill in current job', study: 'Support studies', business: 'Own business', curious: 'Curiosity',
+                    tiktok: 'TikTok', linkedin: 'LinkedIn', friend: 'Friend or colleague', search: 'Search', school: 'School or employer', XX: 'Prefer not to say', '?': 'No answer' };
+                var T = [['country', 'Country'], ['gender', 'Gender'], ['age_range', 'Age'], ['employment', 'Doing now'], ['education', 'Education'], ['python_level', 'Python'], ['data_level', 'Data analysis'], ['goal', 'Goal'], ['heard_from', 'Heard about us']];
+                grid.textContent = '';
+                if (!d.answered) return grid.appendChild(el('p', { class: 'ac-muted', text: 'No answers yet. New learners see the questions after they sign up.' }));
+                T.forEach(function (t) {
+                    var obj = d[t[0]] || {}, rows = Object.keys(obj).map(function (k) { return [k, obj[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 8);
+                    var box = el('div', { class: 'bg-card' }, el('h3', { text: t[1] }));
+                    rows.forEach(function (x) {
+                        var label = t[0] === 'country' && x[0].length === 2 && x[0] !== 'XX' && regionName ? regionName.of(x[0]) : (L[x[0]] || x[0]);
+                        var pct = Math.round(100 * x[1] / d.answered);
+                        box.appendChild(el('div', { class: 'bg-bar' }, el('span', { class: 'bg-bar__l', text: label }), el('span', { class: 'bg-bar__n num', text: x[1] + ' · ' + pct + '%' }),
+                            el('i', { style: 'width:' + pct + '%' })));
+                    });
+                    grid.appendChild(box);
+                });
+            })();
+            document.getElementById('bg-csv').addEventListener('click', async function () {
+                var r = await sb.from('learner_background').select('*').not('completed_at', 'is', null);
+                var who = {}; ((await sb.rpc('admin_learners')).data || []).forEach(function (x) { who[x.user_id] = x; });
+                var cols = ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from', 'completed_at'];
+                var lines = [['name', 'email'].concat(cols).join(',')];
+                (r.data || []).forEach(function (x) {
+                    var w = who[x.user_id] || {};
+                    lines.push([w.full_name || '', w.email || ''].concat(cols.map(function (c) { return x[c] == null ? '' : x[c]; })).map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','));
+                });
+                var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+                a.download = 'learner-background.csv'; document.body.appendChild(a); a.click(); a.remove();
+            });
             (async function activity() {
                 var ul = document.getElementById('activity');
                 var r = await sb.from('notifications').select('user_id, kind, title, created_at, email_status').neq('kind', 'welcome').order('created_at', { ascending: false }).limit(40);
@@ -1723,6 +1772,118 @@ review_script = r"""        (async function () {
 
 page("academy/review", "Peer review | Open Fraud Labs Academy", "Share your project and review other learners' work with a rubric.",
      review_main, review_script, active="dashboard", noindex=True)
+
+# ============================================================== Welcome: learner background (after sign-up)
+COUNTRY_CODES = "AF AX AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW XK"
+welcome_main = """        <div class="ac-narrow wb">
+            <div class="wb-head">
+                <h1>Tell us a little about you</h1>
+                <p>It takes about a minute. Your answers help us shape lessons for learners like you, and the totals (never your individual answers) help us report our reach when we apply for funding and partnerships. Personal questions are optional.</p>
+            </div>
+            <div id="msg"></div>
+            <form id="wb-form" class="wb-form" novalidate>
+                <fieldset class="wb-group">
+                    <legend>Where you are</legend>
+                    <div class="wb-row">
+                        <label class="au-field"><span>Country</span><select name="country" required><option value="">Choose your country</option></select></label>
+                        <label class="au-field"><span>City or town <em>(optional)</em></span><input name="city" maxlength="80" autocomplete="address-level2" placeholder="e.g. Lagos, Nairobi, London"></label>
+                    </div>
+                </fieldset>
+                <fieldset class="wb-group">
+                    <legend>About you <em>(optional)</em></legend>
+                    <div class="wb-q"><span class="wb-q__label" id="q-gender">Gender</span>
+                        <div class="wb-chips" role="radiogroup" aria-labelledby="q-gender" data-name="gender"></div></div>
+                    <div class="wb-q"><span class="wb-q__label" id="q-age">Age</span>
+                        <div class="wb-chips" role="radiogroup" aria-labelledby="q-age" data-name="age_range"></div></div>
+                </fieldset>
+                <fieldset class="wb-group">
+                    <legend>Your background</legend>
+                    <div class="wb-row">
+                        <label class="au-field"><span>What do you do now?</span><select name="employment" required><option value="">Choose one</option></select></label>
+                        <label class="au-field"><span>Highest education</span><select name="education" required><option value="">Choose one</option></select></label>
+                    </div>
+                    <label class="au-field"><span>Industry or field <em>(optional)</em></span><input name="industry" maxlength="80" placeholder="e.g. banking, health, retail, engineering student"></label>
+                    <div class="wb-q"><span class="wb-q__label" id="q-py">Experience with Python</span>
+                        <div class="wb-chips" role="radiogroup" aria-labelledby="q-py" data-name="python_level" data-required></div></div>
+                    <div class="wb-q"><span class="wb-q__label" id="q-data">Experience analysing data (Excel, SQL, dashboards)</span>
+                        <div class="wb-chips" role="radiogroup" aria-labelledby="q-data" data-name="data_level" data-required></div></div>
+                </fieldset>
+                <fieldset class="wb-group">
+                    <legend>Your goal</legend>
+                    <div class="wb-q"><span class="wb-q__label" id="q-goal">What do you most want from the Academy?</span>
+                        <div class="wb-chips" role="radiogroup" aria-labelledby="q-goal" data-name="goal" data-required></div></div>
+                    <label class="au-field"><span>How did you hear about us?</span><select name="heard_from" required><option value="">Choose one</option></select></label>
+                </fieldset>
+                <div class="wb-actions">
+                    <button class="ac-btn ac-btn--primary au-submit" type="submit">Save and continue</button>
+                    <button class="au-link" type="button" id="wb-skip">Skip for now</button>
+                </div>
+                <p class="wb-privacy">You can change these answers any time from your account page. See how we use them in our <a href="/privacy/">Privacy Policy</a>.</p>
+            </form>
+        </div>"""
+
+welcome_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), form = document.getElementById('wb-form');
+            var next = OFL.qs('next') || '/academy/dashboard/'; if (!next.startsWith('/') || next.startsWith('//')) next = '/academy/dashboard/';
+            var user = await OFL.requireUser(location.pathname + location.search); if (!user) return;
+            var OPTS = {
+                gender: [['woman', 'Woman'], ['man', 'Man'], ['another', 'Another gender'], ['prefer_not', 'Prefer not to say']],
+                age_range: [['under_18', 'Under 18'], ['18_24', '18–24'], ['25_34', '25–34'], ['35_44', '35–44'], ['45_54', '45–54'], ['55_plus', '55+'], ['prefer_not', 'Prefer not to say']],
+                employment: [['student', 'Student'], ['employed_full', 'Employed full-time'], ['employed_part', 'Employed part-time'], ['self_employed', 'Self-employed or business owner'], ['looking', 'Looking for work'], ['not_working', 'Not working'], ['other', 'Other']],
+                education: [['secondary', 'Secondary school'], ['diploma', 'Diploma, OND or HND'], ['bachelors', 'Bachelor’s degree'], ['masters', 'Master’s degree'], ['doctorate', 'Doctorate'], ['other', 'Other'], ['prefer_not', 'Prefer not to say']],
+                python_level: [['none', 'Never used it'], ['beginner', 'Tried a little'], ['some', 'Written some code'], ['confident', 'Use it regularly']],
+                data_level: [['none', 'None yet'], ['some', 'Some, on my own'], ['work', 'Part of my work']],
+                goal: [['first_job', 'Get my first data job'], ['switch_career', 'Switch careers into data'], ['upskill', 'Get better at my current job'], ['study', 'Support my studies'], ['business', 'Use data in my own business'], ['curious', 'Learn out of curiosity']],
+                heard_from: [['tiktok', 'TikTok'], ['linkedin', 'LinkedIn'], ['friend', 'A friend or colleague'], ['search', 'Google or another search'], ['school', 'School, university or employer'], ['other', 'Somewhere else']]
+            };
+            // Countries named in the learner's language by the browser; Nigeria, Ghana, Kenya and South Africa first.
+            var names = null; try { names = new Intl.DisplayNames([navigator.language || 'en', 'en'], { type: 'region' }); } catch (e) {}
+            var codes = '__CODES__'.split(' ').map(function (c) { return [c, names ? names.of(c) : c]; }).sort(function (a, b) { return a[1].localeCompare(b[1]); });
+            var top = ['NG', 'GH', 'KE', 'ZA', 'GB', 'US'];
+            var sel = form.country, g1 = el('optgroup', { label: 'Common' }), g2 = el('optgroup', { label: 'All countries' });
+            top.forEach(function (c) { var f = codes.find(function (x) { return x[0] === c; }); if (f) g1.appendChild(el('option', { value: f[0], text: f[1] })); });
+            codes.forEach(function (x) { g2.appendChild(el('option', { value: x[0], text: x[1] })); });
+            sel.appendChild(g1); sel.appendChild(g2); sel.appendChild(el('option', { value: 'XX', text: 'Prefer not to say' }));
+            ['employment', 'education', 'heard_from'].forEach(function (k) { OPTS[k].forEach(function (o) { form[k].appendChild(el('option', { value: o[0], text: o[1] })); }); });
+            document.querySelectorAll('.wb-chips').forEach(function (g) {
+                var name = g.getAttribute('data-name');
+                OPTS[name].forEach(function (o) {
+                    g.appendChild(el('label', { class: 'wb-chip' }, el('input', { type: 'radio', name: name, value: o[0] }), el('span', { text: o[1] })));
+                });
+            });
+            var cur = (await sb.from('learner_background').select('*').eq('user_id', user.id).maybeSingle()).data;
+            if (cur) Object.keys(cur).forEach(function (k) {
+                var f = form.elements[k]; if (!f || cur[k] == null) return;
+                if (f instanceof RadioNodeList) { Array.prototype.forEach.call(f, function (r) { r.checked = r.value === cur[k]; }); }
+                else f.value = cur[k];
+            });
+            function val(n) { var f = form.elements[n]; return f ? (f.value || null) : null; }
+            async function save(row) {
+                row.user_id = user.id; row.updated_at = new Date().toISOString();
+                return sb.from('learner_background').upsert(row, { onConflict: 'user_id' });
+            }
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var missing = [];
+                ['country', 'employment', 'education', 'heard_from'].forEach(function (n) { if (!val(n)) { missing.push(n); form[n].classList.add('is-invalid'); } });
+                document.querySelectorAll('.wb-chips[data-required]').forEach(function (g) { var n = g.getAttribute('data-name'); if (!val(n)) { missing.push(n); g.classList.add('is-invalid'); } });
+                if (missing.length) { OFL.notice(msg, 'Please answer the highlighted questions, or choose Skip for now.', 'error'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                var b = form.querySelector('button[type=submit]'); b.disabled = true;
+                var row = {}; ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from'].forEach(function (n) { var v = val(n); row[n] = v ? String(v).trim() || null : null; });
+                row.completed_at = new Date().toISOString();
+                var r = await save(row);
+                b.disabled = false;
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                location.href = next + (next.indexOf('?') < 0 ? '?' : '&') + 'welcome=1';
+            });
+            form.addEventListener('change', function (e) { e.target.classList.remove('is-invalid'); var g = e.target.closest('.wb-chips'); if (g) g.classList.remove('is-invalid'); });
+            document.getElementById('wb-skip').addEventListener('click', async function () {
+                if (!cur || !cur.completed_at) await save({ skipped_at: new Date().toISOString() });
+                location.href = next;
+            });
+        })();""".replace('__CODES__', COUNTRY_CODES)
+
+page("academy/welcome", "Tell us about you | Open Fraud Labs Academy", "A few quick questions about you and your goals.", welcome_main, welcome_script, active="dashboard", noindex=True)
 
 # ============================================================== Pricing (Paystack passes)
 pricing_main = """        <div class="ac-wrap">
