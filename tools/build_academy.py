@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002m"
+V = "20261002n"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1113,7 +1113,245 @@ CACHE = "tools/.ported.json"
 PORTED = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
 PORTED = {k: tuple(v) for k, v in PORTED.items()}
 port("learn/capstone", "academy/capstone", "Capstone project | Open Fraud Labs Academy", "Brief and submission for the Data Science from Scratch capstone project.")
-port("account", "account", "Your account | Open Fraud Labs Academy", "Create a free Academy account or log in.", noindex=True)
+# ============================================================== Account (sign up, log in, reset, terms, profile)
+account_main = """        <div class="au">
+            <aside class="au-side" aria-hidden="true">
+                <div class="au-side__inner">
+                    <p class="au-side__brand">Open Fraud Labs Academy</p>
+                    <h2>Learn data science by doing it.</h2>
+                    <ul class="au-side__list">
+                        <li>Short video lessons built on real code and data</li>
+                        <li>Practice that runs in your browser, nothing to install</li>
+                        <li>Portfolio projects reviewed by other learners</li>
+                        <li>A certificate anyone can verify</li>
+                    </ul>
+                    <div class="au-side__shot"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt=""></div>
+                </div>
+            </aside>
+            <section class="au-main">
+                <div class="au-panel">
+                    <div id="msg"></div>
+                    <div id="auth-box" hidden>
+                        <h1 id="au-title">Create your free account</h1>
+                        <p class="au-sub" id="au-sub">Save your progress, practise in your browser and earn certificates.</p>
+                        <div class="au-switch" role="tablist" aria-label="Account">
+                            <button type="button" class="au-switch__btn is-active" data-tab="signup" role="tab" aria-selected="true">Create account</button>
+                            <button type="button" class="au-switch__btn" data-tab="login" role="tab" aria-selected="false">Log in</button>
+                        </div>
+                        <form id="signup-form" class="au-form" data-panel="signup" novalidate>
+                            <label class="au-field"><span>Full name</span>
+                                <input name="full_name" required maxlength="120" autocomplete="name" placeholder="As it should appear on your certificate"></label>
+                            <label class="au-field"><span>Email</span>
+                                <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
+                            <label class="au-field"><span>Password</span>
+                                <span class="au-pw"><input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"><button type="button" class="au-pw__toggle" aria-label="Show password">Show</button></span></label>
+                            <fieldset class="au-sign">
+                                <legend>Sign the Terms of Service</legend>
+                                <p>Read the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>, then type your full name exactly as above to sign.</p>
+                                <label class="au-field"><span class="u-sr-only">Signature (your full name)</span>
+                                    <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input au-sign__input" placeholder="Type your full name"></label>
+                                <p class="ofl-sign__status" aria-live="polite"></p>
+                                <label class="au-check"><input type="checkbox" name="agree" required>
+                                    <span>I agree to the Terms of Service and Privacy Policy, and I'm at least 18 or have a parent or guardian's permission.</span></label>
+                            </fieldset>
+                            <button class="ac-btn ac-btn--primary au-submit" type="submit">Create free account</button>
+                        </form>
+                        <form id="login-form" class="au-form" data-panel="login" hidden novalidate>
+                            <label class="au-field"><span>Email</span>
+                                <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
+                            <label class="au-field"><span class="au-field__row">Password <button class="au-link" type="button" id="forgot">Forgot password?</button></span>
+                                <span class="au-pw"><input name="password" type="password" required autocomplete="current-password"><button type="button" class="au-pw__toggle" aria-label="Show password">Show</button></span></label>
+                            <button class="ac-btn ac-btn--primary au-submit" type="submit">Log in</button>
+                        </form>
+                        <form id="forgot-form" class="au-form" data-panel="forgot" hidden novalidate>
+                            <label class="au-field"><span>Email</span>
+                                <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
+                            <button class="ac-btn ac-btn--primary au-submit" type="submit">Send reset link</button>
+                            <button class="au-link au-back" type="button" data-back>Back to log in</button>
+                        </form>
+                    </div>
+                    <form id="reset-form" class="au-form" hidden novalidate>
+                        <h1>Set a new password</h1>
+                        <p class="au-sub">Choose a password with at least 8 characters.</p>
+                        <label class="au-field"><span>New password</span>
+                            <span class="au-pw"><input name="password" type="password" required minlength="8" autocomplete="new-password"><button type="button" class="au-pw__toggle" aria-label="Show password">Show</button></span></label>
+                        <button class="ac-btn ac-btn--primary au-submit" type="submit">Save new password</button>
+                    </form>
+                    <form id="terms-form" class="au-form au-block" hidden novalidate>
+                        <h2>One more step: sign the Terms of Service</h2>
+                        <p class="au-sub">Before taking quizzes or sharing projects, read the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and sign by typing your registered full name: <strong id="terms-name"></strong></p>
+                        <label class="au-field"><span class="u-sr-only">Signature (your full name)</span><input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input au-sign__input" placeholder="Type your full name"></label>
+                        <p class="ofl-sign__status" aria-live="polite"></p>
+                        <label class="au-check"><input type="checkbox" name="agree" required><span>I have read and agree to the Terms of Service and Privacy Policy.</span></label>
+                        <button class="ac-btn ac-btn--primary au-submit" type="submit">Sign and continue</button>
+                    </form>
+                    <div id="profile-box" hidden>
+                        <div class="au-me"><span class="au-me__avatar" id="me-initials"></span><div><h1 id="me-name">Your account</h1><p class="au-sub" id="me-email"></p></div></div>
+                        <div class="au-actions">
+                            <a class="ac-btn ac-btn--primary" href="/academy/dashboard/">Go to My learning</a>
+                            <a class="ac-btn ac-btn--secondary" href="/academy/#courses">Browse courses</a>
+                        </div>
+                        <form id="profile-form" class="au-form au-block">
+                            <h2>Name on your certificates</h2>
+                            <label class="au-field"><span class="u-sr-only">Full name</span><input name="full_name" required maxlength="120" autocomplete="name"></label>
+                            <button class="ac-btn ac-btn--secondary" type="submit">Save name</button>
+                        </form>
+                        <button class="au-link au-logout" type="button" id="logout">Log out</button>
+                    </div>
+                </div>
+            </section>
+        </div>"""
+
+account_script = r"""        (async function () {
+            var sb = OFL.sb, msg = document.getElementById('msg');
+            var next = OFL.qs('next') || '/academy/dashboard/';
+            if (!next.startsWith('/') || next.startsWith('//')) next = '/academy/dashboard/';
+            var authBox = document.getElementById('auth-box'), profileBox = document.getElementById('profile-box'), resetForm = document.getElementById('reset-form');
+            var title = document.getElementById('au-title'), sub = document.getElementById('au-sub'), sw = document.querySelector('.au-switch');
+            var COPY = {
+                signup: ['Create your free account', 'Save your progress, practise in your browser and earn certificates.'],
+                login: ['Welcome back', 'Log in to continue where you left off.'],
+                forgot: ['Reset your password', 'Enter your email and we’ll send you a link to set a new password.']
+            };
+            function show(tab) {
+                document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== tab; });
+                document.querySelectorAll('.au-switch__btn').forEach(function (t) { var on = t.getAttribute('data-tab') === tab; t.classList.toggle('is-active', on); t.setAttribute('aria-selected', String(on)); });
+                title.textContent = COPY[tab][0]; sub.textContent = COPY[tab][1];
+                sw.hidden = tab === 'forgot';
+                var first = document.querySelector('[data-panel="' + tab + '"] input'); if (first && window.innerWidth > 700) first.focus();
+            }
+            document.querySelectorAll('.au-switch__btn').forEach(function (t) { t.addEventListener('click', function () { msg.textContent = ''; show(t.getAttribute('data-tab')); }); });
+            document.getElementById('forgot').addEventListener('click', function () { msg.textContent = ''; show('forgot'); });
+            document.querySelector('[data-back]').addEventListener('click', function () { msg.textContent = ''; show('login'); });
+            document.querySelectorAll('.au-pw__toggle').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var i = b.previousElementSibling, vis = i.type === 'password';
+                    i.type = vis ? 'text' : 'password'; b.textContent = vis ? 'Hide' : 'Show'; b.setAttribute('aria-label', vis ? 'Hide password' : 'Show password');
+                });
+            });
+            // Clear messages and invalid styles as people fix their input.
+            document.querySelectorAll('.au-form input').forEach(function (i) { i.addEventListener('input', function () { i.classList.remove('is-invalid'); }); });
+            function valid(form) {
+                var bad = Array.prototype.filter.call(form.querySelectorAll('input[required]'), function (i) { return !i.checkValidity(); });
+                bad.forEach(function (i) { i.classList.add('is-invalid'); });
+                if (!bad.length) return true;
+                var i = bad[0], t = i.type === 'checkbox' ? 'Please tick the box to agree to the terms.' : i.name === 'email' ? 'Please enter a valid email address.' : i.name === 'password' ? 'Your password needs at least 8 characters.' : i.name === 'signature' ? 'Type your full name to sign.' : 'Please fill in every field.';
+                OFL.notice(msg, t, 'error'); i.focus();
+                return false;
+            }
+            async function renderProfile(user) {
+                authBox.hidden = true; profileBox.hidden = false;
+                document.getElementById('me-email').textContent = user.email;
+                var res = await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle();
+                registeredName = (res.data && res.data.full_name) || '';
+                document.querySelector('#profile-form [name=full_name]').value = registeredName;
+                document.getElementById('me-name').textContent = registeredName || 'Your account';
+                document.getElementById('me-initials').textContent = (registeredName || user.email).split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+                document.getElementById('terms-name').textContent = registeredName || '(add your name below first)';
+                document.getElementById('terms-form').hidden = !!(res.data && res.data.terms_accepted_at);
+                return res.data;
+            }
+            var TERMS_VERSION = '2026-10-01';
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            function wireSignature(form, getName) {
+                var input = form.querySelector('.ofl-sign__input'), status = form.querySelector('.ofl-sign__status');
+                function check() {
+                    var ok = norm(input.value) !== '' && norm(input.value) === norm(getName());
+                    input.setCustomValidity(ok || !input.value ? '' : 'Your signature must match your full name exactly.');
+                    status.textContent = !input.value ? '' : ok ? '✓ Signature matches your name' : 'Must match your full name exactly';
+                    status.className = 'ofl-sign__status ' + (!input.value ? '' : ok ? 'is-ok' : 'is-bad');
+                    return ok;
+                }
+                input.addEventListener('input', check);
+                form.addEventListener('input', function (e) { if (e.target !== input && input.value) check(); });
+                return check;
+            }
+            var signupCheck = wireSignature(document.getElementById('signup-form'), function () { return document.querySelector('#signup-form [name=full_name]').value; });
+            var registeredName = '';
+            var termsCheck = wireSignature(document.getElementById('terms-form'), function () { return registeredName; });
+
+            var recovering = /type=recovery/.test(location.hash) || OFL.qs('reset') === '1';
+            sb.auth.onAuthStateChange(function (event) {
+                if (event === 'PASSWORD_RECOVERY') { recovering = true; authBox.hidden = true; profileBox.hidden = true; resetForm.hidden = false; }
+            });
+            var user = await OFL.getUser();
+            if (recovering && user) { resetForm.hidden = false; }
+            else if (user) {
+                var prof = await renderProfile(user);
+                if (OFL.qs('next') && prof && prof.terms_accepted_at) { location.href = next; return; }
+            } else {
+                authBox.hidden = false;
+                var wantsLogin = OFL.qs('mode') === 'login' || /^\/academy\/(admin|dashboard)/.test(OFL.qs('next') || '');
+                var remembered = null; try { remembered = localStorage.getItem('ofl-has-account'); } catch (e) {}
+                show(wantsLogin || (remembered && OFL.qs('mode') !== 'signup') ? 'login' : 'signup');
+            }
+            async function busy(btn, on, label) { btn.disabled = on; if (on) { btn.dataset.label = btn.textContent; btn.textContent = label; } else if (btn.dataset.label) btn.textContent = btn.dataset.label; }
+
+            document.getElementById('signup-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target; if (!valid(f)) return;
+                if (!signupCheck()) { f.signature.classList.add('is-invalid'); return OFL.notice(msg, 'Your signature must match your full name exactly.', 'error'); }
+                var btn = f.querySelector('button[type=submit]'); busy(btn, true, 'Creating your account…');
+                var res = await sb.auth.signUp({
+                    email: f.email.value.trim(), password: f.password.value,
+                    options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.signature.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
+                });
+                busy(btn, false);
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                try { localStorage.setItem('ofl-has-account', '1'); } catch (x) {}
+                if (res.data.session) { location.href = next; return; }
+                var email = f.email.value.trim(); f.reset();
+                document.getElementById('signup-form').hidden = true; sw.hidden = true;
+                title.textContent = 'Check your email';
+                sub.textContent = 'We’ve sent a confirmation link to ' + email + '. Click it to activate your account. If it isn’t in your inbox within a few minutes, check your spam folder.';
+            });
+            document.getElementById('login-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target; if (!valid(f)) return;
+                var btn = f.querySelector('button[type=submit]'); busy(btn, true, 'Logging in…');
+                var res = await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value });
+                busy(btn, false);
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                try { localStorage.setItem('ofl-has-account', '1'); } catch (x) {}
+                location.href = next;
+            });
+            document.getElementById('forgot-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = e.target; if (!valid(f)) return;
+                var btn = f.querySelector('button[type=submit]'); busy(btn, true, 'Sending…');
+                var res = await sb.auth.resetPasswordForEmail(f.email.value.trim(), { redirectTo: location.origin + '/account/?reset=1' });
+                busy(btn, false);
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                OFL.notice(msg, 'If an account exists for that email, a reset link is on its way.', 'success');
+            });
+            resetForm.addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!valid(resetForm)) return;
+                var res = await sb.auth.updateUser({ password: resetForm.password.value });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                resetForm.hidden = true;
+                OFL.notice(msg, 'Your password has been updated.', 'success');
+                renderProfile((await sb.auth.getUser()).data.user);
+            });
+            document.getElementById('terms-form').addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!valid(e.target)) return;
+                if (!termsCheck()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var res = await sb.rpc('accept_terms', { p_version: TERMS_VERSION, p_signature: e.target.signature.value.trim() });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                e.target.hidden = true;
+                OFL.notice(msg, 'Thank you. Your signed acceptance has been recorded.', 'success');
+                if (OFL.qs('next')) location.href = next;
+            });
+            document.getElementById('profile-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var u = await OFL.getUser();
+                var res = await sb.from('profiles').update({ full_name: e.target.full_name.value.trim() }).eq('id', u.id);
+                OFL.notice(msg, res.error ? OFL.friendlyError(res.error) : 'Name saved.', res.error ? 'error' : 'success');
+                if (!res.error) { registeredName = e.target.full_name.value.trim(); document.getElementById('me-name').textContent = registeredName; }
+            });
+            document.getElementById('logout').addEventListener('click', async function () { await sb.auth.signOut(); location.href = '/academy/'; });
+        })();"""
+
+page("account", "Your account | Open Fraud Labs Academy", "Create a free Academy account or log in.", account_main, account_script, noindex=True)
 port("verify", "verify", "Verify a certificate | Open Fraud Labs Academy", "Check that an Open Fraud Labs Academy certificate is genuine.", active="verify")
 json.dump(PORTED, open(CACHE, "w"))
 
