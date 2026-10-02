@@ -73,20 +73,23 @@
         '        return False, "Not quite yet: " + _ofl_err(e)'
     ].join('\n');
 
-    var loading = null;
+    var loading = null, lastStatus = '', listeners = [];
+    function tell(status, t) { lastStatus = t; listeners.forEach(function (f) { f(t); }); if (status) status(t); }
     function loadPython(status) {
-        if (loading) return loading;
+        if (status && listeners.indexOf(status) < 0) listeners.push(status);
+        if (loading) { if (status && lastStatus) status(lastStatus); return loading; }
         loading = new Promise(function (resolve, reject) {
-            status('Loading Python in your browser. The first time takes a few seconds…');
+            tell(null, 'Downloading Python to your browser (one time only; later visits load from your device)…');
             var s = document.createElement('script');
             s.src = PYODIDE + 'pyodide.js';
             s.onload = async function () {
                 try {
                     var py = await window.loadPyodide({ indexURL: PYODIDE });
-                    status('Loading pandas…');
+                    tell(null, 'Loading pandas…');
                     await py.loadPackage(['pandas']);
                     py.globals.set('DATA_URL', DATA_URL);
                     await py.runPythonAsync(HARNESS);
+                    tell(null, '');
                     resolve(py);
                 } catch (e) { loading = null; reject(e); }
             };
@@ -253,5 +256,21 @@
         return { solved: count, total: exercises.length };
     }
 
-    window.CODELAB = { mount: mount, mountSet: mountSet, DATA_URL: DATA_URL };
+    // Warm up Python in the background (e.g. while the learner reads the notes), so Practice opens instantly.
+    // Skipped on Data Saver or very slow connections, where it only loads when the learner presses Run.
+    var preloaded = false;
+    function preload(exercises) {
+        if (preloaded) return; preloaded = true;
+        var c = navigator.connection || {};
+        if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;
+        var go = function () {
+            loadPython(null).then(function (py) {
+                var src = (exercises || []).map(function (e) { return (e.starter || '') + '\n' + (e.check || ''); }).join('\n');
+                return py.loadPackagesFromImports(src);
+            }).catch(function () { loading = null; });
+        };
+        (window.requestIdleCallback || function (f) { setTimeout(f, 1500); })(go);
+    }
+
+    window.CODELAB = { mount: mount, mountSet: mountSet, preload: preload, DATA_URL: DATA_URL };
 })();

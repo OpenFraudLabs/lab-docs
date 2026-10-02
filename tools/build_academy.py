@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002e"
+V = "20261002f"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -535,6 +535,7 @@ lesson_script = r"""        (async function () {
             var notesLoaded = false, sawEnd = false, openedAt = act.notes_opened_at ? new Date(act.notes_opened_at).getTime() : null, timer = null;
             var readBtn = document.getElementById('read-done'), hint = document.getElementById('read-hint');
             async function openNotes() {
+                if (hasLab && window.CODELAB) CODELAB.preload(exercisesOf(long));
                 if (!notesLoaded) {
                     notesLoaded = true;
                     try {
