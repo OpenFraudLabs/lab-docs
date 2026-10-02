@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002q">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002s">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -56,7 +56,7 @@
             </div>
             <div id="admin-body" hidden>
                 <div class="ac-kpis" id="kpis"></div>
-                <section class="ac-admin__sec">
+                <section class="ac-admin__sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
                 </section>
@@ -65,21 +65,43 @@
                     <div id="manage-msg"></div>
                     <div id="manage-body"></div>
                 </dialog>
-                <section class="ac-admin__sec">
+                <section class="ac-admin__sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
                     <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
-                <section class="ac-admin__sec">
+                <section class="ac-admin__sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Who's learning</h2><p class="ac-muted" id="bg-note">Answers from the About you step. Totals only; use the download for your own analysis.</p>
                         <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="bg-csv">Download answers (CSV)</button></div>
                     <div class="bg-grid" id="bg-grid"><p class="ac-muted">Loading…</p></div>
                 </section>
-                <section class="ac-admin__sec">
+                <section class="ac-admin__sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
                     <ul class="ac-activity" id="activity"><li class="ac-muted">Loading…</li></ul>
                 </section>
-                <section class="ac-admin__sec">
+                <section class="ac-admin__sec" data-cap="view_finance" id="finance-sec">
+                    <div class="ac-admin__head"><h2>Finance</h2><p class="ac-muted">Paystack payments and passes. Amounts are what learners paid, before Paystack's fees.</p></div>
+                    <div class="ac-kpis" id="fin-kpis"></div>
+                    <h3 class="ac-admin__sub">Plans and prices</h3>
+                    <div class="ac-table-wrap"><table class="ac-table" id="plans-table"></table></div>
+                    <h3 class="ac-admin__sub">Recent payments</h3>
+                    <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
+                </section>
+                <section class="ac-admin__sec" data-cap="view_staff">
+                    <div class="ac-admin__head"><h2>Staff and roles</h2><p class="ac-muted" id="staff-note">Who can use this page and what they can do. Only the owner can give or remove roles, and nobody can change the owner.</p></div>
+                    <div class="ac-table-wrap"><table class="ac-table" id="staff-table"></table></div>
+                    <details class="ac-roles"><summary>What each role can do</summary>
+                        <ul>
+                            <li><b>Owner</b>: everything, including giving and removing roles. Can't be removed from the website.</li>
+                            <li><b>Admin</b>: manage learners (suspend, unlock, free access, certificates), grade projects, see learners and stats. Can't change roles or other staff.</li>
+                            <li><b>Reviewer</b>: grade projects and capstones, see learners and stats.</li>
+                            <li><b>Finance</b> (CFO, account officer): payments, passes, plans and prices, and stats.</li>
+                            <li><b>HR</b>: see learners, the staff list and stats. Can't change anything.</li>
+                            <li><b>Analyst</b>: stats, the lesson funnel and learner totals only; no names or emails.</li>
+                        </ul>
+                    </details>
+                </section>
+                <section class="ac-admin__sec" data-cap="review">
                     <div class="ac-admin__head"><h2>Project and capstone reviews</h2><p class="ac-muted">Peer review grades these automatically; approve or request changes here to step in at any time.</p></div>
                     <div class="ofl-tabs" id="filters">
                         <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
@@ -119,8 +141,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002q"></script>
-    <script src="/assets/js/academy.js?v=20261002q"></script>
+    <script src="/assets/js/learn.js?v=20261002s"></script>
+    <script src="/assets/js/academy.js?v=20261002s"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -177,8 +199,81 @@
                 });
             })();
             var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
-            if (!(await OFL.isAdmin())) return OFL.notice(msg, 'This page is only for Open Fraud Labs admins.', 'error');
+            var role = (await sb.rpc('my_staff_role')).data;
+            if (!role) return OFL.notice(msg, 'This page is only for Open Fraud Labs staff.', 'error');
+            var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer'],
+                view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
+                manage_plans: ['owner', 'finance'], view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr'] };
+            function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
+            var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR' };
+            document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
+            if (!can('view_people')) document.getElementById('bg-csv').hidden = true;
+            document.getElementById('admin-sub').prepend(el('span', { class: 'ac-rolebadge', text: 'Your role: ' + ROLE_NAME[role] }), ' ');
             document.getElementById('admin-body').hidden = false;
+            var staffRoles = {};
+            if (can('view_staff')) (async function staff() {
+                var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');
+                t.textContent = '';
+                t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Name' }), el('th', { text: 'Email' }), el('th', { text: 'Role' }))));
+                var tb = el('tbody'); t.appendChild(tb);
+                (r.data || []).forEach(function (x) {
+                    staffRoles[x.user_id] = x.staff_role;
+                    var cell = el('td');
+                    if (can('manage_roles') && x.staff_role !== 'owner') {
+                        var sel = el('select', { 'aria-label': 'Role for ' + (x.full_name || x.email) });
+                        [['admin', 'Admin'], ['reviewer', 'Reviewer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst'], ['none', 'Remove role']].forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === x.staff_role ? 'selected' : null })); });
+                        sel.addEventListener('change', async function () {
+                            if (!window.confirm((sel.value === 'none' ? 'Remove the staff role from ' : 'Change the role of ') + (x.full_name || x.email) + (sel.value === 'none' ? '?' : ' to ' + ROLE_NAME[sel.value] + '?'))) { sel.value = x.staff_role; return; }
+                            var res = await sb.rpc('admin_manage_user', { p_user: x.user_id, p_action: 'set_role', p_value: sel.value });
+                            if (res.error) { sel.value = x.staff_role; return OFL.notice(msg, OFL.friendlyError(res.error), 'error'); }
+                            OFL.notice(msg, 'Role updated for ' + (x.full_name || x.email) + '.', 'success'); staff();
+                        });
+                        cell.appendChild(sel);
+                    } else cell.appendChild(el('span', { class: 'ac-rolebadge' + (x.staff_role === 'owner' ? ' is-owner' : ''), text: ROLE_NAME[x.staff_role] || x.staff_role }));
+                    tb.appendChild(el('tr', {}, el('td', { text: x.full_name || '—' }), el('td', { text: x.email }), cell));
+                });
+            })();
+            if (can('view_finance')) (async function finance() {
+                var f = (await sb.rpc('admin_finance_summary')).data || {};
+                function money(minor, cur) { try { return new Intl.NumberFormat(cur === 'NGN' ? 'en-NG' : undefined, { style: 'currency', currency: cur, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 }).format(minor / 100); } catch (e) { return cur + ' ' + minor / 100; } }
+                function sum(o) { var k = Object.keys(o || {}); return k.length ? k.map(function (c) { return money(o[c], c); }).join(' + ') : '—'; }
+                var fk = document.getElementById('fin-kpis'); fk.textContent = '';
+                [['Revenue, all time', sum(f.revenue)], ['Revenue, last 30 days', sum(f.revenue_30d)], ['Successful payments', f.payments || 0], ['Failed or abandoned', f.failed || 0], ['Active paid passes', f.active_passes || 0], ['Free access (complimentary)', f.complimentary || 0]]
+                    .forEach(function (x) { fk.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
+                var pt = document.getElementById('payments-table'); pt.textContent = '';
+                function head(t, cols) { var tr = el('tr'); cols.forEach(function (h) { tr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, tr)); }
+                head(pt, ['Date', 'Learner', 'Plan', 'Amount', 'Status', 'Reference']);
+                var pb = el('tbody'); pt.appendChild(pb);
+                if (!(f.recent || []).length) pb.appendChild(el('tr', {}, el('td', { colspan: '6', class: 'ac-muted', text: 'No payments yet.' })));
+                (f.recent || []).forEach(function (x) { pb.appendChild(el('tr', {}, el('td', { text: dt(x.paid_at || x.created_at) }), el('td', { text: x.email }), el('td', { text: x.plan_id }), el('td', { class: 'num', text: money(x.amount_minor, x.currency) }), el('td', { text: x.status }), el('td', { text: x.reference }))); });
+                async function drawPlans() {
+                    var plans = (await sb.from('plans').select('*').order('sort')).data || [];
+                    var t = document.getElementById('plans-table'); t.textContent = '';
+                    head(t, ['Plan', 'Months', 'Price', 'Currency', 'Shown to learners', '']);
+                    var tb = el('tbody'); t.appendChild(tb);
+                    function row(p, isNew) {
+                        var name = el('input', { value: p.name || '', 'aria-label': 'Plan name', placeholder: 'e.g. 3 months' });
+                        var months = el('input', { type: 'number', min: '1', value: p.months || 1, 'aria-label': 'Months', style: 'width:5rem' });
+                        var price = el('input', { type: 'number', min: '1', step: '1', value: p.amount_minor ? p.amount_minor / 100 : '', 'aria-label': 'Price', style: 'width:8rem', placeholder: 'e.g. 15000' });
+                        var cur = el('select', { 'aria-label': 'Currency' }); ['NGN', 'USD'].forEach(function (c) { cur.appendChild(el('option', { value: c, text: c, selected: c === (p.currency || 'NGN') ? 'selected' : null })); });
+                        var active = el('input', { type: 'checkbox', 'aria-label': 'Shown to learners' }); active.checked = !!p.active;
+                        var save = el('button', { class: 'ac-btn ac-btn--' + (isNew ? 'primary' : 'secondary') + ' ac-btn--sm', type: 'button', text: isNew ? 'Add plan' : 'Save' });
+                        if (!can('manage_plans')) [name, months, price, cur, active].forEach(function (i) { i.disabled = true; }), save.hidden = true;
+                        save.addEventListener('click', async function () {
+                            var amount = Math.round(parseFloat(price.value) * 100);
+                            if (!name.value.trim() || !(amount > 0) || !(+months.value > 0)) return OFL.notice(msg, 'Give the plan a name, a number of months and a price.', 'error');
+                            var data = { name: name.value.trim(), months: +months.value, amount_minor: amount, currency: cur.value, active: active.checked };
+                            var res = isNew ? await sb.from('plans').insert(Object.assign({ id: 'p' + Date.now().toString(36), sort: plans.length + 1 }, data)) : await sb.from('plans').update(data).eq('id', p.id);
+                            if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                            OFL.notice(msg, isNew ? 'Plan added.' : 'Plan saved.', 'success'); drawPlans();
+                        });
+                        tb.appendChild(el('tr', {}, el('td', {}, name), el('td', {}, months), el('td', {}, price), el('td', {}, cur), el('td', {}, active), el('td', {}, save)));
+                    }
+                    plans.forEach(function (p) { row(p, false); });
+                    if (can('manage_plans')) row({}, true);
+                }
+                drawPlans();
+            })();
             function dt(v) { if (!v) return '—'; var d = new Date(v); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
             function pct(v) { return v == null ? '—' : Math.round(v * 100) + '%'; }
 
@@ -205,7 +300,7 @@
                 if (c === 'avg_best_score') return pct(v);
                 if (c === 'status') {
                     var tags = [];
-                    if (r.suspended_at) tags.push('Suspended'); if (r.is_admin) tags.push('Admin');
+                    if (r.suspended_at) tags.push('Suspended'); if (staffRoles[r.user_id]) tags.push(ROLE_NAME[staffRoles[r.user_id]]); else if (r.is_admin) tags.push('Admin');
                     if (r.unlock_all) tags.push('All lessons unlocked'); if (r.access_until) tags.push('Free access (' + r.access_until + ')');
                     return tags.join(' · ') || 'Active';
                 }
@@ -219,7 +314,7 @@
                 rows.filter(function (r) { return !q || ((r.full_name || '') + ' ' + (r.email || '')).toLowerCase().indexOf(q) >= 0; })
                     .forEach(function (r) {
                         var tr = el('tr', { class: r.suspended_at ? 'is-suspended' : '' });
-                        tr.appendChild(el('td', {}, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Manage', onclick: function () { manage(r); } })));
+                        tr.appendChild(el('td', {}, can('manage_learners') ? el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Manage', onclick: function () { manage(r); } }) : null));
                         cols.forEach(function (c) { tr.appendChild(el('td', { text: cell(r, c[0]) })); }); tb.appendChild(tr);
                     });
                 if (!tb.children.length) tb.appendChild(el('tr', {}, el('td', { colspan: String(cols.length), text: 'No learners match.' })));
@@ -233,7 +328,11 @@
                 var body = document.getElementById('manage-body'); body.textContent = '';
                 document.getElementById('manage-title').textContent = (r.full_name || r.email);
                 body.appendChild(el('p', { class: 'ac-muted', text: r.email + ' · registered ' + dt(r.registered_at) + ' · ' + r.lessons_passed + ' lessons passed' }));
-                var self = r.user_id === user.id;
+                var self = r.user_id === user.id, targetRole = staffRoles[r.user_id] || (r.is_admin ? 'admin' : null);
+                if (targetRole === 'owner' || (targetRole && !can('manage_roles'))) {
+                    body.appendChild(el('p', { class: 'ofl-notice', text: targetRole === 'owner' ? 'This is the owner\u2019s account. It can\u2019t be changed from the admin page.' : 'This person is staff (' + ROLE_NAME[targetRole] + '). Only the owner can change staff accounts.' }));
+                    document.getElementById('manage-msg').textContent = ''; dlg.showModal(); return;
+                }
                 function act(action, value, confirmText) {
                     return async function () {
                         if (confirmText && !window.confirm(confirmText)) return;
@@ -260,8 +359,12 @@
                 var grant = btn('Grant free access', 'primary', function () { act('grant_access', days.value)(); });
                 group('Free access to paid courses', r.access_until ? 'Active: free access ' + (r.access_until === 'no end date' ? 'with no end date' : 'until ' + r.access_until) + '.' : 'For scholarships, interns or partners: full access to paid courses without paying. Data Science from Scratch is already free for everyone.',
                     r.access_until ? [btn('Remove free access', 'secondary', act('revoke_access'))] : [days, grant]);
-                group('Admin role', r.is_admin ? 'This person can see all learners and manage accounts.' : 'Admins can see every learner’s data and manage accounts. Only give this to staff you trust.',
-                    [r.is_admin ? btn('Remove admin role', 'danger', act('remove_admin', null, 'Remove admin rights from ' + r.email + '?'), self) : btn('Make admin', 'secondary', act('make_admin', null, 'Give ' + r.email + ' full admin rights, including access to every learner’s data?'))]);
+                if (can('manage_roles') && !self) {
+                    var roleSel = el('select', { 'aria-label': 'Staff role' });
+                    [['none', 'No staff role'], ['admin', 'Admin'], ['reviewer', 'Reviewer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']].forEach(function (o) { roleSel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === (targetRole || 'none') ? 'selected' : null })); });
+                    group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
+                        [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
+                }
                 var cert = certs[r.user_id];
                 group('Certificate', cert ? 'Valid certificate ' + cert.id + (cert.award_type === 'awarded' ? ' (awarded by an admin)' : ' (earned by completing the course)') + ', issued ' + dt(cert.issued_at) + '.'
                         : 'Learners normally earn the certificate by passing every lesson and an approved capstone. You can award one directly for exceptional cases, such as a live cohort. The public verification page will say it was awarded by Open Fraud Labs, not earned through the course.',
