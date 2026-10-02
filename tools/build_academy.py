@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002d"
+V = "20261002e"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -441,7 +441,11 @@ lesson_script = r"""        (async function () {
             var long = null;
             // Notes and exercises come from the server, only for learners allowed to open this lesson.
             var lc = await sb.rpc('get_lesson_content', { p_course: course, p_lesson: n });
-            if (lc.error) return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
+            if (lc.error) {
+                tabs.hidden = true;
+                if (/PAID:/.test(lc.error.message || '')) return lockedPanel(fullTitle, 'This lesson is part of the full course. A pass unlocks every lesson, practice exercise, project and certificate.', '/academy/pricing/', 'See plans');
+                return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
+            }
             long = lc.data;
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
@@ -1098,6 +1102,76 @@ admin_script = r"""        (async function () {
             }
             load();
         })();"""
+
+# ============================================================== Pricing (Paystack passes)
+pricing_main = """        <div class="ac-wrap">
+            <div class="ac-dash-head">
+                <h1>Plans</h1>
+                <p class="ac-muted">A pass unlocks every lesson, practice exercise, project and certificate across all Academy courses for the time you choose. Pay once by card, bank transfer or USSD through Paystack. Passes don't renew automatically.</p>
+                <div id="msg"></div>
+            </div>
+            <div id="access"></div>
+            <div class="ac-plans" id="plans"><p class="ac-muted">Loading plans…</p></div>
+            <p class="ac-muted ac-small">Payments are processed securely by Paystack; Open Fraud Labs never sees your card details. Questions or refunds: hello@openfraudlabs.com.</p>
+        </div>"""
+pricing_script = """        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.getUser();
+            var params = new URLSearchParams(location.search), ref = params.get('reference') || params.get('trxref');
+            function money(minor, cur) {
+                try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(minor / 100); }
+                catch (e) { return cur + ' ' + (minor / 100).toLocaleString(); }
+            }
+            async function call(body) {
+                var s = (await sb.auth.getSession()).data.session;
+                var r = await sb.functions.invoke('paystack-checkout', { body: body, headers: s ? { Authorization: 'Bearer ' + s.access_token } : {} });
+                if (r.error) {
+                    var m = 'Something went wrong. Please try again.';
+                    try { var j = await r.error.context.json(); if (j && j.error) m = j.error; } catch (e) {}
+                    throw new Error(m);
+                }
+                return r.data;
+            }
+            async function showAccess() {
+                var box = document.getElementById('access'); box.textContent = '';
+                if (!user) return;
+                var a = (await sb.rpc('my_access')).data || {};
+                if (a.active) box.appendChild(el('div', { class: 'ofl-notice ofl-notice--success', text: 'Your pass is active' + (a.until ? ' until ' + OFL.formatDate(a.until) : '') + '. Buying another pass adds time to it.' }));
+            }
+            if (ref && user) {
+                OFL.notice(msg, 'Confirming your payment…', 'info');
+                try {
+                    var v = await call({ action: 'verify', reference: ref });
+                    msg.textContent = '';
+                    if (v.status === 'success') OFL.notice(msg, 'Payment received. Thank you! Your access is now active.', 'success');
+                    else if (v.status === 'abandoned' || v.status === 'failed') OFL.notice(msg, 'The payment was not completed. You have not been charged.', 'error');
+                    else OFL.notice(msg, 'Your payment is still processing. Refresh this page in a minute.', 'info');
+                } catch (e) { msg.textContent = ''; OFL.notice(msg, e.message, 'error'); }
+                history.replaceState(null, '', location.pathname);
+            }
+            await showAccess();
+            var plans = (await sb.from('plans').select('*').eq('active', true).order('sort')).data || [];
+            var box = document.getElementById('plans'); box.textContent = '';
+            if (!plans.length) { box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Early access: everything is free' }), el('p', { text: 'Plans will appear here soon. For now, every released lesson is open to anyone with a free account.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'Browse the course' }))); return; }
+            plans.forEach(function (p) {
+                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
+                btn.addEventListener('click', async function () {
+                    if (!user) { location.href = '/account/?next=' + encodeURIComponent('/academy/pricing/'); return; }
+                    btn.disabled = true; msg.textContent = '';
+                    try { var r = await call({ action: 'start', plan_id: p.id }); location.href = r.url; }
+                    catch (e) { btn.disabled = false; OFL.notice(msg, e.message, 'error'); }
+                });
+                box.appendChild(el('div', { class: 'ac-plan' },
+                    el('h2', { text: p.name }),
+                    el('p', { class: 'ac-plan__price', text: money(p.amount_minor, p.currency) }),
+                    el('p', { class: 'ac-muted', text: p.months + (p.months === 1 ? ' month' : ' months') + ' of full access' }),
+                    p.blurb ? el('p', { text: p.blurb }) : null,
+                    btn));
+            });
+        })();"""
+
+page("academy/pricing", "Plans | Open Fraud Labs Academy", "Choose an Academy pass to unlock every lesson, project and certificate.",
+     pricing_main, pricing_script, noindex=True)
 
 page("academy/admin", "Admin | Open Fraud Labs Academy", "Academy admin.", admin_main, admin_script, noindex=True)
 

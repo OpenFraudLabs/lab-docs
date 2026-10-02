@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans | Open Fraud Labs Academy</title>
+    <meta name="description" content="Choose an Academy pass to unlock every lesson, project and certificate.">
+    <meta property="og:title" content="Plans | Open Fraud Labs Academy">
+    <meta property="og:description" content="Choose an Academy pass to unlock every lesson, project and certificate.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap">
+            <div class="ac-dash-head">
+                <h1>Plans</h1>
+                <p class="ac-muted">A pass unlocks every lesson, practice exercise, project and certificate across all Academy courses for the time you choose. Pay once by card, bank transfer or USSD through Paystack. Passes don't renew automatically.</p>
+                <div id="msg"></div>
+            </div>
+            <div id="access"></div>
+            <div class="ac-plans" id="plans"><p class="ac-muted">Loading plans…</p></div>
+            <p class="ac-muted ac-small">Payments are processed securely by Paystack; Open Fraud Labs never sees your card details. Questions or refunds: hello@openfraudlabs.com.</p>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261002e"></script>
+    <script src="/assets/js/academy.js?v=20261002e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.getUser();
+            var params = new URLSearchParams(location.search), ref = params.get('reference') || params.get('trxref');
+            function money(minor, cur) {
+                try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(minor / 100); }
+                catch (e) { return cur + ' ' + (minor / 100).toLocaleString(); }
+            }
+            async function call(body) {
+                var s = (await sb.auth.getSession()).data.session;
+                var r = await sb.functions.invoke('paystack-checkout', { body: body, headers: s ? { Authorization: 'Bearer ' + s.access_token } : {} });
+                if (r.error) {
+                    var m = 'Something went wrong. Please try again.';
+                    try { var j = await r.error.context.json(); if (j && j.error) m = j.error; } catch (e) {}
+                    throw new Error(m);
+                }
+                return r.data;
+            }
+            async function showAccess() {
+                var box = document.getElementById('access'); box.textContent = '';
+                if (!user) return;
+                var a = (await sb.rpc('my_access')).data || {};
+                if (a.active) box.appendChild(el('div', { class: 'ofl-notice ofl-notice--success', text: 'Your pass is active' + (a.until ? ' until ' + OFL.formatDate(a.until) : '') + '. Buying another pass adds time to it.' }));
+            }
+            if (ref && user) {
+                OFL.notice(msg, 'Confirming your payment…', 'info');
+                try {
+                    var v = await call({ action: 'verify', reference: ref });
+                    msg.textContent = '';
+                    if (v.status === 'success') OFL.notice(msg, 'Payment received. Thank you! Your access is now active.', 'success');
+                    else if (v.status === 'abandoned' || v.status === 'failed') OFL.notice(msg, 'The payment was not completed. You have not been charged.', 'error');
+                    else OFL.notice(msg, 'Your payment is still processing. Refresh this page in a minute.', 'info');
+                } catch (e) { msg.textContent = ''; OFL.notice(msg, e.message, 'error'); }
+                history.replaceState(null, '', location.pathname);
+            }
+            await showAccess();
+            var plans = (await sb.from('plans').select('*').eq('active', true).order('sort')).data || [];
+            var box = document.getElementById('plans'); box.textContent = '';
+            if (!plans.length) { box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Early access: everything is free' }), el('p', { text: 'Plans will appear here soon. For now, every released lesson is open to anyone with a free account.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'Browse the course' }))); return; }
+            plans.forEach(function (p) {
+                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: user ? 'Choose ' + p.name : 'Log in to choose' });
+                btn.addEventListener('click', async function () {
+                    if (!user) { location.href = '/account/?next=' + encodeURIComponent('/academy/pricing/'); return; }
+                    btn.disabled = true; msg.textContent = '';
+                    try { var r = await call({ action: 'start', plan_id: p.id }); location.href = r.url; }
+                    catch (e) { btn.disabled = false; OFL.notice(msg, e.message, 'error'); }
+                });
+                box.appendChild(el('div', { class: 'ac-plan' },
+                    el('h2', { text: p.name }),
+                    el('p', { class: 'ac-plan__price', text: money(p.amount_minor, p.currency) }),
+                    el('p', { class: 'ac-muted', text: p.months + (p.months === 1 ? ' month' : ' months') + ' of full access' }),
+                    p.blurb ? el('p', { text: p.blurb }) : null,
+                    btn));
+            });
+        })();
+    </script>
+</body>
+</html>

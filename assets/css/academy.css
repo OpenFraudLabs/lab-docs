@@ -517,3 +517,11 @@ a.ac-row:hover { background: #F5F7FB; }
 .ofl-cert { position: relative; }
 .ofl-cert__sample { position: absolute; inset: 0; display: grid; place-items: center; font: 800 clamp(4rem, 14vw, 9rem)/1 var(--font); letter-spacing: 0.2em; color: rgba(180, 35, 24, 0.13); transform: rotate(-18deg); pointer-events: none; z-index: 2; }
 .lab-chart { display: block; max-width: 100%; height: auto; }
+
+/* Pricing */
+.ac-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.ac-plan { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-l); padding: 1.5rem; display: flex; flex-direction: column; gap: .5rem; }
+.ac-plan h2 { margin: 0; font-size: 1.15rem; }
+.ac-plan__price { font-size: 1.9rem; font-weight: 700; margin: .25rem 0 0; color: var(--ink); }
+.ac-plan .ac-btn { margin-top: auto; }
+.ac-small { font-size: .85rem; }
