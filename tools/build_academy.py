@@ -427,7 +427,7 @@ lesson_script = r"""        (async function () {
             var fullTitle = /^Project \d/.test(lesson.title) ? lesson.title : 'Lesson ' + n + ': ' + lesson.title;
             titleEl.textContent = fullTitle;
             document.title = fullTitle + ' | Open Fraud Labs Academy';
-            if (n > 1 && !((n - 1) in st.passed)) {
+            if (n > 1 && !st.unlockAll && !((n - 1) in st.passed)) {
                 return lockedPanel('Lesson ' + n + ' is locked', 'Lessons unlock in order. Complete Lesson ' + (st.next ? st.next.n : n - 1) + ' first.',
                     '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
             }
@@ -445,7 +445,7 @@ lesson_script = r"""        (async function () {
 
             var hasLab = !!(long && (long.exercises || long.practice));
             function unlocked(step) {
-                if (step === 'watch') return true;
+                if (step === 'watch' || st.isAdmin) return true;   // admins can preview every step
                 if (step === 'read') return !!act.video_completed_at || passed;
                 if (step === 'lab') return !!act.notes_completed_at || passed;
                 return passed || (!!act.notes_completed_at && (!hasLab || labDone));   // quiz: practice first
@@ -467,6 +467,7 @@ lesson_script = r"""        (async function () {
             }
             if (hasLab) { tabEls.lab.hidden = false; tabs.classList.add('ac-tabs--4'); document.getElementById('tab-quiz-num').textContent = '4'; }
             Object.keys(tabEls).forEach(function (k) { tabEls[k].addEventListener('click', function () { show(k); }); });
+            if (st.isAdmin) msg.appendChild(el('div', { class: 'ofl-notice', text: 'Admin preview: every lesson and step is open to you, and you can take any quiz without the practice or cooldown rules. Learners still follow the normal order.' }));
             refreshTabs();
 
             // ---------------- Watch ----------------
@@ -649,7 +650,7 @@ lesson_script = r"""        (async function () {
                 var last = (await sb.from('quiz_attempts').select('passed, created_at').eq('course_slug', course).eq('lesson_n', n).order('created_at', { ascending: false }).limit(1)).data;
                 if (last && last[0] && !last[0].passed) {
                     var left = 600 - (Date.now() - new Date(last[0].created_at).getTime()) / 1000;
-                    if (left > 0) return cooldown(left);
+                    if (left > 0 && !st.isAdmin) return cooldown(left);
                 }
                 buildQuiz();
             }
@@ -738,7 +739,7 @@ lesson_script = r"""        (async function () {
                     el('p', { text: wasPassed ? 'Your lesson stays passed, and your best result is saved.'
                         : res.passed ? (next ? 'Your result is saved. Lesson ' + (n + 1) + ' is released soon. Follow @_drhola on TikTok to catch it.' : 'Your result and answers are saved. Nice work.')
                         : 'You need 70% to pass. Answers are shown once you pass. You can try again in 10 minutes.' }), actions));
-                if (!res.passed && !wasPassed) cooldown(600, true);
+                if (!res.passed && !wasPassed && !st.isAdmin) cooldown(600, true);
                 result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
 
