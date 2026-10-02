@@ -15,13 +15,19 @@
     <meta property="og:title" content="Lesson | Open Fraud Labs Academy">
     <meta property="og:description" content="Watch, read, practise and take the quiz for this Open Fraud Labs Academy lesson.">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
     <meta name="theme-color" content="#0E1A2B">
     <meta name="robots" content="noindex">
     <link rel="icon" href="/assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002h">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002i">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -116,10 +122,10 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002h"></script>
-    <script src="/assets/js/academy.js?v=20261002h"></script>
+    <script src="/assets/js/learn.js?v=20261002i"></script>
+    <script src="/assets/js/academy.js?v=20261002i"></script>
     <script src="/assets/js/vendor/marked-18.0.14.js"></script>
-    <script src="/assets/js/codelab.js?v=20261002h"></script>
+    <script src="/assets/js/codelab.js?v=20261002i"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY;
@@ -222,6 +228,13 @@
             var resigned = 0;
             video.addEventListener('error', function () { if (lesson.video_path && resigned++ < 3) signVideo(); });
             await signVideo();
+            if (long && long.captions) {
+                // Captions travel with the protected lesson content; the CC button in the player turns them on.
+                var trk = document.createElement('track');
+                trk.kind = 'captions'; trk.srclang = 'en'; trk.label = 'English';
+                trk.src = URL.createObjectURL(new Blob([long.captions], { type: 'text/vtt' }));
+                video.appendChild(trk);
+            }
             var maxSeen = 0, done = !!act.video_completed_at || passed, dur = lesson.video_seconds || 0;
             function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
             function paintMeter() {

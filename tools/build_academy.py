@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002h"
+V = "20261002i"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -34,7 +34,7 @@ GTM_HEAD = """    <!-- Google Tag Manager -->
     })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
     <!-- End Google Tag Manager -->"""
 
-def head(title, desc, noindex=False):
+def head(title, desc, noindex=False, path=None):
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,6 +46,12 @@ def head(title, desc, noindex=False):
     <meta property="og:title" content="{esc(title)}">
     <meta property="og:description" content="{esc(desc)}">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    {f'<link rel="canonical" href="https://openfraudlabs.com/{path}/"><meta property="og:url" content="https://openfraudlabs.com/{path}/">' if path and not noindex else ''}
     <meta name="theme-color" content="#0E1A2B">
     {'<meta name="robots" content="noindex">' if noindex else ''}
     <link rel="icon" href="/assets/logo.png">
@@ -114,8 +120,10 @@ SCRIPTS = f"""    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
     <script src="/assets/js/academy.js?v={V}"></script>
 """
 
+PUBLIC_PAGES = []
 def page(path, title, desc, main, script="", active="", noindex=False, extra=""):
-    html = head(title, desc, noindex) + header(active) + f'    <main id="main">\n{main}\n    </main>\n' + FOOTER + SCRIPTS + extra
+    if not noindex: PUBLIC_PAGES.append(path)
+    html = head(title, desc, noindex, path) + header(active) + f'    <main id="main">\n{main}\n    </main>\n' + FOOTER + SCRIPTS + extra
     if script:
         html += f"    <script>\n{script}\n    </script>\n"
     html += "</body>\n</html>\n"
@@ -353,9 +361,19 @@ course_script = r"""        (async function () {
             else { btn.textContent = 'Go to my learning'; btn.href = '/academy/dashboard/'; note.textContent = 'You’re up to date. The next lesson is released soon.'; }
         })();"""
 
+COURSE_LD = '''    <script type="application/ld+json">
+    {"@context": "https://schema.org", "@type": "Course", "name": "Data Science from Scratch",
+     "description": "A beginner course: 30 video lessons, 3 portfolio projects in finance, health and real estate, in-browser coding practice, quizzes, a peer-reviewed capstone and a verifiable certificate.",
+     "url": "https://openfraudlabs.com/academy/courses/data-science/", "inLanguage": "en",
+     "provider": {"@type": "Organization", "name": "Open Fraud Labs", "sameAs": "https://openfraudlabs.com/"},
+     "instructor": {"@type": "Person", "name": "Ayodele Odugbile"},
+     "educationalLevel": "Beginner", "isAccessibleForFree": true,
+     "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "online", "courseWorkload": "PT20H"}}
+    </script>
+'''
 page("academy/courses/data-science", "Data Science from Scratch | Open Fraud Labs Academy",
      "A free beginner course: 30 video lessons, 3 portfolio projects in finance, health and real estate, in-browser coding practice, quizzes, a capstone project and a verifiable certificate.",
-     course_main, course_script, active="courses")
+     course_main, course_script, active="courses", extra=COURSE_LD)
 
 # ============================================================== Lesson player
 lesson_main = """        <div class="ac-wrap ac-player">
@@ -505,6 +523,13 @@ lesson_script = r"""        (async function () {
             var resigned = 0;
             video.addEventListener('error', function () { if (lesson.video_path && resigned++ < 3) signVideo(); });
             await signVideo();
+            if (long && long.captions) {
+                // Captions travel with the protected lesson content; the CC button in the player turns them on.
+                var trk = document.createElement('track');
+                trk.kind = 'captions'; trk.srclang = 'en'; trk.label = 'English';
+                trk.src = URL.createObjectURL(new Blob([long.captions], { type: 'text/vtt' }));
+                video.appendChild(trk);
+            }
             var maxSeen = 0, done = !!act.video_completed_at || passed, dur = lesson.video_seconds || 0;
             function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
             function paintMeter() {
@@ -1386,3 +1411,18 @@ redirect("learn/quiz", "var p=new URLSearchParams(location.search);location.repl
 redirect("learn/capstone", "location.replace('/academy/capstone/'+location.search);")
 redirect("my-learning", "location.replace('/academy/dashboard/');")
 redirect("admin", "location.replace('/academy/admin/');")
+
+
+# ============================================================== Sitemap
+import datetime as _dt
+_today = _dt.date.today().isoformat()
+_main = [("", "1.0", "monthly")]
+_urls = "".join(f"  <url><loc>https://openfraudlabs.com/{u}</loc><lastmod>{_today}</lastmod><changefreq>{c}</changefreq><priority>{pr}</priority></url>\n" for u, pr, c in _main)
+for pth in PUBLIC_PAGES:
+    pr = "0.9" if pth in ("academy", "academy/courses/data-science") else "0.6"
+    _urls += f"  <url><loc>https://openfraudlabs.com/{pth}/</loc><lastmod>{_today}</lastmod><changefreq>weekly</changefreq><priority>{pr}</priority></url>\n"
+for extra_path in ("privacy", "terms"):
+    if os.path.exists(os.path.join(extra_path, "index.html")):
+        _urls += f"  <url><loc>https://openfraudlabs.com/{extra_path}/</loc><lastmod>{_today}</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>\n"
+open("sitemap.xml", "w").write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + _urls + "</urlset>\n")
+print("wrote sitemap.xml with", _urls.count("<url>"), "urls")
