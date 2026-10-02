@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002b"
+V = "20261002c"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
