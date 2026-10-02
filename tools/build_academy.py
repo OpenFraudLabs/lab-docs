@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002p"
+V = "20261002q"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -797,26 +797,18 @@ lesson_script = r"""        (async function () {
                 }, 8000);
             }
             async function renderColab() {
-                var box = document.getElementById('colab'); if (box.childNodes.length) return;
+                var box = document.getElementById('colab'); if (box.dataset.done) return; box.dataset.done = '1';
                 var url = 'https://colab.research.google.com/github/OpenFraudLabs/lab-docs/blob/main/practice/ds' + nn + '.ipynb';
-                var keyEl = el('code', { class: 'cl-key__val', text: 'Loading\u2026' });
-                var copy = el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Copy key' });
                 var open = el('a', { class: 'ac-btn ac-btn--primary', href: url, target: '_blank', rel: 'noopener noreferrer', text: 'Open in Google Colab' });
                 var status = el('p', { class: 'cl-status', role: 'status' });
                 box.appendChild(el('div', { class: 'cl' },
                     el('div', { class: 'cl-head' }, el('h2', { text: 'Practise in Google Colab' }),
                         el('p', { text: 'Run the exercises in a real notebook. Every check that passes in Colab is saved here automatically, and the quiz unlocks when all three are solved.' })),
                     el('ol', { class: 'cl-steps' },
-                        el('li', {}, el('span', { text: 'Copy your practice key' }), el('div', { class: 'cl-key' }, keyEl, copy)),
+                        el('li', {}, el('span', { text: 'Copy your practice key' }), await keyBlock()),
                         el('li', {}, el('span', { text: 'Open the notebook, paste the key into the first cell and run it' }), open),
                         el('li', {}, el('span', { text: 'Solve each exercise and run its check. Progress appears here within a few seconds.' }), status)),
-                    el('p', { class: 'cl-alt', text: 'Prefer not to leave the page? Use the practice right here instead.' })));
-                var k = await sb.rpc('my_practice_key');
-                keyEl.textContent = k.error ? 'Could not load your key. Refresh the page.' : k.data;
-                copy.addEventListener('click', async function () {
-                    try { await navigator.clipboard.writeText(keyEl.textContent); copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy key'; }, 2000); }
-                    catch (e) { var r = document.createRange(); r.selectNodeContents(keyEl); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
-                });
+                    el('p', { class: 'cl-alt', text: 'Or practise right here on the page below: both count the same.' })));
                 open.addEventListener('click', function () { OFL.track('practice_run', course, n, { via: 'colab' }); status.textContent = 'Watching for your progress from Colab\u2026'; startPolling(); });
                 document.addEventListener('visibilitychange', function () { if (!document.hidden && pollTimer) syncSolved(); });
             }
@@ -901,6 +893,29 @@ lesson_script = r"""        (async function () {
                 buildQuiz();
             }
             // A passed quiz stays on record: show the learner's best passing attempt, answer by answer.
+            // Worked solutions in Colab: unlocked after the quiz is passed. The public notebook holds no answers;
+            // it fetches the full lesson code and exercise solutions with the learner's practice key.
+            var practiceKey = null;
+            async function keyBlock() {
+                var keyEl = el('code', { class: 'cl-key__val', text: practiceKey || 'Loading\u2026' });
+                var copy = el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Copy key' });
+                copy.addEventListener('click', async function () {
+                    try { await navigator.clipboard.writeText(keyEl.textContent); copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy key'; }, 2000); }
+                    catch (e) { var r = document.createRange(); r.selectNodeContents(keyEl); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+                });
+                if (!practiceKey) { var k = await sb.rpc('my_practice_key'); practiceKey = k.error ? null : k.data; keyEl.textContent = practiceKey || 'Could not load your key. Refresh the page.'; }
+                return el('div', { class: 'cl-key' }, keyEl, copy);
+            }
+            async function solutionsCard() {
+                var url = 'https://colab.research.google.com/github/OpenFraudLabs/lab-docs/blob/main/practice/ds' + nn + '-solutions.ipynb';
+                return el('div', { class: 'cl cl--solutions' },
+                    el('div', { class: 'cl-head' }, el('h2', { text: 'Worked solutions in Google Colab' }),
+                        el('p', { text: 'See the full solution for this lesson: every code example from the video and the answers to all three practice exercises, running live with their outputs and charts.' })),
+                    el('ol', { class: 'cl-steps' },
+                        el('li', {}, el('span', { text: 'Copy your practice key' }), await keyBlock()),
+                        el('li', {}, el('span', { text: 'Open the worked solutions, paste the key into the cell and run it' }),
+                            el('a', { class: 'ac-btn ac-btn--primary', href: url, target: '_blank', rel: 'noopener noreferrer', text: 'Open worked solutions in Colab' }))));
+            }
             function showPassed(att) {
                 form.hidden = true; form.textContent = ''; result.textContent = ''; waitBox.textContent = '';
                 var box = el('div', { class: 'ac-review' });
@@ -930,6 +945,7 @@ lesson_script = r"""        (async function () {
                 if (nl && nl.released) actions.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/lesson/?course=' + course + '&n=' + (n + 1), text: 'Go to Lesson ' + (n + 1) }));
                 box.appendChild(actions);
                 result.appendChild(box);
+                if (long) solutionsCard().then(function (c) { box.insertBefore(c, box.children[1] || null); });
             }
             function buildQuiz() {
                 form.textContent = ''; result.textContent = '';
@@ -985,6 +1001,7 @@ lesson_script = r"""        (async function () {
                     el('p', { text: wasPassed ? 'Your lesson stays passed, and your best result is saved.'
                         : res.passed ? (next ? 'Your result is saved. Lesson ' + (n + 1) + ' is released soon. Follow @_drhola on TikTok to catch it.' : 'Your result and answers are saved. Nice work.')
                         : 'You need 70% to pass. Answers are shown once you pass. You can try again in 10 minutes.' }), actions));
+                if (res.passed && long) solutionsCard().then(function (c) { result.appendChild(c); });
                 if (!res.passed && !wasPassed && !st.isAdmin) cooldown(600, true);
                 result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
