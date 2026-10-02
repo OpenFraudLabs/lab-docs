@@ -5,13 +5,13 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002a"
+V = "20261002b"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
 MODULES = [(1, 3, "Module 1: Foundations"), (4, 14, "Module 2: Statistics and exploring data"),
            (15, 17, "Module 3: Tools of the trade"), (18, 27, "Module 4: Machine learning essentials"),
-           (28, 30, "Module 5: Responsible data science and next steps")]
+           (28, 30, "Module 5: Responsible data science and next steps"), (31, 39, "Module 6: Portfolio projects")]
 
 def esc(t):
     return str(t).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
@@ -196,6 +196,7 @@ home_main = f"""        <section class="ac-hero">
                             <li>Describe and clean real datasets with confidence</li>
                             <li>Understand the statistics behind everyday analysis</li>
                             <li>Train, evaluate and explain simple machine learning models</li>
+                            <li>Build three portfolio projects: credit risk, clinic no-shows and Lagos rents</li>
                         </ul>
                         <div class="ac-hero__actions">
                             <a class="ac-btn ac-btn--primary" href="/academy/courses/data-science/">View course</a>
@@ -203,7 +204,7 @@ home_main = f"""        <section class="ac-hero">
                     </div>
                     <div class="ac-feature__aside">
                         <dl>
-                            <dt>Lessons</dt><dd class="num">30 video lessons, about 10 minutes each</dd>
+                            <dt>Lessons</dt><dd class="num">30 video lessons (about 10 minutes each) and 3 portfolio projects</dd>
                             <dt>Each lesson</dt><dd>Video, study notes, coding practice, quiz</dd>
                             <dt>Final step</dt><dd>Capstone project</dd>
                             <dt>Cost</dt><dd>Free</dd>
@@ -230,7 +231,7 @@ home_main = f"""        <section class="ac-hero">
                     <li><h3>Watch</h3><p>A 10-minute video with worked examples in Python. It has to be watched to the end.</p></li>
                     <li><h3>Read and practise</h3><p>Study notes, then three coding exercises in your browser. Solve them all to unlock the quiz.</p></li>
                     <li><h3>Quiz</h3><p>A short quiz. Score 70% to complete the lesson and unlock the next.</p></li>
-                    <li><h3>Capstone</h3><p>Analyse a real public dataset and submit it for review.</p></li>
+                    <li><h3>Projects and capstone</h3><p>Three guided portfolio projects in finance, health and real estate, then your own capstone, reviewed by us.</p></li>
                     <li><h3>Certificate</h3><p>Earn a certificate with an ID employers can check.</p></li>
                 </ol>
             </div>
@@ -284,7 +285,7 @@ course_main = f"""        <section class="ac-course-hero">
                 </div>
                 <aside class="ac-facts">
                     <dl>
-                        <dt>Lessons</dt><dd class="num">30 (<span data-released>{released_n}</span> released)</dd>
+                        <dt>Lessons</dt><dd class="num">30 lessons + 3 projects (<span data-released>{released_n}</span> of 39 released)</dd>
                         <dt>Length</dt><dd>About 30 minutes per lesson, including practice</dd>
                         <dt>Level</dt><dd>Beginner</dd>
                         <dt>Cost</dt><dd>Free</dd>
@@ -321,7 +322,7 @@ course_main = f"""        <section class="ac-course-hero">
                     </div>
                     <div class="ac-aside-card">
                         <h3>Earn your certificate</h3>
-                        <p>Pass all 30 lesson quizzes and get your capstone project approved. Your certificate shows your registered name and an ID anyone can verify.</p>
+                        <p>Complete all 30 lessons and the 3 portfolio projects (each with practice and a quiz), then get your capstone project approved. Your certificate shows your registered name and an ID anyone can verify.</p>
                         <div class="ac-mini-cert"><small>Certificate of Completion</small><b>Your name here</b><small>Data Science from Scratch</small></div>
                         <p style="margin:1rem 0 0"><a href="/academy/capstone/?course=data-science">Read the capstone brief</a></p>
                     </div>
@@ -343,7 +344,7 @@ course_script = r"""        (async function () {
         })();"""
 
 page("academy/courses/data-science", "Data Science from Scratch | Open Fraud Labs Academy",
-     "A free beginner course: 30 video lessons with study notes, in-browser coding practice, quizzes, a capstone project and a verifiable certificate.",
+     "A free beginner course: 30 video lessons, 3 portfolio projects in finance, health and real estate, in-browser coding practice, quizzes, a capstone project and a verifiable certificate.",
      course_main, course_script, active="courses")
 
 # ============================================================== Lesson player
@@ -423,8 +424,9 @@ lesson_script = r"""        (async function () {
             if (!lesson || !lesson.released) {
                 return lockedPanel('Lesson ' + n + ' is coming soon', 'New lessons are released daily. Follow @_drhola on TikTok to catch it first.', st.next ? '/academy/lesson/?course=' + course + '&n=' + st.next.n : '/academy/dashboard/', st.next ? 'Go to Lesson ' + st.next.n : 'My learning');
             }
-            titleEl.textContent = 'Lesson ' + n + ': ' + lesson.title;
-            document.title = 'Lesson ' + n + ': ' + lesson.title + ' | Open Fraud Labs Academy';
+            var fullTitle = /^Project \d/.test(lesson.title) ? lesson.title : 'Lesson ' + n + ': ' + lesson.title;
+            titleEl.textContent = fullTitle;
+            document.title = fullTitle + ' | Open Fraud Labs Academy';
             if (n > 1 && !((n - 1) in st.passed)) {
                 return lockedPanel('Lesson ' + n + ' is locked', 'Lessons unlock in order. Complete Lesson ' + (st.next ? st.next.n : n - 1) + ' first.',
                     '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
@@ -813,7 +815,7 @@ dash_script = r"""        (async function () {
             function item(isDone, text, link) {
                 list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));
             }
-            item(st.done >= st.total, 'Pass all ' + st.total + ' lesson quizzes (' + st.done + ' done, ' + released + ' released)');
+            item(st.done >= st.total, 'Complete all ' + st.total + ' lessons and projects (' + st.done + ' done, ' + released + ' released)');
             var capText = !cap ? 'Submit your capstone project' : cap.status === 'approved' ? 'Capstone approved' : cap.status === 'submitted' ? 'Capstone under review' : 'Capstone: changes requested';
             item(cap && cap.status === 'approved', capText, el('a', { href: '/academy/capstone/?course=' + course, text: cap ? 'View' : 'Brief' }));
             item(!!cert, cert ? 'Certificate issued' : 'Claim your certificate');

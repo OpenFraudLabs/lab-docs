@@ -5,7 +5,7 @@
     var RAW = 'https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/';
     var MODULES = [[1, 3, 'Module 1: Foundations'], [4, 14, 'Module 2: Statistics and exploring data'],
         [15, 17, 'Module 3: Tools of the trade'], [18, 27, 'Module 4: Machine learning essentials'],
-        [28, 30, 'Module 5: Responsible data science and next steps']];
+        [28, 30, 'Module 5: Responsible data science and next steps'], [31, 39, 'Module 6: Portfolio projects']];
 
     function moduleOf(n) {
         for (var i = 0; i < MODULES.length; i++) if (n >= MODULES[i][0] && n <= MODULES[i][1]) return MODULES[i][2];
