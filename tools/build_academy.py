@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002c"
+V = "20261002d"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -439,7 +439,10 @@ lesson_script = r"""        (async function () {
             // Long-form lessons (spec in longform/) add rich reading and a code lab.
             var nn = (n < 10 ? '0' : '') + n, labDone = false;
             var long = null;
-            try { var lr = await fetch(A.RAW + 'longform/ds' + nn + '.json', { cache: 'no-cache' }); if (lr.ok) long = await lr.json(); } catch (e) {}
+            // Notes and exercises come from the server, only for learners allowed to open this lesson.
+            var lc = await sb.rpc('get_lesson_content', { p_course: course, p_lesson: n });
+            if (lc.error) return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
+            long = lc.data;
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
 
@@ -472,7 +475,18 @@ lesson_script = r"""        (async function () {
 
             // ---------------- Watch ----------------
             var video = document.getElementById('video'), meter = document.getElementById('meter'), meterText = document.getElementById('meter-text');
-            video.src = lesson.video_url;
+            // Videos are private: each learner gets a short-lived signed link, renewed if it expires.
+            async function signVideo() {
+                if (!lesson.video_path) { video.src = lesson.video_url || ''; return; }
+                var sv = await sb.storage.from('lesson-videos').createSignedUrl(lesson.video_path, 4 * 3600);
+                if (sv.error || !sv.data) return OFL.notice(msg, 'The video could not be loaded. Please refresh the page.', 'error');
+                var at = video.currentTime || 0, wasPlaying = !video.paused;
+                video.src = sv.data.signedUrl;
+                if (at) video.addEventListener('loadedmetadata', function once() { video.removeEventListener('loadedmetadata', once); video.currentTime = at; if (wasPlaying) video.play(); });
+            }
+            var resigned = 0;
+            video.addEventListener('error', function () { if (lesson.video_path && resigned++ < 3) signVideo(); });
+            await signVideo();
             var maxSeen = 0, done = !!act.video_completed_at || passed, dur = lesson.video_seconds || 0;
             function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
             function paintMeter() {
@@ -521,7 +535,7 @@ lesson_script = r"""        (async function () {
                     notesLoaded = true;
                     try {
                         if (long && long.reading) renderReading(long);
-                        else renderNotes(await (await fetch(A.RAW + 'lessons/ds' + nn + '.json', { cache: 'no-cache' })).json());
+                        else document.getElementById('notes').textContent = 'The notes for this lesson are not available yet.';
                     } catch (e) { document.getElementById('notes').textContent = 'The notes could not be loaded. Please refresh the page.'; }
                 }
                 if (act.notes_completed_at || passed) { readBtn.hidden = true; hint.textContent = 'Notes complete.'; return; }
@@ -561,12 +575,9 @@ lesson_script = r"""        (async function () {
                 box.appendChild(body);
                 if (exercisesOf(spec).length) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: the ', el('strong', { text: 'Practice' }), ' tab has ' + exercisesOf(spec).length + ' short coding exercises on this lesson. Python runs right in the page, nothing to install.'));
                 var d = el('details', {}, el('summary', { text: 'Full transcript' }));
-                spec.chapters.forEach(function (c) {
+                (spec.transcript || []).forEach(function (c) {
                     d.appendChild(el('h3', { text: c.title }));
-                    c.segments.forEach(function (sg) {
-                        var parts = sg.steps ? sg.steps.map(function (x) { return x.say; }) : [sg.say, sg.run_say];
-                        parts.forEach(function (t) { if (t) d.appendChild(el('p', { text: t })); });
-                    });
+                    (c.paragraphs || []).forEach(function (t) { if (t) d.appendChild(el('p', { text: t })); });
                 });
                 box.appendChild(d);
             }
@@ -584,7 +595,17 @@ lesson_script = r"""        (async function () {
             function openLab() {
                 if (labMounted || !long) return; labMounted = true;
                 CODELAB.mountSet(document.getElementById('lab'), exercisesOf(long), { course: course, lesson: n, onProgress: labSub,
-                    onEvent: function (ev, ex) { OFL.track(ev, course, n, { exercise: ex }); } });
+                    onEvent: function (ev, ex) { return OFL.track(ev, course, n, { exercise: ex }); },
+                    getSolution: async function (ex) {
+                        var r = await sb.rpc('get_exercise_solution', { p_course: course, p_lesson: n, p_exercise: ex });
+                        if (r.error) throw new Error(OFL.friendlyError(r.error));
+                        return r.data || '';
+                    },
+                    getNotebook: long.has_notebook ? async function () {
+                        var r = await sb.rpc('get_lesson_notebook', { p_course: course, p_lesson: n });
+                        if (r.error || !r.data) throw new Error('The notebook could not be downloaded.');
+                        return r.data;
+                    } : null });
             }
             if (hasLab) {
                 // Practice progress is saved on the server (so it counts on any device); this device's record fills any gaps.

@@ -4,7 +4,6 @@
 
     var PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.29.5/full/';
     var DATA_URL = 'https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/data/loans.csv';
-    var COLAB = 'https://colab.research.google.com/github/Odugbile1993/openfraudlab-tiktok/blob/main/notebooks/';
 
     // Runs learner code like a notebook cell: prints go to the output, and the last line's value is shown.
     var HARNESS = [
@@ -118,7 +117,20 @@
         var hintBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Hint' });
         var solBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Show a solution', hidden: true });
         var resetBtn = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Reset' });
-        var colab = el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: COLAB + 'lesson-' + ('0' + opts.lesson).slice(-2) + '.ipynb', target: '_blank', rel: 'noopener noreferrer', text: 'Open in Colab' });
+        // The notebook is private course content: download it, then open it in Colab (File > Upload notebook) or Jupyter.
+        var colab = el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Download notebook', title: 'Open it in Google Colab with File > Upload notebook, or in Jupyter', hidden: !opts.getNotebook });
+        colab.addEventListener('click', async function () {
+            colab.disabled = true;
+            try {
+                var nb = await opts.getNotebook();
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([JSON.stringify(nb, null, 1)], { type: 'application/x-ipynb+json' }));
+                a.download = 'lesson-' + ('0' + opts.lesson).slice(-2) + '.ipynb';
+                document.body.appendChild(a); a.click(); a.remove();
+                say('Notebook downloaded. In Google Colab choose File > Upload notebook to open it.');
+            } catch (e) { say(e.message || String(e)); }
+            colab.disabled = false;
+        });
         var status = el('p', { class: 'lab-status', role: 'status' });
         var out = el('div', { class: 'lab-out', 'aria-live': 'polite' });
         var verdict = el('div', { class: 'lab-verdict' });
@@ -178,7 +190,7 @@
                 verdict.textContent = '';
                 verdict.appendChild(el('div', { class: 'ofl-notice ofl-notice--' + (r[0] ? 'success' : 'info'), text: r[1] }));
                 if (r[0] && opts.onPass) opts.onPass();
-                if (!r[0]) solBtn.hidden = false;
+                if (!r[0]) { if (opts.onEvent) await opts.onEvent('practice_failed'); solBtn.hidden = false; }
                 say('');
             } catch (e) { say(e.message || String(e)); }
             busy(false);
@@ -186,11 +198,18 @@
         runBtn.addEventListener('click', run);
         chkBtn.addEventListener('click', check);
         hintBtn.addEventListener('click', function () { verdict.textContent = ''; verdict.appendChild(el('div', { class: 'ofl-notice ofl-notice--info', text: practice.hint })); });
-        solBtn.addEventListener('click', function () {
+        solBtn.addEventListener('click', async function () {
             verdict.textContent = '';
+            var sol = practice.solution;
+            if (!sol && opts.getSolution) {
+                solBtn.disabled = true;
+                try { sol = await opts.getSolution(); } catch (e) { say(e.message || String(e)); }
+                solBtn.disabled = false;
+            }
+            if (!sol) return;
             verdict.appendChild(el('div', { class: 'lab-solution' },
                 el('p', { text: 'One way to solve it. Try typing it yourself rather than copying, then run it and check again.' }),
-                el('pre', { text: practice.solution })));
+                el('pre', { text: sol })));
         });
         resetBtn.addEventListener('click', function () {
             if (ed.value !== practice.starter && !window.confirm('Reset the editor to the starter code? Your changes will be lost.')) return;
@@ -217,7 +236,9 @@
         }
         function open(i) {
             mount(inner, exercises[i], { course: opts.course, lesson: opts.lesson, ex: i ? String(i + 1) : '',
-                onEvent: function (ev) { if (opts.onEvent) opts.onEvent(ev, i + 1); },
+                onEvent: function (ev) { if (opts.onEvent) return opts.onEvent(ev, i + 1); },
+                getSolution: opts.getSolution ? function () { return opts.getSolution(i + 1); } : null,
+                getNotebook: opts.getNotebook,
                 label: 'Exercise ' + (i + 1) + ' of ' + exercises.length + ' · practice, not graded',
                 onPass: function () { store(base + i, '1'); paint(i); if (opts.onEvent) opts.onEvent('practice_solved', i + 1); } });
             paint(i);
