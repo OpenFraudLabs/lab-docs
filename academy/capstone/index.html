@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002g">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -66,7 +66,7 @@
                         <li>A <strong>short write-up</strong> (at least 50 characters) in the form below: your question and what you found.</li>
                     </ul>
                     <h3>How it’s reviewed</h3>
-                    <p>Each submission is reviewed by Open Fraud Labs. You’ll see the result here and in My Learning: <em>Approved</em>, or <em>Changes requested</em> with feedback. You can resubmit as many times as you need.</p>
+                    <p>Your capstone is <strong>peer reviewed</strong>: three other learners score it with a published rubric, and you review three capstones in return on the <a href="/academy/review/?course=data-science&amp;a=capstone">peer review page</a>. The middle score counts and the pass mark is 70%. Open Fraud Labs can review any project. If changes are requested, improve it and resubmit as many times as you need.</p>
                 </div>
                 <div id="msg"></div>
                 <div id="history"></div>
@@ -114,8 +114,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002f"></script>
-    <script src="/assets/js/academy.js?v=20261002f"></script>
+    <script src="/assets/js/learn.js?v=20261002g"></script>
+    <script src="/assets/js/academy.js?v=20261002g"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -143,7 +143,7 @@
             }
             sigIn.addEventListener('input', sigOk);
             async function loadHistory() {
-                var r = await sb.from('capstone_submissions').select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course).order('submitted_at', { ascending: false });
+                var r = await sb.from('capstone_submissions').select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course).eq('assignment', 'capstone').order('submitted_at', { ascending: false });
                 hist.textContent = '';
                 if (!r.data || !r.data.length) { form.hidden = false; return; }
                 var latest = r.data[0];
@@ -165,7 +165,7 @@
                 btn.disabled = false;
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
                 form.reset();
-                OFL.notice(msg, 'Submitted! You’ll see the review result here and in My Learning.', 'success');
+                OFL.notice(msg, 'Submitted! Now review three other capstones on the peer review page to receive your grade.', 'success');
                 loadHistory();
             });
         })();

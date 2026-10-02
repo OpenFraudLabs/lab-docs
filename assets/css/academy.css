@@ -525,3 +525,19 @@ a.ac-row:hover { background: #F5F7FB; }
 .ac-plan__price { font-size: 1.9rem; font-weight: 700; margin: .25rem 0 0; color: var(--ink); }
 .ac-plan .ac-btn { margin-top: auto; }
 .ac-small { font-size: .85rem; }
+
+/* Peer review */
+.rv-rubric { padding-left: 1.2rem; margin: 0 0 .75rem; }
+.rv-rubric li { margin-bottom: .6rem; }
+.rv-rubric p { margin: .2rem 0 0; color: var(--ink-3); }
+.rv-item { border: 1px solid var(--line); border-radius: var(--radius-m); padding: .9rem 1rem; margin: 0 0 1rem; }
+.rv-item legend { font-weight: 700; padding: 0 .3rem; }
+.rv-item p { margin: 0 0 .6rem; }
+.rv-choices { display: flex; flex-wrap: wrap; gap: .4rem; }
+.rv-choice { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line-2); border-radius: 999px; padding: .35rem .75rem; cursor: pointer; font-size: .9rem; }
+.rv-choice:has(input:checked) { border-color: var(--blue); background: var(--blue-wash); color: var(--blue-ink); }
+.rv-choice input { accent-color: var(--blue); margin: 0; }
+.rv-feedback { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 1rem; }
+.rv-feedback h3 { font-size: 1rem; margin: 0 0 .5rem; }
+.rv-scores { list-style: none; padding: 0; margin: 0 0 .6rem; display: grid; gap: .25rem; }
+.rv-scores li { display: flex; justify-content: space-between; gap: 1rem; font-size: .92rem; }

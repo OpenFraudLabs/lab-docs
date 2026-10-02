@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002f"
+V = "20261002g"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -578,6 +578,10 @@ lesson_script = r"""        (async function () {
                 body.innerHTML = window.marked.parse(spec.reading); // our own course content, from the course repo
                 body.querySelectorAll('table').forEach(function (t) { var w = el('div', { class: 'ac-table-wrap' }); t.parentNode.insertBefore(w, t); w.appendChild(t); });
                 box.appendChild(body);
+                var peerKey = { 33: 'project-credit', 36: 'project-clinic', 39: 'project-rent' }[n];
+                if (peerKey && course === 'data-science') box.appendChild(el('p', { class: 'ac-callout' }, 'Finished the project? ',
+                    el('a', { href: '/academy/review/?course=' + course + '&a=' + peerKey, text: 'Share it for peer review' }),
+                    ': three learners score it with a rubric, you review three in return, and you get a reviewed portfolio piece.'));
                 if (exercisesOf(spec).length) box.appendChild(el('p', { class: 'ac-callout' }, 'Practise in your browser: the ', el('strong', { text: 'Practice' }), ' tab has ' + exercisesOf(spec).length + ' short coding exercises on this lesson. Python runs right in the page, nothing to install.'));
                 var d = el('details', {}, el('summary', { text: 'Full transcript' }));
                 (spec.transcript || []).forEach(function (c) {
@@ -816,7 +820,7 @@ dash_script = r"""        (async function () {
             var course = 'data-science';
             var st = await A.courseState(course);
             A.renderLedger(document.getElementById('ledger'), st, { course: course });
-            var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
+            var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).eq('assignment', 'capstone').order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
             var cert = ((await sb.from('certificates').select('id').eq('course_slug', course)).data || [])[0];
 
             var next = document.getElementById('next');
@@ -869,7 +873,13 @@ def extract(path):
     script = [s for s in scripts if "OFL." in s]
     return main, (script[0] if script else "")
 
-PORT_FIX = [("'/my-learning/'", "'/academy/dashboard/'"), ('"/my-learning/"', '"/academy/dashboard/"'), ("/my-learning/", "/academy/dashboard/"),
+PORT_FIX = [("select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course)",
+             "select('repo_url, status, feedback, submitted_at, reviewed_at').eq('course_slug', course).eq('assignment', 'capstone')"),
+("<p>Each submission is reviewed by Open Fraud Labs. You’ll see the result here and in My Learning: <em>Approved</em>, or <em>Changes requested</em> with feedback. You can resubmit as many times as you need.</p>",
+             "<p>Your capstone is <strong>peer reviewed</strong>: three other learners score it with a published rubric, and you review three capstones in return on the <a href=\"/academy/review/?course=data-science&amp;a=capstone\">peer review page</a>. The middle score counts and the pass mark is 70%. Open Fraud Labs can review any project. If changes are requested, improve it and resubmit as many times as you need.</p>"),
+            ("OFL.notice(msg, 'Submitted! You’ll see the review result here and in My Learning.', 'success');",
+             "OFL.notice(msg, 'Submitted! Now review three other capstones on the peer review page to receive your grade.', 'success');"),
+("'/my-learning/'", "'/academy/dashboard/'"), ('"/my-learning/"', '"/academy/dashboard/"'), ("/my-learning/", "/academy/dashboard/"),
             ("/learn/capstone/", "/academy/capstone/"), ("OFL.requireUser('/admin/')", "OFL.requireUser('/academy/admin/')"),
             ("'/learn/' + c.slug + '/'", "'/academy/courses/' + c.slug + '/'"),
             # Verify page: sample preview, awarded certificates and revocation
@@ -941,7 +951,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
                 <section class="ac-admin__sec">
-                    <div class="ac-admin__head"><h2>Capstone reviews</h2></div>
+                    <div class="ac-admin__head"><h2>Project and capstone reviews</h2><p class="ac-muted">Peer review grades these automatically; approve or request changes here to step in at any time.</p></div>
                     <div class="ofl-tabs" id="filters">
                         <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
                         <button type="button" class="ofl-tab" data-status="changes_requested">Changes requested</button>
@@ -1092,7 +1102,8 @@ admin_script = r"""        (async function () {
                         OFL.notice(msg, 'Saved: ' + (names[s.user_id] || 'learner') + ' → ' + newStatus.replace('_', ' '), 'success'); load();
                     }
                     box.appendChild(el('article', { class: 'ofl-card card ofl-sub' },
-                        el('h3', { text: (names[s.user_id] || 'Learner') + ' · ' + s.course_slug }),
+                        el('h3', { text: (names[s.user_id] || 'Learner') + ' · ' + ({ capstone: 'Capstone', 'project-credit': 'Project 1: Credit risk', 'project-clinic': 'Project 2: Clinic no-shows', 'project-rent': 'Project 3: City rents' }[s.assignment] || s.assignment) }),
+                        s.peer_score != null ? el('p', { class: 'ac-muted', text: 'Peer score (median): ' + Math.round(100 * s.peer_score) + '%' }) : null,
                         el('p', { class: 'ac-muted', text: 'Submitted ' + OFL.formatDate(s.submitted_at) + (s.reviewed_at ? ' · reviewed ' + OFL.formatDate(s.reviewed_at) : '') }),
                         el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })),
                         el('p', { class: 'ofl-writeup', text: s.writeup }), fbx,
@@ -1103,6 +1114,171 @@ admin_script = r"""        (async function () {
             }
             load();
         })();"""
+
+# ============================================================== Peer review (projects and capstone)
+review_main = """        <div class="ac-wrap">
+            <div class="ac-dash-head">
+                <p class="ac-muted" id="rv-kicker">Peer review</p>
+                <h1 id="rv-title">Peer review</h1>
+                <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Open Fraud Labs can step in and review any project.</p>
+                <div id="msg"></div>
+            </div>
+            <div class="ac-two">
+                <div>
+                    <div id="mine"></div>
+                    <form id="sub-form" class="ac-panel ofl-form" hidden>
+                        <h2>Share your project</h2>
+                        <p class="ac-muted">Push your notebook and a README to a public GitHub repository, then share it here. Your reviewers see the link and your summary, not your name.</p>
+                        <label>GitHub repository link <input name="repo_url" type="url" required placeholder="https://github.com/you/your-project"></label>
+                        <label>Summary <small>(the problem, what you did and what you found)</small>
+                            <textarea name="writeup" rows="6" required minlength="50" maxlength="5000"></textarea></label>
+                        <div class="ofl-sign">
+                            <p class="ofl-sign__title">Declaration of own work</p>
+                            <p class="ofl-muted">I confirm this project is my own work and that I have credited any code, data or ideas from others. Sign by typing your registered full name: <strong id="sub-name"></strong></p>
+                            <label>Signature (your full name) <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input"></label>
+                            <p class="ofl-sign__status" aria-live="polite"></p>
+                        </div>
+                        <button class="ac-btn ac-btn--primary" type="submit">Sign &amp; share for peer review</button>
+                    </form>
+                    <div id="review"></div>
+                    <div id="feedback"></div>
+                </div>
+                <div>
+                    <div class="ac-aside-card"><h3>The rubric</h3><ol class="rv-rubric" id="rubric"></ol><p class="ac-small ac-muted" id="rv-pass"></p></div>
+                    <div class="ac-aside-card"><h3>Reviewing well</h3><p>Be specific and kind: say what works, then the one or two changes that would most improve the project. Score what's in the repository, not what you think the author meant. Reviews are anonymous and each one is due within 48 hours.</p></div>
+                </div>
+            </div>
+        </div>"""
+review_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var course = OFL.qs('course') || 'data-science', key = OFL.qs('a') || 'capstone';
+            var user = await OFL.requireUser(location.pathname + location.search); if (!user) return;
+            var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
+            if (!prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(location.pathname + location.search); return; }
+            var LABELS = ['Missing', 'Weak', 'Partly there', 'Good', 'Excellent'];
+            function pct(x) { return Math.round(100 * x) + '%'; }
+            async function load() {
+                var r = await sb.rpc('peer_status', { p_course: course, p_assignment: key });
+                if (r.error || !r.data || !r.data.title) return OFL.notice(msg, r.error ? OFL.friendlyError(r.error) : 'Unknown project.', 'error');
+                var st = r.data;
+                document.getElementById('rv-title').textContent = st.title;
+                document.title = st.title + ': peer review | Open Fraud Labs Academy';
+                var rub = document.getElementById('rubric'); rub.textContent = '';
+                (st.rubric || []).forEach(function (it) { rub.appendChild(el('li', {}, el('strong', { text: it.title + ' (0–' + it.max + ')' }), el('p', { class: 'ac-small', text: it.guide }))); });
+                document.getElementById('rv-pass').textContent = 'Pass mark: ' + pct(st.pass_ratio) + ' of the total.';
+                renderMine(st); renderFeedback(st);
+                var rv = document.getElementById('review'); rv.textContent = '';
+                if (st.submission || key === 'capstone') rv.appendChild(reviewCard(st));
+            }
+            function renderMine(st) {
+                var box = document.getElementById('mine'); box.textContent = '';
+                var form = document.getElementById('sub-form'), s = st.submission;
+                if (!s) {
+                    if (key === 'capstone') {
+                        box.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Submit your capstone first' }),
+                            el('p', { text: 'Read the brief and submit your capstone, then come back here to review other learners.' }),
+                            el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/capstone/?course=' + course, text: 'Go to the capstone' })));
+                    } else form.hidden = false;
+                    return;
+                }
+                var label = { submitted: 'Waiting for peer reviews', approved: 'Approved', changes_requested: 'Changes requested' }[s.status];
+                var card = el('div', { class: 'ac-panel' }, el('h2', { text: 'Your project' }),
+                    el('p', {}, el('span', { class: 'ofl-badge ofl-badge--' + s.status, text: label }), ' shared ' + OFL.formatDate(s.submitted_at)),
+                    el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })));
+                if (s.status === 'submitted') {
+                    card.appendChild(el('p', { text: 'Reviews received: ' + s.received + ' of ' + st.needed + '. Reviews you have given: ' + Math.min(st.given, st.needed) + ' of ' + st.needed + '.' }));
+                    if (st.given < st.needed) card.appendChild(el('p', { class: 'ac-muted', text: 'Your grade is released once you have reviewed ' + st.needed + ' projects (or there are none left for you to review) and three learners have reviewed yours.' }));
+                }
+                if (s.feedback) card.appendChild(el('blockquote', { class: 'ofl-feedback-box', text: s.feedback }));
+                box.appendChild(card);
+                form.hidden = s.status !== 'changes_requested' || key === 'capstone';
+                if (!form.hidden) form.querySelector('h2').textContent = 'Share your improved project';
+            }
+            function renderFeedback(st) {
+                var box = document.getElementById('feedback'); box.textContent = '';
+                if (!st.reviews || !st.reviews.length) return;
+                var wrap = el('div', { class: 'ac-panel' }, el('h2', { text: 'What your reviewers said' }));
+                st.reviews.forEach(function (rv, i) {
+                    var ul = el('ul', { class: 'rv-scores' });
+                    (st.rubric || []).forEach(function (it) { ul.appendChild(el('li', {}, el('span', { text: it.title }), el('b', { text: (rv.scores || {})[it.key] + ' / ' + it.max }))); });
+                    wrap.appendChild(el('div', { class: 'rv-feedback' }, el('h3', { text: 'Reviewer ' + (i + 1) + ' · ' + rv.total + ' / ' + rv.max }), ul, el('p', { text: rv.comment })));
+                });
+                box.appendChild(wrap);
+            }
+            function reviewCard(st) {
+                var card = el('div', { class: 'ac-panel' }, el('h2', { text: 'Review a peer' }));
+                var body = el('div');
+                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: st.open_review ? 'Continue your review' : 'Get a project to review' });
+                btn.addEventListener('click', async function () {
+                    btn.disabled = true; msg.textContent = '';
+                    var r = await sb.rpc('peer_next_review', { p_course: course, p_assignment: key });
+                    btn.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    if (r.data.none) { body.textContent = ''; body.appendChild(el('p', { class: 'ac-muted', text: 'There are no projects waiting for review right now. Check back later; your own grade isn’t held up by this.' })); return load(); }
+                    btn.hidden = true; body.textContent = ''; body.appendChild(reviewForm(r.data));
+                });
+                card.appendChild(el('p', { class: 'ac-muted', text: 'You have reviewed ' + st.given + ' project' + (st.given === 1 ? '' : 's') + ' for ' + st.title + '.' }));
+                card.appendChild(btn); card.appendChild(body);
+                return card;
+            }
+            function reviewForm(d) {
+                var f = el('form', { class: 'ofl-form rv-form' });
+                f.appendChild(el('p', {}, el('strong', { text: 'Project: ' }), el('a', { href: d.repo_url, target: '_blank', rel: 'noopener noreferrer', text: d.repo_url })));
+                f.appendChild(el('blockquote', { class: 'ofl-feedback-box', text: d.writeup }));
+                f.appendChild(el('p', { class: 'ac-small ac-muted', text: 'Due ' + OFL.formatDate(d.due) + '. Open the repository, read the README and notebook, then score each part.' }));
+                (d.rubric || []).forEach(function (it) {
+                    var fs = el('fieldset', { class: 'rv-item' }, el('legend', { text: it.title }), el('p', { class: 'ac-small ac-muted', text: it.guide }));
+                    var row = el('div', { class: 'rv-choices' });
+                    for (var v = 0; v <= it.max; v++) {
+                        row.appendChild(el('label', { class: 'rv-choice' }, el('input', { type: 'radio', name: it.key, value: String(v), required: 'required' }),
+                            el('span', { text: v + (it.max === 4 ? ' · ' + LABELS[v] : '') })));
+                    }
+                    fs.appendChild(row); f.appendChild(fs);
+                });
+                var ta = el('textarea', { name: 'comment', rows: '5', required: 'required', minlength: '40', maxlength: '4000', placeholder: 'What works well, and the one or two changes that would most improve this project.' });
+                f.appendChild(el('label', {}, 'Your feedback', ta));
+                var sub = el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Submit review' });
+                f.appendChild(sub);
+                f.addEventListener('submit', async function (e) {
+                    e.preventDefault(); sub.disabled = true;
+                    var scores = {}; (d.rubric || []).forEach(function (it) { var c = f.querySelector('input[name="' + it.key + '"]:checked'); if (c) scores[it.key] = +c.value; });
+                    var r = await sb.rpc('peer_submit_review', { p_review: d.review_id, p_scores: scores, p_comment: ta.value });
+                    sub.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    OFL.notice(msg, 'Thank you! Your review has been sent anonymously.', 'success');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    load();
+                });
+                return f;
+            }
+            // Sharing a project (portfolio projects; the capstone uses its own page)
+            var form = document.getElementById('sub-form');
+            document.getElementById('sub-name').textContent = prof.full_name || '';
+            function norm(t) { return (t || '').trim().replace(/\s+/g, ' ').toLowerCase(); }
+            var sigIn = form.signature, sigStatus = form.querySelector('.ofl-sign__status');
+            function sigOk() {
+                var ok = norm(sigIn.value) !== '' && norm(sigIn.value) === norm(prof.full_name);
+                sigStatus.textContent = !sigIn.value ? '' : ok ? '\u2713 Signature matches your registered name' : 'Signature must match your registered name exactly';
+                sigStatus.className = 'ofl-sign__status ' + (!sigIn.value ? '' : ok ? 'is-ok' : 'is-bad');
+                return ok;
+            }
+            sigIn.addEventListener('input', sigOk);
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (!sigOk()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
+                var b = form.querySelector('button[type=submit]'); b.disabled = true;
+                var res = await sb.from('capstone_submissions').insert({ user_id: user.id, course_slug: course, assignment: key, repo_url: form.repo_url.value.trim(), writeup: form.writeup.value.trim(), integrity_signature: sigIn.value.trim() });
+                b.disabled = false;
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                form.reset(); form.hidden = true;
+                OFL.notice(msg, 'Shared! Now review three other projects to receive your grade.', 'success');
+                load();
+            });
+            load();
+        })();"""
+
+page("academy/review", "Peer review | Open Fraud Labs Academy", "Share your project and review other learners' work with a rubric.",
+     review_main, review_script, active="dashboard", noindex=True)
 
 # ============================================================== Pricing (Paystack passes)
 pricing_main = """        <div class="ac-wrap">
