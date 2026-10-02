@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002i"
+V = "20261002j"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -352,7 +352,7 @@ course_script = r"""        (async function () {
                     b2.disabled = true;
                     var r = await OFL.sb.rpc('enroll', { p_course: 'data-science' });
                     if (r.error) { b2.disabled = false; note.textContent = OFL.friendlyError(r.error); if (/Terms of Service/.test(r.error.message)) location.href = '/account/?next=/academy/courses/data-science/'; return; }
-                    location.href = '/academy/lesson/?course=data-science&n=1';
+                    location.href = '/academy/lesson/?course=data-science&n=1&enrolled=1';
                 });
                 return;
             }
@@ -464,6 +464,10 @@ lesson_script = r"""        (async function () {
                     '/academy/lesson/?course=' + course + '&n=' + (st.next ? st.next.n : n - 1), 'Go to Lesson ' + (st.next ? st.next.n : n - 1));
             }
 
+            if (OFL.qs('enrolled')) {
+                msg.appendChild(el('div', { class: 'ofl-notice ofl-notice--success', text: 'You\u2019re enrolled in ' + (st.course ? st.course.title : 'the course') + '. Welcome! You\u2019ll find a confirmation under the bell at the top. Start here with Lesson 1.' }));
+                history.replaceState(null, '', location.pathname + '?course=' + course + '&n=' + n);
+            }
             OFL.track('lesson_open', course, n);
             var act = (await sb.from('lesson_activity').select('*').eq('course_slug', course).eq('lesson_n', n).maybeSingle()).data || {};
             var passed = n in st.passed;
@@ -1003,6 +1007,10 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
                 <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
+                    <ul class="ac-activity" id="activity"><li class="ac-muted">Loading…</li></ul>
+                </section>
+                <section class="ac-admin__sec">
                     <div class="ac-admin__head"><h2>Project and capstone reviews</h2><p class="ac-muted">Peer review grades these automatically; approve or request changes here to step in at any time.</p></div>
                     <div class="ofl-tabs" id="filters">
                         <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
@@ -1016,6 +1024,19 @@ admin_main = """        <div class="ac-wrap ac-admin">
 
 admin_script = r"""        (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            (async function activity() {
+                var ul = document.getElementById('activity');
+                var r = await sb.from('notifications').select('user_id, kind, title, created_at, email_status').neq('kind', 'welcome').order('created_at', { ascending: false }).limit(40);
+                var who = {}; ((await sb.rpc('admin_learners')).data || []).forEach(function (x) { who[x.user_id] = x.full_name || x.email; });
+                ul.textContent = '';
+                if (!r.data || !r.data.length) return ul.appendChild(el('li', { class: 'ac-muted', text: 'No activity yet.' }));
+                var tag = { enrolled: 'Enrolled', course_complete: 'Completed', certificate: 'Certificate', project_reviewed: 'Project' };
+                r.data.forEach(function (x) {
+                    ul.appendChild(el('li', {}, el('span', { class: 'ac-activity__tag ac-activity__tag--' + x.kind, text: tag[x.kind] || x.kind }),
+                        el('span', {}, el('strong', { text: (who[x.user_id] || 'Learner') + ': ' }), x.title),
+                        el('small', { text: OFL.formatDate(x.created_at) + (x.email_status === 'sent' ? ' · emailed' : x.email_status === 'skipped' ? ' · email not set up' : '') })));
+                });
+            })();
             var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
             if (!(await OFL.isAdmin())) return OFL.notice(msg, 'This page is only for Open Fraud Labs admins.', 'error');
             document.getElementById('admin-body').hidden = false;

@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002i">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002j">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -71,6 +71,10 @@
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
                 <section class="ac-admin__sec">
+                    <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
+                    <ul class="ac-activity" id="activity"><li class="ac-muted">Loading…</li></ul>
+                </section>
+                <section class="ac-admin__sec">
                     <div class="ac-admin__head"><h2>Project and capstone reviews</h2><p class="ac-muted">Peer review grades these automatically; approve or request changes here to step in at any time.</p></div>
                     <div class="ofl-tabs" id="filters">
                         <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
@@ -110,11 +114,24 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002i"></script>
-    <script src="/assets/js/academy.js?v=20261002i"></script>
+    <script src="/assets/js/learn.js?v=20261002j"></script>
+    <script src="/assets/js/academy.js?v=20261002j"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            (async function activity() {
+                var ul = document.getElementById('activity');
+                var r = await sb.from('notifications').select('user_id, kind, title, created_at, email_status').neq('kind', 'welcome').order('created_at', { ascending: false }).limit(40);
+                var who = {}; ((await sb.rpc('admin_learners')).data || []).forEach(function (x) { who[x.user_id] = x.full_name || x.email; });
+                ul.textContent = '';
+                if (!r.data || !r.data.length) return ul.appendChild(el('li', { class: 'ac-muted', text: 'No activity yet.' }));
+                var tag = { enrolled: 'Enrolled', course_complete: 'Completed', certificate: 'Certificate', project_reviewed: 'Project' };
+                r.data.forEach(function (x) {
+                    ul.appendChild(el('li', {}, el('span', { class: 'ac-activity__tag ac-activity__tag--' + x.kind, text: tag[x.kind] || x.kind }),
+                        el('span', {}, el('strong', { text: (who[x.user_id] || 'Learner') + ': ' }), x.title),
+                        el('small', { text: OFL.formatDate(x.created_at) + (x.email_status === 'sent' ? ' · emailed' : x.email_status === 'skipped' ? ' · email not set up' : '') })));
+                });
+            })();
             var user = await OFL.requireUser('/academy/admin/'); if (!user) return;
             if (!(await OFL.isAdmin())) return OFL.notice(msg, 'This page is only for Open Fraud Labs admins.', 'error');
             document.getElementById('admin-body').hidden = false;

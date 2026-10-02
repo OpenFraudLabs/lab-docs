@@ -108,6 +108,31 @@
         document.addEventListener('click', function () { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); });
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
         slot.appendChild(el('div', { class: 'ac-menu' }, btn, panel));
+        bell(slot, user);
+    }
+
+    // Messages: enrolment, project reviews, course completion and certificates.
+    async function bell(slot, user) {
+        var r = await OFL.sb.from('notifications').select('id, title, body, link, read_at, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(15);
+        var items = r.data || [];
+        var unread = items.filter(function (x) { return !x.read_at; }).length;
+        var badge = el('span', { class: 'ac-bell__n', text: String(unread), hidden: !unread });
+        var b = el('button', { class: 'ac-bell', type: 'button', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-label': unread ? unread + ' new messages' : 'Messages' });
+        b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+        b.appendChild(badge);
+        var list = el('div', { class: 'ac-bell__panel', hidden: true, role: 'region', 'aria-label': 'Messages' }, el('strong', { class: 'ac-bell__head', text: 'Messages' }));
+        if (!items.length) list.appendChild(el('p', { class: 'ac-muted', text: 'No messages yet.' }));
+        items.forEach(function (x) {
+            list.appendChild(el(x.link ? 'a' : 'div', { class: 'ac-bell__item' + (x.read_at ? '' : ' is-new'), href: x.link || null },
+                el('b', { text: x.title }), el('span', { text: x.body }), el('small', { text: OFL.formatDate(x.created_at) })));
+        });
+        b.addEventListener('click', function (e) {
+            e.stopPropagation(); list.hidden = !list.hidden; b.setAttribute('aria-expanded', String(!list.hidden));
+            if (!list.hidden && unread) { OFL.sb.rpc('mark_notifications_read'); unread = 0; badge.hidden = true; }
+        });
+        list.addEventListener('click', function (e) { e.stopPropagation(); });
+        document.addEventListener('click', function () { list.hidden = true; b.setAttribute('aria-expanded', 'false'); });
+        slot.insertBefore(el('div', { class: 'ac-bell-wrap' }, b, list), slot.firstChild);
     }
 
     window.ACADEMY = { RAW: RAW, moduleOf: moduleOf, courseState: courseState, renderLedger: renderLedger, rowState: rowState, TICK: TICK, LOCK: LOCK };
