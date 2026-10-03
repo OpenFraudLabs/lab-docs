@@ -43,8 +43,8 @@
         if (/Invalid login credentials/i.test(m)) return 'That email and password don’t match. Try again or reset your password.';
         if (/Email not confirmed/i.test(m)) return 'Please confirm your email first. Check your inbox (and spam folder) for the link.';
         if (/rate limit/i.test(m)) return 'Too many attempts. Please wait a few minutes and try again.';
-        if (/not authorized/i.test(m)) return 'Sign-ups are being switched on right now. Please try again shortly, or email hello@openfraudlabs.com.';
-        if (/^SUSPENDED:|banned/i.test(m)) return 'This account is suspended. If you think this is a mistake, email hello@openfraudlabs.com.';
+        if (/not authorized/i.test(m)) return 'Sign-ups are being switched on right now. Please try again shortly, or email academy@openfraudlabs.com.';
+        if (/^SUSPENDED:|banned/i.test(m)) return 'This account is suspended. If you think this is a mistake, email academy@openfraudlabs.com.';
         if (/^PRACTICE:/.test(m)) return m.replace(/^PRACTICE:\s*/, '') + '. Open the Practice tab.';
         if (/^APPLY:/.test(m)) return 'During pre-launch this course is open to shortlisted applicants. Apply for the Founding Cohort at openfraudlabs.com/academy/apply/.';
         if (/^ENROL:/.test(m)) return 'Enrol in this course first: open the course page and choose "Enrol for free".';

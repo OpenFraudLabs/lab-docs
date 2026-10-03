@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261003b"
+V = "20261003c"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -106,7 +106,7 @@ FOOTER = f"""    <footer class="ac-footer">
                 <ul>
                     <li><a href="/">Main website</a></li>
                     <li><a href="/careers/">Careers</a></li>
-                    <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
                     <li><a href="/terms/">Terms of Service</a></li>
                     <li><a href="/privacy/">Privacy Policy</a></li>
                 </ul>
@@ -3104,7 +3104,7 @@ pricing_main = """        <div class="ac-wrap">
             </div>
             <div id="access"></div>
             <div class="ac-plans" id="plans"><p class="ac-muted">Loading plans…</p></div>
-            <p class="ac-muted ac-small">Payments are processed securely by Paystack; Open Fraud Labs never sees your card details. Questions or refunds: hello@openfraudlabs.com.</p>
+            <p class="ac-muted ac-small">Payments are processed securely by Paystack; Open Fraud Labs never sees your card details. Questions or refunds: academy@openfraudlabs.com.</p>
         </div>"""
 pricing_script = """        (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
