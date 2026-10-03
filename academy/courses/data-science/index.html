@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002t">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -70,7 +70,7 @@
                 <div class="cp-card">
                     <div class="cp-card__media"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="A frame from Lesson 25: Python code and the chart it produces."></div>
                     <div class="cp-card__body">
-                        <span class="ac-status ac-status--live">Open for enrolment</span>
+                        <span class="ac-status ac-status--live" id="cp-status">Open for enrolment</span>
                         <p class="cp-card__price">Free during early access</p>
                         <a class="ac-btn ac-btn--primary cp-card__cta" id="start-btn" href="/account/?next=/academy/courses/data-science/">Sign up free to enrol</a>
                         <p class="cp-card__note" id="start-note">Browse the outline freely. Enrol to open the lessons.</p>
@@ -229,6 +229,7 @@
                 <h3>Open Fraud Labs</h3>
                 <ul>
                     <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
                     <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
                     <li><a href="/terms/">Terms of Service</a></li>
                     <li><a href="/privacy/">Privacy Policy</a></li>
@@ -238,8 +239,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002t"></script>
-    <script src="/assets/js/academy.js?v=20261002t"></script>
+    <script src="/assets/js/learn.js?v=20261003a"></script>
+    <script src="/assets/js/academy.js?v=20261003a"></script>
     <script type="application/ld+json">
     {"@context": "https://schema.org", "@type": "Course", "name": "Data Science from Scratch",
      "description": "A beginner course: 30 video lessons, 3 portfolio projects in finance, health and real estate, in-browser coding practice, quizzes, a peer-reviewed capstone and a verifiable certificate.",
@@ -257,6 +258,12 @@
             var rel = st.lessons.filter(function (l) { return l.released; }).length;
             document.querySelectorAll('[data-released]').forEach(function (e) { e.textContent = rel; });
             var btn = document.getElementById('start-btn'), note = document.getElementById('start-note');
+            if (!st.enrolled && st.course && st.course.enrol_mode === 'application') {
+                btn.textContent = 'Apply for the Founding Cohort'; btn.href = '/academy/apply/';
+                var cps = document.getElementById('cp-status'); if (cps) cps.textContent = 'Pre-launch: applications open';
+                note.textContent = 'Pre-launch: places are free and limited. Browse the outline, then apply.';
+                return;
+            }
             if (!st.user) return;
             if (!st.enrolled) {
                 var b2 = OFL.el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', id: 'start-btn', text: 'Enrol for free' });

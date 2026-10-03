@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002t">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -56,6 +56,58 @@
             </div>
             <div id="admin-body" hidden>
                 <div class="ac-kpis" id="kpis"></div>
+                <section class="ac-admin__sec" data-cap="manage_applications" id="app-sec">
+                    <div class="ac-admin__head"><h2>Applications</h2><p class="ac-muted" id="app-sub">Cohort applications, scored against the published criteria. Shortlisting, the trial deadline, reminders and waitlist moves run by themselves every hour; you can step in at any time.</p>
+                        <div class="ac-admin__tools"><select id="app-cohort" aria-label="Cohort"></select>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-settings">Cohort settings</button>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-fill">Fill open places now</button>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-csv">Download CSV</button></div></div>
+                    <p class="app-line" id="app-line"></p>
+                    <div class="ac-kpis ac-kpis--sm" id="app-kpis"></div>
+                    <div class="app-filter"><div class="ofl-tabs" id="app-tabs">
+                        <button type="button" class="ofl-tab is-active" data-f="all">All</button>
+                        <button type="button" class="ofl-tab" data-f="shortlisted">In trial</button>
+                        <button type="button" class="ofl-tab" data-f="completed">Confirmed</button>
+                        <button type="button" class="ofl-tab" data-f="waitlisted">Waitlist</button>
+                        <button type="button" class="ofl-tab" data-f="missed">Missed</button>
+                        <button type="button" class="ofl-tab" data-f="rejected">Rejected</button>
+                    </div><input type="search" id="app-q" placeholder="Search name or email" aria-label="Search applications"></div>
+                    <div class="ac-table-wrap"><table class="ac-table" id="app-table"></table></div>
+                </section>
+                <dialog class="ac-dialog ac-dialog--wide" id="app-dlg" aria-labelledby="app-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="app-dlg-title">Application</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="app-dlg-msg"></div>
+                    <div id="app-dlg-body"></div>
+                </dialog>
+                <dialog class="ac-dialog" id="cohort-dlg" aria-labelledby="cohort-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="cohort-dlg-title">Cohort settings</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="cohort-msg"></div>
+                    <form id="cohort-form" class="ac-form" novalidate>
+                        <label>Name<input id="co-title" maxlength="80" placeholder="e.g. Founding Cohort"></label>
+                        <label>Link name<input id="co-slug" maxlength="40" placeholder="founding-2026"><small class="ac-muted">Used in the apply link. Can't be changed later.</small></label>
+                        <label>Course<select id="co-course"></select></label>
+                        <fieldset class="cf-status"><legend>Applications</legend>
+                            <label><input type="radio" name="co-status" value="draft"> <b>Draft</b><span>Not visible to learners yet.</span></label>
+                            <label><input type="radio" name="co-status" value="open"> <b>Open</b><span>Anyone can apply on the careers and apply pages.</span></label>
+                            <label><input type="radio" name="co-status" value="closed"> <b>Closed</b><span>No new applications. Trials and the waitlist keep running.</span></label>
+                        </fieldset>
+                        <div class="cf-row">
+                            <label>Places<input id="co-capacity" type="number" min="1" max="100000"></label>
+                            <label>Minimum score (0–100)<input id="co-min" type="number" min="0" max="100"></label>
+                        </div>
+                        <div class="cf-row">
+                            <label>Trial lesson<input id="co-lesson" type="number" min="1"></label>
+                            <label>Days to finish it<input id="co-days" type="number" min="1" max="90"></label>
+                        </div>
+                        <fieldset class="cf-status"><legend>Shortlisting</legend>
+                            <label><input type="radio" name="co-mode" value="rolling"> <b>Automatic, as places open</b><span>Highest score first. Applicants below the minimum wait for you to decide.</span></label>
+                            <label><input type="radio" name="co-mode" value="batch"> <b>Once, when applications close</b><span>Everyone waits until the closing date, then the top applicants are shortlisted.</span></label>
+                        </fieldset>
+                        <label>Applications close <em class="ac-muted">(optional, Lagos time)</em><input id="co-closes" type="datetime-local"></label>
+                        <label class="ap-check"><input type="checkbox" id="co-require"> Only shortlisted applicants (plus staff and scholarship holders) can enrol in this course. Learners already enrolled keep their place.</label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save settings</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
                 <section class="ac-admin__sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
@@ -163,10 +215,10 @@
                     <details class="ac-roles"><summary>What each role can do</summary>
                         <ul>
                             <li><b>Owner</b>: everything, including giving and removing roles. Can't be removed from the website.</li>
-                            <li><b>Admin</b>: manage learners (suspend, unlock, certificates), scholarships, courses and lessons, grade projects, see learners and stats. Can't change roles or other staff.</li>
+                            <li><b>Admin</b>: manage learners (suspend, unlock, certificates), applications, scholarships, courses and lessons, grade projects, see learners and stats. Can't change roles or other staff.</li>
                             <li><b>Reviewer</b>: grade projects and capstones, see learners and stats.</li>
                             <li><b>Finance</b> (CFO, account officer): payments, passes, plans and prices, and stats.</li>
-                            <li><b>HR</b>: see learners, the staff list and stats. Can't change anything.</li>
+                            <li><b>HR</b>: run cohort applications (settings, shortlist, waitlist, reject), see learners, the staff list and stats. Can't change learner accounts or roles.</li>
                             <li><b>Scholarship officer</b>: give and end scholarships (course, duration and reason), and see stats. Can find a learner by name or email to do this, but can't change their account.</li>
                             <li><b>Instructor</b> (content editor): add and edit courses and lessons, release or hide them, open any lesson without studying, grade projects, and see stats. Can't take a course off live once learners are enrolled, or make it paid; the owner or an admin does that.</li>
                             <li><b>Analyst</b>: stats, the lesson funnel and learner totals only; no names or emails.</li>
@@ -204,6 +256,7 @@
                 <h3>Open Fraud Labs</h3>
                 <ul>
                     <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
                     <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
                     <li><a href="/terms/">Terms of Service</a></li>
                     <li><a href="/privacy/">Privacy Policy</a></li>
@@ -213,8 +266,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002t"></script>
-    <script src="/assets/js/academy.js?v=20261002t"></script>
+    <script src="/assets/js/learn.js?v=20261003a"></script>
+    <script src="/assets/js/academy.js?v=20261003a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -275,7 +328,7 @@
             if (!role) return OFL.notice(msg, 'This page is only for Open Fraud Labs staff.', 'error');
             var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
-                manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'],
+                manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
                 view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
@@ -485,7 +538,173 @@
                 }
                 c.lessons.forEach(function (l) { row(l, false); }); row({}, true);
             }
-            await loadCourses(); loadScholarships(); loadContent();
+
+            // ---- Cohort applications
+            var cohorts = [], cohortId = null, apps = [], appFilter = 'all';
+            var APP_STATUS = { shortlisted: ['In trial', 'go'], completed: ['Confirmed', 'done'], waitlisted: ['Waitlist', 'wait'], missed: ['Missed deadline', 'end'], rejected: ['Rejected', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var A_LABEL = { hours: { '1-2': '1–2 h', '3-5': '3–5 h', '6-10': '6–10 h', '10+': '10+ h' },
+                device: { laptop: 'Own laptop/desktop', shared: 'Shared computer', phone: 'Phone only' }, internet: { reliable: 'Reliable', sometimes: 'Sometimes unreliable', poor: 'Often poor' },
+                career_goal: { first_job: 'First data job', switch: 'Switch careers', upskill: 'Upskill in current job', freelance: 'Freelance', business: 'Own business', study: 'Further study' },
+                can_afford: { '0': 'Nothing right now', lt5k: 'Under ₦5,000', '5-15k': '₦5,000–15,000', '15-30k': '₦15,000–30,000', '30k+': 'Over ₦30,000' } };
+            var PART = { tiktok: ['Follows TikTok', 15], linkedin_page: ['Follows LinkedIn page', 15], hours: ['Weekly study time', 20], motivation: ['Why they want to join', 20], problem: ['Problem to solve', 15], about_you: ['About-you profile', 10], linkedin_profile: ['LinkedIn profile', 5] };
+            async function loadCohorts(keep) {
+                if (!can('manage_applications')) return;
+                cohorts = (await sb.from('cohorts').select('*').order('created_at', { ascending: false })).data || [];
+                var sel = document.getElementById('app-cohort'); sel.textContent = '';
+                cohorts.forEach(function (c) { sel.appendChild(el('option', { value: c.id, text: c.title })); });
+                sel.appendChild(el('option', { value: 'new', text: '+ New cohort' }));
+                cohortId = keep && cohorts.some(function (c) { return c.id == keep; }) ? keep : (cohorts[0] || {}).id;
+                if (cohortId) sel.value = cohortId;
+                loadApps();
+            }
+            function cur() { return cohorts.filter(function (c) { return c.id == cohortId; })[0]; }
+            document.getElementById('app-cohort').addEventListener('change', function (e) {
+                if (e.target.value === 'new') { e.target.value = cohortId || ''; return openCohort(null); }
+                cohortId = e.target.value; loadApps();
+            });
+            async function loadApps() {
+                var c = cur(); if (!c) { document.getElementById('app-line').textContent = 'No cohorts yet. Choose “+ New cohort” to create one.'; return; }
+                var r = await sb.rpc('applications_admin', { p_cohort: c.id });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                apps = r.data || [];
+                var course = allCourses.filter(function (x) { return x.slug === c.course_slug; })[0] || {};
+                var gate = (await sb.from('courses').select('enrol_mode').eq('slug', c.course_slug).maybeSingle()).data || {};
+                c._require = gate.enrol_mode === 'application';
+                var line = document.getElementById('app-line'); line.textContent = '';
+                line.append(el('span', { class: 'cm-status cm-status--' + (c.status === 'open' ? 'live' : c.status === 'draft' ? 'hidden' : 'soon'), text: c.status === 'open' ? 'Open' : c.status === 'draft' ? 'Draft' : 'Closed' }), ' ',
+                    (course.title || c.course_slug) + ' · ' + c.capacity + ' places · trial: Lesson ' + c.trial_lesson + ' in ' + c.trial_days + ' days · minimum score ' + c.min_score + ' · ' +
+                    (c.mode === 'rolling' ? 'automatic shortlisting' : 'shortlist when applications close') + (c.closes_at ? ' · closes ' + dt(c.closes_at) : '') +
+                    ' · enrolment ' + (c._require ? 'by application only' : 'open to everyone') + ' · ',
+                    el('a', { href: '/academy/apply/?c=' + c.slug, target: '_blank', rel: 'noopener', text: 'Apply page' }));
+                var n = function (s) { return apps.filter(function (a) { return a.status === s; }).length; };
+                var trialsEnded = n('completed') + n('missed');
+                var k = document.getElementById('app-kpis'); k.textContent = '';
+                [['Applied', apps.length], ['In trial', n('shortlisted')], ['Confirmed', n('completed')], ['Missed deadline', n('missed')], ['Waitlist', n('waitlisted')],
+                 ['Places left', Math.max(0, c.capacity - n('shortlisted') - n('completed'))], ['Trial completion', trialsEnded ? Math.round(100 * n('completed') / trialsEnded) + '%' : '—']]
+                    .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
+                drawApps();
+            }
+            function drawApps() {
+                var q = document.getElementById('app-q').value.trim().toLowerCase(), t = document.getElementById('app-table'); t.textContent = '';
+                var hr = el('tr'); ['', 'Applicant', 'Score', 'Study time', 'Follows', 'Status', 'Lessons passed', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                var wl = 0, list = apps.filter(function (a) { return (appFilter === 'all' || a.status === appFilter) && (!q || ((a.full_name || '') + ' ' + a.email).toLowerCase().indexOf(q) >= 0); });
+                if (!list.length) tb.appendChild(el('tr', {}, el('td', { colspan: '9', class: 'ac-muted', text: apps.length ? 'No applications match.' : 'No applications yet. Share the apply link to get started.' })));
+                list.forEach(function (a) {
+                    var st = APP_STATUS[a.status] || [a.status, 'end'], c = cur();
+                    var stCell = el('td', {}, el('span', { class: 'app-st app-st--' + st[1], text: st[0] }));
+                    if (a.status === 'shortlisted' && a.deadline_at) { var left = new Date(a.deadline_at) - Date.now(); stCell.appendChild(el('small', { class: left < 2 * 864e5 ? 'app-warn' : 'ac-muted', text: left > 0 ? Math.floor(left / 864e5) + 'd ' + Math.floor(left % 864e5 / 36e5) + 'h left' : 'deadline passed' })); }
+                    if (a.status === 'waitlisted') stCell.appendChild(el('small', { class: 'ac-muted', text: a.score >= c.min_score ? '#' + (++wl) + ' in line' : 'below minimum score' }));
+                    var ans = a.answers || {}, follows = el('td', { class: 'app-follows' });
+                    follows.appendChild(el('span', { class: ans.follows_tiktok ? 'is-yes' : 'is-no', text: 'TikTok' + (ans.follows_tiktok ? ' ✓' : ' ✗') }));
+                    if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
+                    follows.appendChild(el('span', { class: ans.follows_linkedin ? 'is-yes' : 'is-no', text: 'LinkedIn' + (ans.follows_linkedin ? ' ✓' : ' ✗') }));
+                    var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
+                    if (a.status === 'waitlisted' || a.status === 'missed' || a.status === 'rejected') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist'); } }));
+                    tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
+                        el('td', {}, el('div', { text: a.full_name || '(no name)' }), el('small', { class: 'ac-muted', text: a.email })),
+                        el('td', {}, el('b', { class: 'app-score num', text: String(a.score) })),
+                        el('td', { text: A_LABEL.hours[ans.hours] || '—' }), follows, stCell,
+                        el('td', { class: 'num', text: a.lessons_done ? String(a.lessons_done) : '0' }),
+                        el('td', { text: dOnly(a.applied_at) }), actions));
+                });
+            }
+            document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
+                document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); appFilter = b.dataset.f; drawApps(); }); });
+            document.getElementById('app-q').addEventListener('input', drawApps);
+            async function decide(a, action, note) {
+                var text = { shortlist: 'Shortlist ' + (a.full_name || a.email) + '? They’ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to finish Lesson ' + cur().trial_lesson + '.',
+                    waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
+                if (text && !window.confirm(text)) return false;
+                var res = await sb.rpc('application_decide', { p_id: a.id, p_action: action, p_note: note == null ? null : note });
+                if (res.error) { OFL.notice(document.getElementById('app-dlg').open ? document.getElementById('app-dlg-msg') : msg, OFL.friendlyError(res.error), 'error'); return false; }
+                OFL.notice(msg, action === 'note' ? 'Note saved.' : 'Done: ' + action + ' for ' + (a.full_name || a.email) + '.', 'success');
+                appDlg.close(); loadApps(); return true;
+            }
+            var appDlg = document.getElementById('app-dlg');
+            function openApp(a) {
+                var b = document.getElementById('app-dlg-body'); b.textContent = ''; document.getElementById('app-dlg-msg').textContent = '';
+                document.getElementById('app-dlg-title').textContent = (a.full_name || '(no name)') + ' · ' + (APP_STATUS[a.status] || [a.status])[0];
+                var ans = a.answers || {}, bgr = a.background || {};
+                b.appendChild(el('p', { class: 'ac-muted', text: a.email + ' · applied ' + dt(a.applied_at) + (a.deadline_at ? ' · trial deadline ' + dt(a.deadline_at) : '') + (a.completed_at ? ' · trial completed ' + dt(a.completed_at) : '') }));
+                var grid = el('div', { class: 'app-detail' });
+                var sc = el('div', { class: 'app-card' }, el('h3', {}, 'Score ', el('b', { class: 'num', text: a.score + ' / 100' })));
+                Object.keys(PART).forEach(function (k) { var got = (a.score_detail || {})[k] || 0; sc.appendChild(el('div', { class: 'app-part' }, el('span', { text: PART[k][0] }), el('span', { class: 'num', text: got + ' / ' + PART[k][1] }), el('i', { style: 'width:' + Math.round(100 * got / PART[k][1]) + '%' }))); });
+                sc.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Following is self-declared. Check the TikTok username if it matters for this decision.' }));
+                var info = el('div', { class: 'app-card' }, el('h3', { text: 'Answers' }));
+                function row(label, v) { if (v) info.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
+                row('Study time', A_LABEL.hours[ans.hours]); row('Learns on', A_LABEL.device[ans.device]); row('Internet', A_LABEL.internet[ans.internet]);
+                row('Wants to', A_LABEL.career_goal[ans.career_goal]); row('Could pay after launch', A_LABEL.can_afford[ans.can_afford]);
+                row('TikTok', ans.tiktok_handle ? el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle + (ans.follows_tiktok ? ' (says they follow)' : '') }) : (ans.follows_tiktok ? 'Says they follow' : 'No'));
+                row('LinkedIn page', ans.follows_linkedin ? 'Says they follow' : 'No');
+                row('LinkedIn profile', ans.linkedin_url ? el('a', { href: ans.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
+                row('Consent: funder reports', ans.consent_reports ? 'Yes, without name' : 'No'); row('Consent: job alerts', ans.consent_jobs ? 'Yes' : 'No');
+                grid.append(sc, info); b.appendChild(grid);
+                b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why they want to join' }), el('p', { class: 'app-text', text: ans.motivation || '—' }),
+                    el('h3', { text: 'A problem they’d like to solve with data' }), el('p', { class: 'app-text', text: ans.problem || '—' })));
+                if (bgr.completed_at) b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'About you: ' + [bgr.city, bgr.country, bgr.employment, bgr.education, 'Python: ' + bgr.python_level, 'data: ' + bgr.data_level].filter(Boolean).join(' · ') + '. (Shown for context; never part of the score.)' }));
+                var note = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Private staff note (optional)', class: 'app-note' }); note.value = a.staff_note || '';
+                b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
+                var acts = el('div', { class: 'ofl-actions' });
+                if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
+                if (a.status === 'shortlisted' || a.status === 'missed' || a.status === 'rejected') acts.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Move to waitlist', onclick: function () { decide(a, 'waitlist', note.value || null); } }));
+                if (a.status !== 'rejected' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Reject', onclick: function () { decide(a, 'reject', note.value || null); } }));
+                acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { decide(a, 'note', note.value); } }));
+                b.appendChild(acts);
+                appDlg.showModal();
+            }
+            document.getElementById('app-fill').addEventListener('click', async function () {
+                var c = cur(); if (!c) return;
+                if (!window.confirm('Shortlist the highest-scoring waitlisted applicants (at or above the minimum score) into any open places now?')) return;
+                var r = await sb.rpc('cohort_fill_now', { p_cohort: c.id });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.notice(msg, r.data.shortlisted ? r.data.shortlisted + ' applicant' + (r.data.shortlisted === 1 ? '' : 's') + ' shortlisted and notified.' : 'No one to shortlist: either no places are open or nobody waiting meets the minimum score.', 'success'); loadApps();
+            });
+            document.getElementById('app-csv').addEventListener('click', function () {
+                var c = cur(); if (!c) return;
+                var keys = ['full_name', 'email', 'status', 'score', 'applied_at', 'shortlisted_at', 'deadline_at', 'completed_at', 'lessons_done'];
+                var ak = ['hours', 'device', 'internet', 'career_goal', 'can_afford', 'follows_tiktok', 'tiktok_handle', 'follows_linkedin', 'linkedin_url', 'motivation', 'problem', 'consent_reports', 'consent_jobs'];
+                var bk = ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from'];
+                var pk = Object.keys(PART);
+                function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+                var lines = [keys.concat(ak, pk.map(function (k) { return 'score_' + k; }), bk, ['staff_note']).join(',')];
+                apps.forEach(function (a) { lines.push(keys.map(function (k) { return esc(a[k]); }).concat(ak.map(function (k) { return esc((a.answers || {})[k]); }), pk.map(function (k) { return esc((a.score_detail || {})[k]); }), bk.map(function (k) { return esc((a.background || {})[k]); }), [esc(a.staff_note)]).join(',')); });
+                var x = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: c.slug + '-applications-' + new Date().toISOString().slice(0, 10) + '.csv' });
+                document.body.appendChild(x); x.click(); x.remove();
+            });
+            var cohortDlg = document.getElementById('cohort-dlg'), coEdit = null;
+            function localInput(v) { if (!v) return ''; var d = new Date(new Date(v).getTime() + 3600e3); return d.toISOString().slice(0, 16); }
+            function openCohort(c) {
+                coEdit = c; document.getElementById('cohort-msg').textContent = '';
+                document.getElementById('cohort-dlg-title').textContent = c ? 'Settings: ' + c.title : 'New cohort';
+                document.getElementById('co-title').value = c ? c.title : '';
+                var sl = document.getElementById('co-slug'); sl.value = c ? c.slug : ''; sl.readOnly = !!c;
+                var cs = document.getElementById('co-course'); cs.textContent = '';
+                allCourses.forEach(function (x) { cs.appendChild(el('option', { value: x.slug, text: x.title })); }); cs.value = c ? c.course_slug : 'data-science';
+                document.querySelector('input[name="co-status"][value="' + (c ? c.status : 'draft') + '"]').checked = true;
+                document.querySelector('input[name="co-mode"][value="' + (c ? c.mode : 'rolling') + '"]').checked = true;
+                document.getElementById('co-capacity').value = c ? c.capacity : 40; document.getElementById('co-min').value = c ? c.min_score : 40;
+                document.getElementById('co-lesson').value = c ? c.trial_lesson : 1; document.getElementById('co-days').value = c ? c.trial_days : 7;
+                document.getElementById('co-closes').value = c ? localInput(c.closes_at) : '';
+                document.getElementById('co-require').checked = c ? !!c._require : true;
+                cohortDlg.showModal();
+            }
+            document.getElementById('app-settings').addEventListener('click', function () { openCohort(cur() || null); });
+            document.getElementById('cohort-form').addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = document.getElementById('cohort-msg');
+                var title = document.getElementById('co-title').value.trim(), slug = document.getElementById('co-slug').value.trim().toLowerCase();
+                if (!title || !/^[a-z0-9][a-z0-9-]{2,39}$/.test(slug)) return OFL.notice(m, 'Give the cohort a name and a link name of 3–40 lowercase letters, numbers or dashes.', 'error');
+                var closes = document.getElementById('co-closes').value;
+                var status = document.querySelector('input[name="co-status"]:checked').value, require = document.getElementById('co-require').checked;
+                if (status === 'open' && require && !(coEdit && coEdit.status === 'open') && !window.confirm('Open applications now? New learners will need to apply and be shortlisted before they can enrol in this course.')) return;
+                var res = await sb.rpc('cohort_save', { p_slug: slug, p_title: title, p_course: document.getElementById('co-course').value, p_status: status,
+                    p_capacity: +document.getElementById('co-capacity').value, p_trial_lesson: +document.getElementById('co-lesson').value, p_trial_days: +document.getElementById('co-days').value,
+                    p_min_score: +document.getElementById('co-min').value, p_mode: document.querySelector('input[name="co-mode"]:checked').value,
+                    p_closes_at: closes ? closes + ':00+01:00' : null, p_require_application: require });
+                if (res.error) return OFL.notice(m, OFL.friendlyError(res.error), 'error');
+                cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
+            });
+            await loadCourses(); loadScholarships(); loadContent(); loadCohorts();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
                 var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');

@@ -23,7 +23,7 @@
         var sb = OFL.sb;
         var user = await OFL.getUser();
         var res = await Promise.all([
-            sb.from('courses').select('slug, title, total_lessons, description, level, status, access').eq('slug', course).maybeSingle(),
+            sb.from('courses').select('slug, title, total_lessons, description, level, status, access, enrol_mode').eq('slug', course).maybeSingle(),
             sb.from('lessons').select('n, title, released, video_url, video_path, video_seconds').eq('course_slug', course).order('n'),
             user ? sb.from('lesson_progress').select('lesson_n, best_score').eq('course_slug', course) : Promise.resolve({ data: [] }),
             user ? sb.from('profiles').select('is_admin, unlock_all, staff_role').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),

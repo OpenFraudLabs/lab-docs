@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261002t"
+V = "20261003a"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -105,6 +105,7 @@ FOOTER = f"""    <footer class="ac-footer">
                 <h3>Open Fraud Labs</h3>
                 <ul>
                     <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
                     <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
                     <li><a href="/terms/">Terms of Service</a></li>
                     <li><a href="/privacy/">Privacy Policy</a></li>
@@ -171,7 +172,8 @@ COMING = [("Data Analysis", "Spreadsheets, SQL and dashboards that turn raw data
           ("Live classes", "Live sessions with Q&A for the Academy community.")]
 coming_html = "\n".join(f'<li><strong>{esc(t)}</strong><span>{esc(d)}</span><em>In preparation</em></li>' for t, d in COMING)
 
-home_main = f"""        <section class="lp-hero">
+home_main = f"""        <a class="ap-banner" id="ap-banner" href="/academy/apply/" hidden><span class="ap-banner__tag">Pre-launch</span><span id="ap-banner-text">Applications are open for the free Founding Cohort</span><span aria-hidden="true">&rarr;</span></a>
+        <section class="lp-hero">
             <div class="ac-wrap lp-hero__grid">
                 <div class="lp-hero__copy">
                     <h1>Practical data skills, one lesson at a time.</h1>
@@ -266,7 +268,7 @@ Monthly    0.250</pre></div>
                 </div>
                 <article class="lp-course">
                     <div class="lp-course__body">
-                        <span class="ac-status ac-status--live">Open for enrolment</span>
+                        <span class="ac-status ac-status--live" id="home-ds-status">Open for enrolment</span>
                         <h3>Data Science from Scratch</h3>
                         <p>From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from retail, health, transport, media and finance.</p>
                         <ul class="ac-outcomes">
@@ -344,6 +346,14 @@ home_script = r"""        (function () {
                 if (i < full.length) setTimeout(tick, 28); else setTimeout(function () { cell.classList.remove('is-typing'); cell.classList.add('is-done'); }, 260);
             }, 700);
         })();
+        (async function cohort() {
+            var c = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
+            if (!c || c.status !== 'open') return;
+            var b = document.getElementById('ap-banner'); b.href = '/academy/apply/?c=' + encodeURIComponent(c.slug);
+            var hs = document.getElementById('home-ds-status'); if (hs && c.course === 'data-science') { hs.textContent = 'Pre-launch: applications open'; var hl = hs.parentNode.querySelector('a.ac-btn'); if (hl) { hl.textContent = 'View course and apply'; } }
+            document.getElementById('ap-banner-text').textContent = 'Applications are open for the free ' + c.title + (c.places_left > 0 ? ': ' + c.places_left + ' places left' : ': waitlist open');
+            b.hidden = false;
+        })();
         (async function courses() {
             var r = await OFL.sb.from('courses').select('slug, title, description, level, status, access, total_lessons, sort').neq('status', 'hidden').order('sort');
             if (r.error || !r.data) return;
@@ -400,7 +410,7 @@ course_main = f"""        <section class="cp-hero">
                 <div class="cp-card">
                     <div class="cp-card__media"><img src="/assets/academy/lesson-frame.jpg" width="1280" height="720" alt="A frame from Lesson 25: Python code and the chart it produces."></div>
                     <div class="cp-card__body">
-                        <span class="ac-status ac-status--live">Open for enrolment</span>
+                        <span class="ac-status ac-status--live" id="cp-status">Open for enrolment</span>
                         <p class="cp-card__price">Free during early access</p>
                         <a class="ac-btn ac-btn--primary cp-card__cta" id="start-btn" href="/account/?next=/academy/courses/data-science/">Sign up free to enrol</a>
                         <p class="cp-card__note" id="start-note">Browse the outline freely. Enrol to open the lessons.</p>
@@ -496,6 +506,12 @@ course_script = r"""        (async function () {
             var rel = st.lessons.filter(function (l) { return l.released; }).length;
             document.querySelectorAll('[data-released]').forEach(function (e) { e.textContent = rel; });
             var btn = document.getElementById('start-btn'), note = document.getElementById('start-note');
+            if (!st.enrolled && st.course && st.course.enrol_mode === 'application') {
+                btn.textContent = 'Apply for the Founding Cohort'; btn.href = '/academy/apply/';
+                var cps = document.getElementById('cp-status'); if (cps) cps.textContent = 'Pre-launch: applications open';
+                note.textContent = 'Pre-launch: places are free and limited. Browse the outline, then apply.';
+                return;
+            }
             if (!st.user) return;
             if (!st.enrolled) {
                 var b2 = OFL.el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', id: 'start-btn', text: 'Enrol for free' });
@@ -596,6 +612,7 @@ gc_script = r"""        (async function () {
             document.getElementById('gc-outline').hidden = !st.lessons.length;
             var cta = document.getElementById('gc-cta'), note = document.getElementById('gc-note');
             if (c.status !== 'live') { cta.replaceWith(el('span', { class: 'ac-btn ac-btn--secondary cp-card__cta', 'aria-disabled': 'true', text: c.status === 'coming_soon' ? 'In preparation' : 'Not published' })); note.textContent = c.status === 'coming_soon' ? 'Enrolment opens when the first lessons are ready.' : 'Only staff who manage content can see this page.'; return; }
+            if (!st.enrolled && c.enrol_mode === 'application') { cta.href = '/academy/apply/'; cta.textContent = 'Apply for a place'; note.textContent = 'Pre-launch: places are limited and shortlisted from applications.'; return; }
             if (!st.user) { cta.href = '/account/?next=' + encodeURIComponent(location.pathname + location.search); cta.textContent = 'Create a free account to enrol'; return; }
             if (!st.enrolled) {
                 var b = el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', text: c.access === 'paid' ? 'Enrol' : 'Enrol for free' });
@@ -1190,7 +1207,7 @@ dash_script = r"""        (async function () {
                         el('img', { src: '/assets/academy/lesson-frame.jpg', alt: '', width: '320', height: '180', loading: 'lazy' }),
                         el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
                             el('p', { class: 'ac-muted', text: 'From your first dataset to machine learning models you can explain. ' + st.total + ' lessons and projects for beginners, with a certificate.' }),
-                            el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/courses/data-science/', text: 'View course and enrol' }))),
+                            el('a', { class: 'ac-btn ac-btn--primary', href: st.course && st.course.enrol_mode === 'application' ? '/academy/apply/' : '/academy/courses/data-science/', text: st.course && st.course.enrol_mode === 'application' ? 'Apply for the Founding Cohort' : 'View course and enrol' }))),
                     el('p', { class: 'ac-muted ac-small' }, others.length ? '' : 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/courses/', text: 'See all courses' }))));
                 otherCourses(document.getElementById('next'), mine.length ? 'Your other courses' : 'Also open for enrolment');
                 return;
@@ -1552,6 +1569,58 @@ admin_main = """        <div class="ac-wrap ac-admin">
             </div>
             <div id="admin-body" hidden>
                 <div class="ac-kpis" id="kpis"></div>
+                <section class="ac-admin__sec" data-cap="manage_applications" id="app-sec">
+                    <div class="ac-admin__head"><h2>Applications</h2><p class="ac-muted" id="app-sub">Cohort applications, scored against the published criteria. Shortlisting, the trial deadline, reminders and waitlist moves run by themselves every hour; you can step in at any time.</p>
+                        <div class="ac-admin__tools"><select id="app-cohort" aria-label="Cohort"></select>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-settings">Cohort settings</button>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-fill">Fill open places now</button>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-csv">Download CSV</button></div></div>
+                    <p class="app-line" id="app-line"></p>
+                    <div class="ac-kpis ac-kpis--sm" id="app-kpis"></div>
+                    <div class="app-filter"><div class="ofl-tabs" id="app-tabs">
+                        <button type="button" class="ofl-tab is-active" data-f="all">All</button>
+                        <button type="button" class="ofl-tab" data-f="shortlisted">In trial</button>
+                        <button type="button" class="ofl-tab" data-f="completed">Confirmed</button>
+                        <button type="button" class="ofl-tab" data-f="waitlisted">Waitlist</button>
+                        <button type="button" class="ofl-tab" data-f="missed">Missed</button>
+                        <button type="button" class="ofl-tab" data-f="rejected">Rejected</button>
+                    </div><input type="search" id="app-q" placeholder="Search name or email" aria-label="Search applications"></div>
+                    <div class="ac-table-wrap"><table class="ac-table" id="app-table"></table></div>
+                </section>
+                <dialog class="ac-dialog ac-dialog--wide" id="app-dlg" aria-labelledby="app-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="app-dlg-title">Application</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="app-dlg-msg"></div>
+                    <div id="app-dlg-body"></div>
+                </dialog>
+                <dialog class="ac-dialog" id="cohort-dlg" aria-labelledby="cohort-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="cohort-dlg-title">Cohort settings</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="cohort-msg"></div>
+                    <form id="cohort-form" class="ac-form" novalidate>
+                        <label>Name<input id="co-title" maxlength="80" placeholder="e.g. Founding Cohort"></label>
+                        <label>Link name<input id="co-slug" maxlength="40" placeholder="founding-2026"><small class="ac-muted">Used in the apply link. Can't be changed later.</small></label>
+                        <label>Course<select id="co-course"></select></label>
+                        <fieldset class="cf-status"><legend>Applications</legend>
+                            <label><input type="radio" name="co-status" value="draft"> <b>Draft</b><span>Not visible to learners yet.</span></label>
+                            <label><input type="radio" name="co-status" value="open"> <b>Open</b><span>Anyone can apply on the careers and apply pages.</span></label>
+                            <label><input type="radio" name="co-status" value="closed"> <b>Closed</b><span>No new applications. Trials and the waitlist keep running.</span></label>
+                        </fieldset>
+                        <div class="cf-row">
+                            <label>Places<input id="co-capacity" type="number" min="1" max="100000"></label>
+                            <label>Minimum score (0–100)<input id="co-min" type="number" min="0" max="100"></label>
+                        </div>
+                        <div class="cf-row">
+                            <label>Trial lesson<input id="co-lesson" type="number" min="1"></label>
+                            <label>Days to finish it<input id="co-days" type="number" min="1" max="90"></label>
+                        </div>
+                        <fieldset class="cf-status"><legend>Shortlisting</legend>
+                            <label><input type="radio" name="co-mode" value="rolling"> <b>Automatic, as places open</b><span>Highest score first. Applicants below the minimum wait for you to decide.</span></label>
+                            <label><input type="radio" name="co-mode" value="batch"> <b>Once, when applications close</b><span>Everyone waits until the closing date, then the top applicants are shortlisted.</span></label>
+                        </fieldset>
+                        <label>Applications close <em class="ac-muted">(optional, Lagos time)</em><input id="co-closes" type="datetime-local"></label>
+                        <label class="ap-check"><input type="checkbox" id="co-require"> Only shortlisted applicants (plus staff and scholarship holders) can enrol in this course. Learners already enrolled keep their place.</label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save settings</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
                 <section class="ac-admin__sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
@@ -1659,10 +1728,10 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <details class="ac-roles"><summary>What each role can do</summary>
                         <ul>
                             <li><b>Owner</b>: everything, including giving and removing roles. Can't be removed from the website.</li>
-                            <li><b>Admin</b>: manage learners (suspend, unlock, certificates), scholarships, courses and lessons, grade projects, see learners and stats. Can't change roles or other staff.</li>
+                            <li><b>Admin</b>: manage learners (suspend, unlock, certificates), applications, scholarships, courses and lessons, grade projects, see learners and stats. Can't change roles or other staff.</li>
                             <li><b>Reviewer</b>: grade projects and capstones, see learners and stats.</li>
                             <li><b>Finance</b> (CFO, account officer): payments, passes, plans and prices, and stats.</li>
-                            <li><b>HR</b>: see learners, the staff list and stats. Can't change anything.</li>
+                            <li><b>HR</b>: run cohort applications (settings, shortlist, waitlist, reject), see learners, the staff list and stats. Can't change learner accounts or roles.</li>
                             <li><b>Scholarship officer</b>: give and end scholarships (course, duration and reason), and see stats. Can find a learner by name or email to do this, but can't change their account.</li>
                             <li><b>Instructor</b> (content editor): add and edit courses and lessons, release or hide them, open any lesson without studying, grade projects, and see stats. Can't take a course off live once learners are enrolled, or make it paid; the owner or an admin does that.</li>
                             <li><b>Analyst</b>: stats, the lesson funnel and learner totals only; no names or emails.</li>
@@ -1740,7 +1809,7 @@ admin_script = r"""        (async function () {
             if (!role) return OFL.notice(msg, 'This page is only for Open Fraud Labs staff.', 'error');
             var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
-                manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'],
+                manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
                 view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
@@ -1950,7 +2019,173 @@ admin_script = r"""        (async function () {
                 }
                 c.lessons.forEach(function (l) { row(l, false); }); row({}, true);
             }
-            await loadCourses(); loadScholarships(); loadContent();
+
+            // ---- Cohort applications
+            var cohorts = [], cohortId = null, apps = [], appFilter = 'all';
+            var APP_STATUS = { shortlisted: ['In trial', 'go'], completed: ['Confirmed', 'done'], waitlisted: ['Waitlist', 'wait'], missed: ['Missed deadline', 'end'], rejected: ['Rejected', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var A_LABEL = { hours: { '1-2': '1–2 h', '3-5': '3–5 h', '6-10': '6–10 h', '10+': '10+ h' },
+                device: { laptop: 'Own laptop/desktop', shared: 'Shared computer', phone: 'Phone only' }, internet: { reliable: 'Reliable', sometimes: 'Sometimes unreliable', poor: 'Often poor' },
+                career_goal: { first_job: 'First data job', switch: 'Switch careers', upskill: 'Upskill in current job', freelance: 'Freelance', business: 'Own business', study: 'Further study' },
+                can_afford: { '0': 'Nothing right now', lt5k: 'Under ₦5,000', '5-15k': '₦5,000–15,000', '15-30k': '₦15,000–30,000', '30k+': 'Over ₦30,000' } };
+            var PART = { tiktok: ['Follows TikTok', 15], linkedin_page: ['Follows LinkedIn page', 15], hours: ['Weekly study time', 20], motivation: ['Why they want to join', 20], problem: ['Problem to solve', 15], about_you: ['About-you profile', 10], linkedin_profile: ['LinkedIn profile', 5] };
+            async function loadCohorts(keep) {
+                if (!can('manage_applications')) return;
+                cohorts = (await sb.from('cohorts').select('*').order('created_at', { ascending: false })).data || [];
+                var sel = document.getElementById('app-cohort'); sel.textContent = '';
+                cohorts.forEach(function (c) { sel.appendChild(el('option', { value: c.id, text: c.title })); });
+                sel.appendChild(el('option', { value: 'new', text: '+ New cohort' }));
+                cohortId = keep && cohorts.some(function (c) { return c.id == keep; }) ? keep : (cohorts[0] || {}).id;
+                if (cohortId) sel.value = cohortId;
+                loadApps();
+            }
+            function cur() { return cohorts.filter(function (c) { return c.id == cohortId; })[0]; }
+            document.getElementById('app-cohort').addEventListener('change', function (e) {
+                if (e.target.value === 'new') { e.target.value = cohortId || ''; return openCohort(null); }
+                cohortId = e.target.value; loadApps();
+            });
+            async function loadApps() {
+                var c = cur(); if (!c) { document.getElementById('app-line').textContent = 'No cohorts yet. Choose “+ New cohort” to create one.'; return; }
+                var r = await sb.rpc('applications_admin', { p_cohort: c.id });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                apps = r.data || [];
+                var course = allCourses.filter(function (x) { return x.slug === c.course_slug; })[0] || {};
+                var gate = (await sb.from('courses').select('enrol_mode').eq('slug', c.course_slug).maybeSingle()).data || {};
+                c._require = gate.enrol_mode === 'application';
+                var line = document.getElementById('app-line'); line.textContent = '';
+                line.append(el('span', { class: 'cm-status cm-status--' + (c.status === 'open' ? 'live' : c.status === 'draft' ? 'hidden' : 'soon'), text: c.status === 'open' ? 'Open' : c.status === 'draft' ? 'Draft' : 'Closed' }), ' ',
+                    (course.title || c.course_slug) + ' · ' + c.capacity + ' places · trial: Lesson ' + c.trial_lesson + ' in ' + c.trial_days + ' days · minimum score ' + c.min_score + ' · ' +
+                    (c.mode === 'rolling' ? 'automatic shortlisting' : 'shortlist when applications close') + (c.closes_at ? ' · closes ' + dt(c.closes_at) : '') +
+                    ' · enrolment ' + (c._require ? 'by application only' : 'open to everyone') + ' · ',
+                    el('a', { href: '/academy/apply/?c=' + c.slug, target: '_blank', rel: 'noopener', text: 'Apply page' }));
+                var n = function (s) { return apps.filter(function (a) { return a.status === s; }).length; };
+                var trialsEnded = n('completed') + n('missed');
+                var k = document.getElementById('app-kpis'); k.textContent = '';
+                [['Applied', apps.length], ['In trial', n('shortlisted')], ['Confirmed', n('completed')], ['Missed deadline', n('missed')], ['Waitlist', n('waitlisted')],
+                 ['Places left', Math.max(0, c.capacity - n('shortlisted') - n('completed'))], ['Trial completion', trialsEnded ? Math.round(100 * n('completed') / trialsEnded) + '%' : '—']]
+                    .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
+                drawApps();
+            }
+            function drawApps() {
+                var q = document.getElementById('app-q').value.trim().toLowerCase(), t = document.getElementById('app-table'); t.textContent = '';
+                var hr = el('tr'); ['', 'Applicant', 'Score', 'Study time', 'Follows', 'Status', 'Lessons passed', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                var wl = 0, list = apps.filter(function (a) { return (appFilter === 'all' || a.status === appFilter) && (!q || ((a.full_name || '') + ' ' + a.email).toLowerCase().indexOf(q) >= 0); });
+                if (!list.length) tb.appendChild(el('tr', {}, el('td', { colspan: '9', class: 'ac-muted', text: apps.length ? 'No applications match.' : 'No applications yet. Share the apply link to get started.' })));
+                list.forEach(function (a) {
+                    var st = APP_STATUS[a.status] || [a.status, 'end'], c = cur();
+                    var stCell = el('td', {}, el('span', { class: 'app-st app-st--' + st[1], text: st[0] }));
+                    if (a.status === 'shortlisted' && a.deadline_at) { var left = new Date(a.deadline_at) - Date.now(); stCell.appendChild(el('small', { class: left < 2 * 864e5 ? 'app-warn' : 'ac-muted', text: left > 0 ? Math.floor(left / 864e5) + 'd ' + Math.floor(left % 864e5 / 36e5) + 'h left' : 'deadline passed' })); }
+                    if (a.status === 'waitlisted') stCell.appendChild(el('small', { class: 'ac-muted', text: a.score >= c.min_score ? '#' + (++wl) + ' in line' : 'below minimum score' }));
+                    var ans = a.answers || {}, follows = el('td', { class: 'app-follows' });
+                    follows.appendChild(el('span', { class: ans.follows_tiktok ? 'is-yes' : 'is-no', text: 'TikTok' + (ans.follows_tiktok ? ' ✓' : ' ✗') }));
+                    if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
+                    follows.appendChild(el('span', { class: ans.follows_linkedin ? 'is-yes' : 'is-no', text: 'LinkedIn' + (ans.follows_linkedin ? ' ✓' : ' ✗') }));
+                    var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
+                    if (a.status === 'waitlisted' || a.status === 'missed' || a.status === 'rejected') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist'); } }));
+                    tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
+                        el('td', {}, el('div', { text: a.full_name || '(no name)' }), el('small', { class: 'ac-muted', text: a.email })),
+                        el('td', {}, el('b', { class: 'app-score num', text: String(a.score) })),
+                        el('td', { text: A_LABEL.hours[ans.hours] || '—' }), follows, stCell,
+                        el('td', { class: 'num', text: a.lessons_done ? String(a.lessons_done) : '0' }),
+                        el('td', { text: dOnly(a.applied_at) }), actions));
+                });
+            }
+            document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
+                document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); appFilter = b.dataset.f; drawApps(); }); });
+            document.getElementById('app-q').addEventListener('input', drawApps);
+            async function decide(a, action, note) {
+                var text = { shortlist: 'Shortlist ' + (a.full_name || a.email) + '? They’ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to finish Lesson ' + cur().trial_lesson + '.',
+                    waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
+                if (text && !window.confirm(text)) return false;
+                var res = await sb.rpc('application_decide', { p_id: a.id, p_action: action, p_note: note == null ? null : note });
+                if (res.error) { OFL.notice(document.getElementById('app-dlg').open ? document.getElementById('app-dlg-msg') : msg, OFL.friendlyError(res.error), 'error'); return false; }
+                OFL.notice(msg, action === 'note' ? 'Note saved.' : 'Done: ' + action + ' for ' + (a.full_name || a.email) + '.', 'success');
+                appDlg.close(); loadApps(); return true;
+            }
+            var appDlg = document.getElementById('app-dlg');
+            function openApp(a) {
+                var b = document.getElementById('app-dlg-body'); b.textContent = ''; document.getElementById('app-dlg-msg').textContent = '';
+                document.getElementById('app-dlg-title').textContent = (a.full_name || '(no name)') + ' · ' + (APP_STATUS[a.status] || [a.status])[0];
+                var ans = a.answers || {}, bgr = a.background || {};
+                b.appendChild(el('p', { class: 'ac-muted', text: a.email + ' · applied ' + dt(a.applied_at) + (a.deadline_at ? ' · trial deadline ' + dt(a.deadline_at) : '') + (a.completed_at ? ' · trial completed ' + dt(a.completed_at) : '') }));
+                var grid = el('div', { class: 'app-detail' });
+                var sc = el('div', { class: 'app-card' }, el('h3', {}, 'Score ', el('b', { class: 'num', text: a.score + ' / 100' })));
+                Object.keys(PART).forEach(function (k) { var got = (a.score_detail || {})[k] || 0; sc.appendChild(el('div', { class: 'app-part' }, el('span', { text: PART[k][0] }), el('span', { class: 'num', text: got + ' / ' + PART[k][1] }), el('i', { style: 'width:' + Math.round(100 * got / PART[k][1]) + '%' }))); });
+                sc.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Following is self-declared. Check the TikTok username if it matters for this decision.' }));
+                var info = el('div', { class: 'app-card' }, el('h3', { text: 'Answers' }));
+                function row(label, v) { if (v) info.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
+                row('Study time', A_LABEL.hours[ans.hours]); row('Learns on', A_LABEL.device[ans.device]); row('Internet', A_LABEL.internet[ans.internet]);
+                row('Wants to', A_LABEL.career_goal[ans.career_goal]); row('Could pay after launch', A_LABEL.can_afford[ans.can_afford]);
+                row('TikTok', ans.tiktok_handle ? el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle + (ans.follows_tiktok ? ' (says they follow)' : '') }) : (ans.follows_tiktok ? 'Says they follow' : 'No'));
+                row('LinkedIn page', ans.follows_linkedin ? 'Says they follow' : 'No');
+                row('LinkedIn profile', ans.linkedin_url ? el('a', { href: ans.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
+                row('Consent: funder reports', ans.consent_reports ? 'Yes, without name' : 'No'); row('Consent: job alerts', ans.consent_jobs ? 'Yes' : 'No');
+                grid.append(sc, info); b.appendChild(grid);
+                b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why they want to join' }), el('p', { class: 'app-text', text: ans.motivation || '—' }),
+                    el('h3', { text: 'A problem they’d like to solve with data' }), el('p', { class: 'app-text', text: ans.problem || '—' })));
+                if (bgr.completed_at) b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'About you: ' + [bgr.city, bgr.country, bgr.employment, bgr.education, 'Python: ' + bgr.python_level, 'data: ' + bgr.data_level].filter(Boolean).join(' · ') + '. (Shown for context; never part of the score.)' }));
+                var note = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Private staff note (optional)', class: 'app-note' }); note.value = a.staff_note || '';
+                b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
+                var acts = el('div', { class: 'ofl-actions' });
+                if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
+                if (a.status === 'shortlisted' || a.status === 'missed' || a.status === 'rejected') acts.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Move to waitlist', onclick: function () { decide(a, 'waitlist', note.value || null); } }));
+                if (a.status !== 'rejected' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Reject', onclick: function () { decide(a, 'reject', note.value || null); } }));
+                acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { decide(a, 'note', note.value); } }));
+                b.appendChild(acts);
+                appDlg.showModal();
+            }
+            document.getElementById('app-fill').addEventListener('click', async function () {
+                var c = cur(); if (!c) return;
+                if (!window.confirm('Shortlist the highest-scoring waitlisted applicants (at or above the minimum score) into any open places now?')) return;
+                var r = await sb.rpc('cohort_fill_now', { p_cohort: c.id });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.notice(msg, r.data.shortlisted ? r.data.shortlisted + ' applicant' + (r.data.shortlisted === 1 ? '' : 's') + ' shortlisted and notified.' : 'No one to shortlist: either no places are open or nobody waiting meets the minimum score.', 'success'); loadApps();
+            });
+            document.getElementById('app-csv').addEventListener('click', function () {
+                var c = cur(); if (!c) return;
+                var keys = ['full_name', 'email', 'status', 'score', 'applied_at', 'shortlisted_at', 'deadline_at', 'completed_at', 'lessons_done'];
+                var ak = ['hours', 'device', 'internet', 'career_goal', 'can_afford', 'follows_tiktok', 'tiktok_handle', 'follows_linkedin', 'linkedin_url', 'motivation', 'problem', 'consent_reports', 'consent_jobs'];
+                var bk = ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from'];
+                var pk = Object.keys(PART);
+                function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+                var lines = [keys.concat(ak, pk.map(function (k) { return 'score_' + k; }), bk, ['staff_note']).join(',')];
+                apps.forEach(function (a) { lines.push(keys.map(function (k) { return esc(a[k]); }).concat(ak.map(function (k) { return esc((a.answers || {})[k]); }), pk.map(function (k) { return esc((a.score_detail || {})[k]); }), bk.map(function (k) { return esc((a.background || {})[k]); }), [esc(a.staff_note)]).join(',')); });
+                var x = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: c.slug + '-applications-' + new Date().toISOString().slice(0, 10) + '.csv' });
+                document.body.appendChild(x); x.click(); x.remove();
+            });
+            var cohortDlg = document.getElementById('cohort-dlg'), coEdit = null;
+            function localInput(v) { if (!v) return ''; var d = new Date(new Date(v).getTime() + 3600e3); return d.toISOString().slice(0, 16); }
+            function openCohort(c) {
+                coEdit = c; document.getElementById('cohort-msg').textContent = '';
+                document.getElementById('cohort-dlg-title').textContent = c ? 'Settings: ' + c.title : 'New cohort';
+                document.getElementById('co-title').value = c ? c.title : '';
+                var sl = document.getElementById('co-slug'); sl.value = c ? c.slug : ''; sl.readOnly = !!c;
+                var cs = document.getElementById('co-course'); cs.textContent = '';
+                allCourses.forEach(function (x) { cs.appendChild(el('option', { value: x.slug, text: x.title })); }); cs.value = c ? c.course_slug : 'data-science';
+                document.querySelector('input[name="co-status"][value="' + (c ? c.status : 'draft') + '"]').checked = true;
+                document.querySelector('input[name="co-mode"][value="' + (c ? c.mode : 'rolling') + '"]').checked = true;
+                document.getElementById('co-capacity').value = c ? c.capacity : 40; document.getElementById('co-min').value = c ? c.min_score : 40;
+                document.getElementById('co-lesson').value = c ? c.trial_lesson : 1; document.getElementById('co-days').value = c ? c.trial_days : 7;
+                document.getElementById('co-closes').value = c ? localInput(c.closes_at) : '';
+                document.getElementById('co-require').checked = c ? !!c._require : true;
+                cohortDlg.showModal();
+            }
+            document.getElementById('app-settings').addEventListener('click', function () { openCohort(cur() || null); });
+            document.getElementById('cohort-form').addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = document.getElementById('cohort-msg');
+                var title = document.getElementById('co-title').value.trim(), slug = document.getElementById('co-slug').value.trim().toLowerCase();
+                if (!title || !/^[a-z0-9][a-z0-9-]{2,39}$/.test(slug)) return OFL.notice(m, 'Give the cohort a name and a link name of 3–40 lowercase letters, numbers or dashes.', 'error');
+                var closes = document.getElementById('co-closes').value;
+                var status = document.querySelector('input[name="co-status"]:checked').value, require = document.getElementById('co-require').checked;
+                if (status === 'open' && require && !(coEdit && coEdit.status === 'open') && !window.confirm('Open applications now? New learners will need to apply and be shortlisted before they can enrol in this course.')) return;
+                var res = await sb.rpc('cohort_save', { p_slug: slug, p_title: title, p_course: document.getElementById('co-course').value, p_status: status,
+                    p_capacity: +document.getElementById('co-capacity').value, p_trial_lesson: +document.getElementById('co-lesson').value, p_trial_days: +document.getElementById('co-days').value,
+                    p_min_score: +document.getElementById('co-min').value, p_mode: document.querySelector('input[name="co-mode"]:checked').value,
+                    p_closes_at: closes ? closes + ':00+01:00' : null, p_require_application: require });
+                if (res.error) return OFL.notice(m, OFL.friendlyError(res.error), 'error');
+                cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
+            });
+            await loadCourses(); loadScholarships(); loadContent(); loadCohorts();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
                 var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');
@@ -2445,6 +2680,242 @@ welcome_script = r"""        (async function () {
         })();""".replace('__CODES__', COUNTRY_CODES)
 
 page("academy/welcome", "Tell us about you | Open Fraud Labs Academy", "A few quick questions about you and your goals.", welcome_main, welcome_script, active="dashboard", noindex=True)
+
+# ============================================================== Founding cohort: careers listing + application
+LI = "https://www.linkedin.com/company/open-fraud-labs/"
+apply_main = f"""        <section class="cp-hero ap-hero">
+            <div class="ac-wrap">
+                <nav class="cp-crumbs" aria-label="Breadcrumb"><a href="/careers/">Careers</a><span aria-hidden="true">/</span><span>Founding Cohort</span></nav>
+                <p class="ac-eyebrow" id="ap-eyebrow">Pre-launch · Free learning internship</p>
+                <h1 id="ap-title">Join the Academy's Founding Cohort</h1>
+                <p class="cp-hero__lead">Before the Academy opens to everyone, we're taking a small group of learners through <b>Data Science from Scratch</b> for free. Places are limited, so we shortlist from applications and keep a waitlist.</p>
+                <ul class="ap-facts" id="ap-facts">
+                    <li><b>Free</b><span>No fees during pre-launch</span></li>
+                    <li><b>Online</b><span>Learn at your own pace, from anywhere</span></li>
+                    <li><b id="ap-trial">7-day trial</b><span>Finish Lesson 1 in time to keep your place</span></li>
+                    <li><b id="ap-places">Limited places</b><span id="ap-places-sub">Shortlisted from applications</span></li>
+                </ul>
+            </div>
+        </section>
+        <section class="ac-section">
+            <div class="ac-narrow">
+                <div id="msg"></div>
+                <div id="ap-status"></div>
+                <div class="ap-how" id="ap-how">
+                    <h2>How it works</h2>
+                    <ol class="ap-steps">
+                        <li><b>Apply</b><span>Create a free account and answer a few questions (about 5 minutes).</span></li>
+                        <li><b>Get shortlisted</b><span>We shortlist automatically as places open, using the criteria below. Everyone else joins the waitlist in order.</span></li>
+                        <li><b>Complete the trial</b><span id="ap-step3">Finish Lesson 1 (video, notes, practice and quiz) within 7 days of being shortlisted. If you don't, your place goes to the next person.</span></li>
+                        <li><b>Carry on as a founding learner</b><span>Work through the course and projects, earn a verifiable certificate, and help shape the Academy with your feedback.</span></li>
+                    </ol>
+                    <h3>What we look for</h3>
+                    <ul class="ac-outcomes">
+                        <li>You follow Open Fraud Labs on <a href="{TT}" target="_blank" rel="noopener noreferrer">TikTok</a> and <a href="{LI}" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+                        <li>You can give the course regular time each week</li>
+                        <li>A clear reason for joining and a problem you'd like to solve with data</li>
+                        <li>A completed About-you profile and, if you have one, a LinkedIn profile</li>
+                    </ul>
+                    <p class="ac-muted ac-small">Your country, gender, age and other About-you answers are never used to decide who gets a place. This is a free learning programme, not a paid job.</p>
+                </div>
+                <div id="ap-cta"></div>
+                <form id="ap-form" class="wb-form" novalidate hidden>
+                    <fieldset class="wb-group">
+                        <legend>1. Follow us</legend>
+                        <p class="ac-muted ap-help">New lessons and opportunities are announced here first.</p>
+                        <div class="ap-follow">
+                            <a class="ac-btn ac-btn--secondary ac-btn--sm" href="{TT}" target="_blank" rel="noopener noreferrer">Open TikTok @_drhola</a>
+                            <a class="ac-btn ac-btn--secondary ac-btn--sm" href="{LI}" target="_blank" rel="noopener noreferrer">Open our LinkedIn page</a>
+                        </div>
+                        <label class="ap-check"><input type="checkbox" name="follows_tiktok"> I follow @_drhola on TikTok</label>
+                        <label class="au-field"><span>Your TikTok username <em>(so we can check)</em></span><input name="tiktok_handle" maxlength="40" placeholder="@yourname" autocomplete="off"></label>
+                        <label class="ap-check"><input type="checkbox" name="follows_linkedin"> I follow Open Fraud Labs on LinkedIn</label>
+                        <label class="au-field"><span>Your LinkedIn profile <em>(optional)</em></span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
+                    </fieldset>
+                    <fieldset class="wb-group">
+                        <legend>2. Your time and setup</legend>
+                        <div class="wb-q"><span class="wb-q__label" id="q-hours">How many hours a week can you study?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-hours" data-name="hours" data-required></div></div>
+                        <div class="wb-q"><span class="wb-q__label" id="q-device">What will you mostly learn on?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-device" data-name="device"></div></div>
+                        <div class="wb-q"><span class="wb-q__label" id="q-net">How reliable is your internet?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-net" data-name="internet"></div></div>
+                    </fieldset>
+                    <fieldset class="wb-group">
+                        <legend>3. Your goals</legend>
+                        <div class="wb-q"><span class="wb-q__label" id="q-career">Where do you want this course to take you?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-career" data-name="career_goal"></div></div>
+                        <label class="au-field"><span>Why do you want to join the Founding Cohort?</span>
+                            <textarea name="motivation" rows="5" maxlength="1500" placeholder="Tell us where you are now, what you want to do next, and how this course fits in. Specific answers stand out."></textarea>
+                            <small class="ap-count" data-for="motivation"></small></label>
+                        <label class="au-field"><span>A problem you'd like to solve with data <em>(at work, in your community or anywhere)</em></span>
+                            <textarea name="problem" rows="3" maxlength="1000" placeholder="e.g. spotting fake loan applications, reducing clinic no-shows, pricing farm produce fairly"></textarea>
+                            <small class="ap-count" data-for="problem"></small></label>
+                    </fieldset>
+                    <fieldset class="wb-group">
+                        <legend>4. After launch <em>(not used for selection)</em></legend>
+                        <div class="wb-q"><span class="wb-q__label" id="q-afford">If the full course had a fee after launch, what could you pay per month?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-afford" data-name="can_afford"></div></div>
+                    </fieldset>
+                    <fieldset class="wb-group">
+                        <legend>5. Commitment</legend>
+                        <label class="ap-check ap-check--req"><input type="checkbox" name="commit_deadline"> <span id="ap-commit">If I'm shortlisted, I'll complete Lesson 1 (video, notes, practice and quiz) within 7 days.</span></label>
+                        <label class="ap-check"><input type="checkbox" name="consent_reports"> You can include my answers, without my name, in reports to funders and partners.</label>
+                        <label class="ap-check"><input type="checkbox" name="consent_jobs"> Tell me about internships and job opportunities that match my profile.</label>
+                    </fieldset>
+                    <div class="wb-actions">
+                        <button class="ac-btn ac-btn--primary au-submit" type="submit" id="ap-submit">Submit application</button>
+                    </div>
+                    <p class="wb-privacy">One application per person. You can't edit it after you submit. See how we use your answers in our <a href="/privacy/">Privacy Policy</a>.</p>
+                </form>
+            </div>
+        </section>"""
+
+apply_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var info = (await sb.rpc('cohort_public', { p_slug: OFL.qs('c') || null })).data;
+            var cta = document.getElementById('ap-cta'), form = document.getElementById('ap-form'), status = document.getElementById('ap-status');
+            if (!info || info.status !== 'open') {
+                document.getElementById('ap-places').textContent = 'Applications closed';
+                document.getElementById('ap-places-sub').textContent = 'Follow us to hear about the next cohort';
+                cta.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'Applications aren’t open right now' }),
+                    el('p', { class: 'ac-muted', text: 'Follow Open Fraud Labs on TikTok and LinkedIn to hear when the next cohort opens.' })));
+            }
+            if (info) {
+                document.getElementById('ap-title').textContent = 'Join the Academy’s ' + info.title;
+                document.getElementById('ap-trial').textContent = info.trial_days + '-day trial';
+                document.querySelector('#ap-facts li:nth-child(3) span').textContent = 'Finish Lesson ' + info.trial_lesson + ' in time to keep your place';
+                document.getElementById('ap-step3').textContent = 'Finish Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz) within ' + info.trial_days + ' days of being shortlisted. If you don’t, your place goes to the next person.';
+                document.getElementById('ap-commit').textContent = 'If I’m shortlisted, I’ll complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz) within ' + info.trial_days + ' days.';
+                if (info.status === 'open') {
+                    document.getElementById('ap-places').textContent = info.places_left > 0 ? info.places_left + ' of ' + info.capacity + ' places open' : 'All ' + info.capacity + ' places taken';
+                    document.getElementById('ap-places-sub').textContent = info.places_left > 0 ? 'Shortlisted from applications' : 'Apply to join the waitlist';
+                }
+            }
+            if (!info || info.status !== 'open') { return showStatusOnly(); }
+            var user = await OFL.getUser();
+            var next = '/academy/apply/' + (OFL.qs('c') ? '?c=' + encodeURIComponent(OFL.qs('c')) : '');
+            if (!user) {
+                cta.appendChild(el('div', { class: 'ap-cta' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Create a free account to apply' }),
+                    el('p', { class: 'ac-muted ac-small' }, 'Already have an account? ', el('a', { href: '/account/?next=' + encodeURIComponent(next), text: 'Log in' }))));
+                return;
+            }
+            var prof = (await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
+            if (!prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(next); return; }
+            var mine = (await sb.rpc('application_mine', { p_slug: info.slug })).data;
+            if (mine) return drawStatus(mine);
+            var bg = (await sb.from('learner_background').select('completed_at').eq('user_id', user.id).maybeSingle()).data;
+            if (!bg || !bg.completed_at) cta.appendChild(el('div', { class: 'ofl-notice ac-nudge' }, 'Tip: ', el('a', { href: '/academy/welcome/?next=' + encodeURIComponent(next), text: 'complete your About-you profile' }), ' before you apply. It’s one of the things we look at.'));
+            var OPTS = { hours: [['1-2', '1–2 hours'], ['3-5', '3–5 hours'], ['6-10', '6–10 hours'], ['10+', 'More than 10']],
+                device: [['laptop', 'My own laptop or desktop'], ['shared', 'A shared or public computer'], ['phone', 'Phone only']],
+                internet: [['reliable', 'Reliable'], ['sometimes', 'Sometimes unreliable'], ['poor', 'Often poor']],
+                career_goal: [['first_job', 'My first data job'], ['switch', 'Switch careers'], ['upskill', 'Do my current job better'], ['freelance', 'Freelance work'], ['business', 'My own business'], ['study', 'Further study']],
+                can_afford: [['0', 'Nothing right now'], ['lt5k', 'Under ₦5,000'], ['5-15k', '₦5,000–15,000'], ['15-30k', '₦15,000–30,000'], ['30k+', 'Over ₦30,000']] };
+            document.querySelectorAll('#ap-form .wb-chips').forEach(function (g) {
+                var name = g.getAttribute('data-name');
+                (OPTS[name] || []).forEach(function (o) { g.appendChild(el('label', { class: 'wb-chip' }, el('input', { type: 'radio', name: name, value: o[0] }), el('span', { text: o[1] }))); });
+            });
+            document.querySelectorAll('.ap-count').forEach(function (c) {
+                var t = form[c.getAttribute('data-for')], min = c.getAttribute('data-for') === 'motivation' ? 30 : 0;
+                function upd() { var n = t.value.trim().length; c.textContent = n + ' characters' + (min && n < min ? ' (at least ' + min + ')' : ''); c.classList.toggle('is-short', !!min && n < min); }
+                t.addEventListener('input', upd); upd();
+            });
+            form.hidden = false;
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var f = form, val = function (n) { var x = f.querySelector('input[name="' + n + '"]:checked'); return x ? x.value : null; };
+                document.querySelectorAll('#ap-form .wb-chips').forEach(function (g) { g.classList.remove('is-invalid'); });
+                if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); g.scrollIntoView({ block: 'center' }); return OFL.notice(msg, 'Tell us how many hours a week you can study.', 'error'); }
+                if (f.motivation.value.trim().length < 30) { f.motivation.focus(); return OFL.notice(msg, 'Tell us a little more about why you want to join (at least 30 characters).', 'error'); }
+                if (!f.commit_deadline.checked) { f.commit_deadline.focus(); return OFL.notice(msg, 'Please confirm you can complete the trial lesson in time.', 'error'); }
+                if (f.follows_tiktok.checked && f.tiktok_handle.value.trim().length < 2) { f.tiktok_handle.focus(); return OFL.notice(msg, 'Add your TikTok username so we can check.', 'error'); }
+                var btn = document.getElementById('ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
+                var res = await sb.rpc('application_submit', { p_slug: info.slug, p_answers: {
+                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_linkedin: f.follows_linkedin.checked, linkedin_url: f.linkedin_url.value,
+                    hours: val('hours'), device: val('device'), internet: val('internet'), career_goal: val('career_goal'), can_afford: val('can_afford'),
+                    motivation: f.motivation.value, problem: f.problem.value,
+                    commit_deadline: f.commit_deadline.checked, consent_reports: f.consent_reports.checked, consent_jobs: f.consent_jobs.checked } });
+                btn.disabled = false; btn.textContent = 'Submit application';
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                form.hidden = true; cta.textContent = ''; msg.textContent = ''; window.scrollTo({ top: 0, behavior: 'smooth' });
+                drawStatus(res.data, true);
+            });
+            async function showStatusOnly() {
+                var u = await OFL.getUser(); if (!u || !info) return;
+                var m = (await sb.rpc('application_mine', { p_slug: info.slug })).data; if (m) drawStatus(m);
+            }
+            function when(v) { return new Date(v).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+            function drawStatus(m, fresh) {
+                document.getElementById('ap-how').hidden = m.status !== 'waitlisted';
+                document.getElementById('ap-facts').hidden = true; document.querySelector('.ap-hero .cp-hero__lead').hidden = true;
+                var lesson = '/academy/lesson/?course=' + info.course + '&n=' + info.trial_lesson, box;
+                if (m.status === 'shortlisted') {
+                    var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
+                    box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Shortlisted' }),
+                        el('h2', { text: 'You have a place: now complete Lesson ' + info.trial_lesson }),
+                        el('p', { text: 'Finish the video, notes, practice and quiz by ' + when(m.deadline_at) + ' to keep your place.' }),
+                        el('div', { class: 'ap-countdown' }, el('b', { class: 'num', text: d + 'd ' + h + 'h' }), el('span', { text: 'left' })),
+                        el('a', { class: 'ac-btn ac-btn--primary', href: lesson, text: 'Start Lesson ' + info.trial_lesson }));
+                } else if (m.status === 'completed') {
+                    box = el('div', { class: 'ap-state ap-state--done' }, el('span', { class: 'ap-state__tag', text: 'Place confirmed' }),
+                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed the trial in time. Carry on with the course whenever you’re ready.' }),
+                        el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to my learning' }));
+                } else if (m.status === 'waitlisted') {
+                    box = el('div', { class: 'ap-state' }, el('span', { class: 'ap-state__tag', text: fresh ? 'Application received' : 'On the waitlist' }),
+                        el('h2', { text: fresh ? 'Thank you for applying' : 'You’re on the waitlist' }),
+                        el('p', { text: m.meets_min ? 'You’re number ' + m.position + ' on the waitlist. Places open when shortlisted learners don’t finish the trial in time, and we shortlist the next person automatically.'
+                                                   : 'Our team will review your application. We’ll tell you on the site and by email if a place opens for you.' }),
+                        el('p', { class: 'ac-muted ac-small', text: 'While you wait, follow @_drhola on TikTok for free short lessons.' }));
+                } else if (m.status === 'missed') {
+                    box = el('div', { class: 'ap-state ap-state--end' }, el('span', { class: 'ap-state__tag', text: 'Trial ended' }),
+                        el('h2', { text: 'Your trial period has ended' }), el('p', { text: 'Lesson ' + info.trial_lesson + ' wasn’t completed by the deadline, so the place went to the next person on the waitlist. You’re welcome to apply for a future cohort.' }));
+                } else {
+                    box = el('div', { class: 'ap-state ap-state--end' }, el('span', { class: 'ap-state__tag', text: 'Application closed' }),
+                        el('h2', { text: 'Thank you for applying' }), el('p', { text: 'We weren’t able to offer you a place in this cohort. You’re welcome to apply for a future one.' }));
+                }
+                status.textContent = ''; status.appendChild(box);
+            }
+        })();"""
+
+page("academy/apply", "Founding Cohort: apply | Open Fraud Labs Academy",
+     "Apply for a free place in the Open Fraud Labs Academy Founding Cohort: Data Science from Scratch, shortlisted from applications with a 7-day trial.",
+     apply_main, apply_script, active="courses")
+
+careers_main = f"""        <section class="cp-hero">
+            <div class="ac-wrap">
+                <p class="ac-eyebrow">Careers</p>
+                <h1>Work and learn with Open Fraud Labs</h1>
+                <p class="cp-hero__lead">Open Fraud Labs builds practical, trustworthy data and AI skills for Africa and beyond. Here's what's open right now.</p>
+            </div>
+        </section>
+        <section class="ac-section">
+            <div class="ac-narrow">
+                <h2 class="cr-h">Programmes</h2>
+                <article class="cr-job" id="cr-cohort">
+                    <div>
+                        <span class="ac-status ac-status--soon" id="cr-state">Loading</span>
+                        <h3>Academy Founding Cohort: free learning internship</h3>
+                        <p class="ac-muted">Learn Data Science from Scratch for free before the Academy launches. Shortlisted from applications, with a 7-day trial: finish Lesson 1 in time to keep your place.</p>
+                        <p class="cr-meta" id="cr-meta">Online · Free · Unpaid</p>
+                    </div>
+                    <a class="ac-btn ac-btn--primary" href="/academy/apply/" id="cr-apply">See details and apply</a>
+                </article>
+                <h2 class="cr-h">Paid roles</h2>
+                <p class="ac-muted">No paid roles are open right now. Follow Open Fraud Labs on <a href="{LI}" target="_blank" rel="noopener noreferrer">LinkedIn</a> to hear when they are.</p>
+            </div>
+        </section>"""
+
+careers_script = r"""        (async function () {
+            var info = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
+            var s = document.getElementById('cr-state'), meta = document.getElementById('cr-meta'), a = document.getElementById('cr-apply');
+            if (!info || info.status !== 'open') { s.textContent = 'Closed'; a.textContent = 'See details'; return; }
+            s.textContent = 'Applications open'; s.className = 'ac-status ac-status--live';
+            meta.textContent = 'Online · Free · Unpaid · ' + (info.places_left > 0 ? info.places_left + ' of ' + info.capacity + ' places open' : 'Places full: waitlist open');
+            a.href = '/academy/apply/?c=' + encodeURIComponent(info.slug);
+        })();"""
+
+page("careers", "Careers | Open Fraud Labs", "Open programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.",
+     careers_main, careers_script)
 
 # ============================================================== Pricing (Paystack passes)
 pricing_main = """        <div class="ac-wrap">

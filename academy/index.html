@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261002t">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -48,6 +48,7 @@
         </div>
     </header>
     <main id="main">
+        <a class="ap-banner" id="ap-banner" href="/academy/apply/" hidden><span class="ap-banner__tag">Pre-launch</span><span id="ap-banner-text">Applications are open for the free Founding Cohort</span><span aria-hidden="true">&rarr;</span></a>
         <section class="lp-hero">
             <div class="ac-wrap lp-hero__grid">
                 <div class="lp-hero__copy">
@@ -143,7 +144,7 @@ Monthly    0.250</pre></div>
                 </div>
                 <article class="lp-course">
                     <div class="lp-course__body">
-                        <span class="ac-status ac-status--live">Open for enrolment</span>
+                        <span class="ac-status ac-status--live" id="home-ds-status">Open for enrolment</span>
                         <h3>Data Science from Scratch</h3>
                         <p>From &ldquo;what is data science?&rdquo; to building and explaining your first models, with examples from retail, health, transport, media and finance.</p>
                         <ul class="ac-outcomes">
@@ -234,6 +235,7 @@ Monthly    0.250</pre></div>
                 <h3>Open Fraud Labs</h3>
                 <ul>
                     <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
                     <li><a href="mailto:hello@openfraudlabs.com">hello@openfraudlabs.com</a></li>
                     <li><a href="/terms/">Terms of Service</a></li>
                     <li><a href="/privacy/">Privacy Policy</a></li>
@@ -243,8 +245,8 @@ Monthly    0.250</pre></div>
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261002t"></script>
-    <script src="/assets/js/academy.js?v=20261002t"></script>
+    <script src="/assets/js/learn.js?v=20261003a"></script>
+    <script src="/assets/js/academy.js?v=20261003a"></script>
     <script>
         (function () {
             var cell = document.getElementById('lp-cell'); if (!cell) return;
@@ -255,6 +257,14 @@ Monthly    0.250</pre></div>
                 code.textContent = full.slice(0, ++i);
                 if (i < full.length) setTimeout(tick, 28); else setTimeout(function () { cell.classList.remove('is-typing'); cell.classList.add('is-done'); }, 260);
             }, 700);
+        })();
+        (async function cohort() {
+            var c = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
+            if (!c || c.status !== 'open') return;
+            var b = document.getElementById('ap-banner'); b.href = '/academy/apply/?c=' + encodeURIComponent(c.slug);
+            var hs = document.getElementById('home-ds-status'); if (hs && c.course === 'data-science') { hs.textContent = 'Pre-launch: applications open'; var hl = hs.parentNode.querySelector('a.ac-btn'); if (hl) { hl.textContent = 'View course and apply'; } }
+            document.getElementById('ap-banner-text').textContent = 'Applications are open for the free ' + c.title + (c.places_left > 0 ? ': ' + c.places_left + ' places left' : ': waitlist open');
+            b.hidden = false;
         })();
         (async function courses() {
             var r = await OFL.sb.from('courses').select('slug, title, description, level, status, access, total_lessons, sort').neq('status', 'hidden').order('sort');
