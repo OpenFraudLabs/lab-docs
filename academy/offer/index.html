@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your offer letter | Open Fraud Labs Academy</title>
+    <meta name="description" content="Read and sign your Open Fraud Labs Academy offer letter.">
+    <meta property="og:title" content="Your offer letter | Open Fraud Labs Academy">
+    <meta property="og:description" content="Read and sign your Open Fraud Labs Academy offer letter.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003f">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses" aria-current="page">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/careers/">Careers</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-narrow of-wrap">
+            <div id="msg"></div>
+            <article class="of-letter" id="of-letter" hidden>
+                <header class="of-head">
+                    <div class="of-brand"><img src="/assets/logo.png" alt="" width="40" height="40"><div><b>Open Fraud Labs Academy</b><span>openfraudlabs.com/academy &middot; academy@openfraudlabs.com</span></div></div>
+                    <div class="of-meta"><span id="of-date"></span><span id="of-ref"></span></div>
+                </header>
+                <h1 id="of-title">Offer of a place</h1>
+                <div class="of-body" id="of-body"></div>
+                <section class="of-sign" id="of-sign"></section>
+            </article>
+            <div class="of-actions" id="of-actions"></div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261003f"></script>
+    <script src="/assets/js/academy.js?v=20261003f"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), slug = OFL.qs('c') || 'founding-2026';
+            var next = '/academy/offer/?c=' + encodeURIComponent(slug);
+            var user = await OFL.requireUser(next); if (!user) return;
+            var info = (await sb.rpc('cohort_public', { p_slug: slug })).data;
+            var m = (await sb.rpc('application_mine', { p_slug: slug })).data;
+            if (!info || !m || !m.offer_letter) {
+                msg.appendChild(el('div', { class: 'ac-panel' }, el('h1', { text: 'No offer letter yet' }), el('p', { class: 'ac-muted', text: 'Offer letters appear here when you’re offered a place. Check your application page for your status.' }),
+                    el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/apply/?c=' + encodeURIComponent(slug), text: 'Go to my application' })));
+                return;
+            }
+            function fmt(v) { return new Date(v).toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }); }
+            function draw(m) {
+                document.getElementById('of-letter').hidden = false;
+                document.getElementById('of-title').textContent = 'Offer of a place: ' + info.title + ' 2026';
+                document.getElementById('of-date').textContent = new Date(m.deadline_at ? new Date(m.deadline_at).getTime() - info.trial_days * 864e5 : Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' });
+                document.getElementById('of-ref').textContent = 'Ref: OFL-' + info.slug.toUpperCase();
+                var body = document.getElementById('of-body'); body.textContent = '';
+                m.offer_letter.split(/\n\n+/).forEach(function (p) { var para = el('p'); p.split('\n').forEach(function (line, i) { if (i) para.appendChild(el('br')); para.appendChild(document.createTextNode(line)); }); body.appendChild(para); });
+                var sign = document.getElementById('of-sign'); sign.textContent = '';
+                var acts = document.getElementById('of-actions'); acts.textContent = '';
+                if (m.offer_signed_at) {
+                    sign.append(el('h2', { text: 'Acceptance' }), el('p', { text: 'I accept this offer and its conditions.' }),
+                        el('div', { class: 'of-sig' }, el('span', { class: 'of-sig__name', text: m.offer_signed_name }), el('span', { class: 'of-sig__line', text: 'Signed electronically on ' + fmt(m.offer_signed_at) + ' (Lagos time)' })));
+                    acts.append(el('button', { class: 'ac-btn ac-btn--secondary', type: 'button', text: 'Print or save as PDF', onclick: function () { window.print(); } }),
+                        el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/apply/?c=' + encodeURIComponent(slug), text: m.status === 'completed' ? 'Go to my application' : 'Finish the other offer steps' }));
+                    return;
+                }
+                if (m.status !== 'shortlisted') { sign.append(el('p', { class: 'ac-muted', text: m.status === 'missed' ? 'This offer has lapsed.' : 'This offer can no longer be signed.' })); return; }
+                var name = el('input', { type: 'text', maxlength: '120', autocomplete: 'name', placeholder: 'Type your full name', 'aria-label': 'Your full name' });
+                var agree = el('input', { type: 'checkbox' });
+                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Sign and accept' });
+                btn.addEventListener('click', async function () {
+                    if (name.value.trim().length < 3) { name.focus(); return OFL.notice(msg, 'Type your full name to sign.', 'error'); }
+                    if (!agree.checked) { agree.focus(); return OFL.notice(msg, 'Tick the box to confirm you accept the offer.', 'error'); }
+                    btn.disabled = true;
+                    var r = await sb.rpc('application_offer_step', { p_slug: slug, p_step: 'sign', p_value: name.value });
+                    btn.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    OFL.notice(msg, 'Thank you. Your signed acceptance is saved.', 'success'); window.scrollTo({ top: 0, behavior: 'smooth' }); draw(r.data);
+                });
+                sign.append(el('h2', { text: 'Accept your offer' }), el('p', { class: 'ac-muted', text: 'Sign by ' + fmt(m.deadline_at) + ' (Lagos time). Typing your name below is your electronic signature.' }),
+                    el('label', { class: 'au-field' }, el('span', { text: 'Full name' }), name),
+                    el('label', { class: 'ap-check' }, agree, ' I have read this offer and I accept it and its conditions.'), btn);
+            }
+            draw(m);
+        })();
+    </script>
+</body>
+</html>

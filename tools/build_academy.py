@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261003e"
+V = "20261003f"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -78,6 +78,7 @@ def header(active=""):
                 {link('/academy/#courses', 'Courses', 'courses')}
                 {link('/academy/dashboard/', 'My learning', 'dashboard')}
                 {link('/verify/', 'Verify a certificate', 'verify')}
+                {link('/careers/', 'Careers', 'careers')}
                 <a href="/">Open Fraud Labs</a>
             </nav>
             <div class="ac-account" id="ac-account"></div>
@@ -2102,7 +2103,7 @@ admin_script = r"""        (async function () {
                     if (a.status === 'waitlisted') stCell.appendChild(el('small', { class: 'ac-muted', text: a.score >= c.min_score ? '#' + (++wl) + ' in line' : 'below minimum score' }));
                     var ans = a.answers || {}, pr = PROOF[a.proof_status] || ['—', 'end'], follows = el('td', { class: 'app-follows' }, el('span', { class: 'app-st app-st--' + pr[1], text: pr[0] }));
                     if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
-                    if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
+                    if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (a.offer_signed_at ? 'Signed \u2713 ' : 'Signed \u2717 ') + (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
                     var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
                     if (a.status === 'waitlisted' && a.proof_status === 'pending') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Check', onclick: function () { openApp(a); } }));
                     tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
@@ -2162,6 +2163,8 @@ admin_script = r"""        (async function () {
                 }
                 if (a.status === 'shortlisted' || a.status === 'completed' || a.status === 'missed') {
                     var os = el('div', { class: 'app-card' }, el('h3', { text: 'Offer steps' }));
+                    os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer letter' }), el('b', { text: a.offer_signed_at ? 'Signed by ' + a.offer_signed_name + ', ' + dt(a.offer_signed_at) : 'Not signed yet' })));
+                    if (a.offer_letter) { var lt = el('details', { class: 'app-letter' }, el('summary', { text: 'Read the letter they were sent' }), el('p', { class: 'app-text', text: a.offer_letter })); os.appendChild(lt); }
                     if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
                     if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : 'Not yet' })));
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Lesson ' + c0.trial_lesson }), el('b', { text: a.trial_done ? 'Passed' : 'Not yet' })));
@@ -2877,7 +2880,7 @@ LI = "https://www.linkedin.com/company/open-fraud-labs/"
 apply_main = f"""        <section class="cp-hero ap-hero">
             <div class="ac-wrap">
                 <nav class="cp-crumbs" aria-label="Breadcrumb"><a href="/careers/">Careers</a><span aria-hidden="true">/</span><span>Founding Cohort</span></nav>
-                <p class="ac-eyebrow" id="ap-eyebrow">Pre-launch · Free learning internship</p>
+                <p class="ac-eyebrow" id="ap-eyebrow">Open Fraud Labs Academy · Pre-launch · Free learning internship</p>
                 <h1 id="ap-title">Join the Academy's Founding Cohort</h1>
                 <p class="cp-hero__lead">Before the Academy opens to everyone, we're taking a small group of learners through <b>Data Science from Scratch</b> for free. Places are limited, so we shortlist from applications and keep a waitlist.</p>
                 <ul class="ap-facts" id="ap-facts">
@@ -3145,6 +3148,11 @@ apply_script = r"""        (async function () {
                     var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
                     var list = el('ol', { class: 'ap-offer' });
                     function item(done, title, body) { list.appendChild(el('li', { class: done ? 'is-done' : '' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: done ? '✓' : '' }), el('div', {}, el('b', { text: title + (done ? ' (done)' : '') }), body))); }
+                    if (m.require_signature) {
+                        item(!!m.offer_signed_at, 'Sign your offer letter', el('div', { class: 'ap-offer__body' },
+                            el('p', { text: m.offer_signed_at ? 'Signed by ' + m.offer_signed_name + '. You can read it again or save a copy any time.' : 'Your offer letter sets out what we provide and what we ask of you. It was also emailed to you.' }),
+                            el('a', { class: 'ac-btn ac-btn--' + (m.offer_signed_at ? 'secondary' : 'primary') + ' ac-btn--sm', href: '/academy/offer/?c=' + encodeURIComponent(info.slug), text: m.offer_signed_at ? 'View signed letter' : 'Read and sign' })));
+                    }
                     if (info.require_post) {
                         var post = 'I’ve been offered a place in the Founding Cohort of Open Fraud Labs Academy.\n\nOver the coming weeks I’ll be learning Data Science from Scratch: Python, statistics and machine learning, with hands-on projects.\n\nThank you @Ayodele Odugbile and @Open Fraud Labs for the opportunity. If you’re curious about data, take a look: openfraudlabs.com/academy\n\n#OpenFraudLabsAcademy #DataScience';
                         var url = el('input', { type: 'url', placeholder: 'https://www.linkedin.com/posts/…', value: m.post_url || '', 'aria-label': 'Link to your LinkedIn post' });
@@ -3210,6 +3218,71 @@ page("academy/apply", "Founding Cohort: apply | Open Fraud Labs Academy",
      "Apply for a free place in the Open Fraud Labs Academy Founding Cohort: Data Science from Scratch, shortlisted from applications with a 7-day trial.",
      apply_main, apply_script, active="courses")
 
+# ============================================================== Offer letter (read and sign)
+offer_main = """        <div class="ac-narrow of-wrap">
+            <div id="msg"></div>
+            <article class="of-letter" id="of-letter" hidden>
+                <header class="of-head">
+                    <div class="of-brand"><img src="/assets/logo.png" alt="" width="40" height="40"><div><b>Open Fraud Labs Academy</b><span>openfraudlabs.com/academy &middot; academy@openfraudlabs.com</span></div></div>
+                    <div class="of-meta"><span id="of-date"></span><span id="of-ref"></span></div>
+                </header>
+                <h1 id="of-title">Offer of a place</h1>
+                <div class="of-body" id="of-body"></div>
+                <section class="of-sign" id="of-sign"></section>
+            </article>
+            <div class="of-actions" id="of-actions"></div>
+        </div>"""
+
+offer_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), slug = OFL.qs('c') || 'founding-2026';
+            var next = '/academy/offer/?c=' + encodeURIComponent(slug);
+            var user = await OFL.requireUser(next); if (!user) return;
+            var info = (await sb.rpc('cohort_public', { p_slug: slug })).data;
+            var m = (await sb.rpc('application_mine', { p_slug: slug })).data;
+            if (!info || !m || !m.offer_letter) {
+                msg.appendChild(el('div', { class: 'ac-panel' }, el('h1', { text: 'No offer letter yet' }), el('p', { class: 'ac-muted', text: 'Offer letters appear here when you’re offered a place. Check your application page for your status.' }),
+                    el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/apply/?c=' + encodeURIComponent(slug), text: 'Go to my application' })));
+                return;
+            }
+            function fmt(v) { return new Date(v).toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }); }
+            function draw(m) {
+                document.getElementById('of-letter').hidden = false;
+                document.getElementById('of-title').textContent = 'Offer of a place: ' + info.title + ' 2026';
+                document.getElementById('of-date').textContent = new Date(m.deadline_at ? new Date(m.deadline_at).getTime() - info.trial_days * 864e5 : Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' });
+                document.getElementById('of-ref').textContent = 'Ref: OFL-' + info.slug.toUpperCase();
+                var body = document.getElementById('of-body'); body.textContent = '';
+                m.offer_letter.split(/\n\n+/).forEach(function (p) { var para = el('p'); p.split('\n').forEach(function (line, i) { if (i) para.appendChild(el('br')); para.appendChild(document.createTextNode(line)); }); body.appendChild(para); });
+                var sign = document.getElementById('of-sign'); sign.textContent = '';
+                var acts = document.getElementById('of-actions'); acts.textContent = '';
+                if (m.offer_signed_at) {
+                    sign.append(el('h2', { text: 'Acceptance' }), el('p', { text: 'I accept this offer and its conditions.' }),
+                        el('div', { class: 'of-sig' }, el('span', { class: 'of-sig__name', text: m.offer_signed_name }), el('span', { class: 'of-sig__line', text: 'Signed electronically on ' + fmt(m.offer_signed_at) + ' (Lagos time)' })));
+                    acts.append(el('button', { class: 'ac-btn ac-btn--secondary', type: 'button', text: 'Print or save as PDF', onclick: function () { window.print(); } }),
+                        el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/apply/?c=' + encodeURIComponent(slug), text: m.status === 'completed' ? 'Go to my application' : 'Finish the other offer steps' }));
+                    return;
+                }
+                if (m.status !== 'shortlisted') { sign.append(el('p', { class: 'ac-muted', text: m.status === 'missed' ? 'This offer has lapsed.' : 'This offer can no longer be signed.' })); return; }
+                var name = el('input', { type: 'text', maxlength: '120', autocomplete: 'name', placeholder: 'Type your full name', 'aria-label': 'Your full name' });
+                var agree = el('input', { type: 'checkbox' });
+                var btn = el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Sign and accept' });
+                btn.addEventListener('click', async function () {
+                    if (name.value.trim().length < 3) { name.focus(); return OFL.notice(msg, 'Type your full name to sign.', 'error'); }
+                    if (!agree.checked) { agree.focus(); return OFL.notice(msg, 'Tick the box to confirm you accept the offer.', 'error'); }
+                    btn.disabled = true;
+                    var r = await sb.rpc('application_offer_step', { p_slug: slug, p_step: 'sign', p_value: name.value });
+                    btn.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    OFL.notice(msg, 'Thank you. Your signed acceptance is saved.', 'success'); window.scrollTo({ top: 0, behavior: 'smooth' }); draw(r.data);
+                });
+                sign.append(el('h2', { text: 'Accept your offer' }), el('p', { class: 'ac-muted', text: 'Sign by ' + fmt(m.deadline_at) + ' (Lagos time). Typing your name below is your electronic signature.' }),
+                    el('label', { class: 'au-field' }, el('span', { text: 'Full name' }), name),
+                    el('label', { class: 'ap-check' }, agree, ' I have read this offer and I accept it and its conditions.'), btn);
+            }
+            draw(m);
+        })();"""
+
+page("academy/offer", "Your offer letter | Open Fraud Labs Academy", "Read and sign your Open Fraud Labs Academy offer letter.", offer_main, offer_script, active="courses", noindex=True)
+
 careers_main = f"""        <section class="cp-hero">
             <div class="ac-wrap">
                 <p class="ac-eyebrow">Careers</p>
@@ -3219,13 +3292,15 @@ careers_main = f"""        <section class="cp-hero">
         </section>
         <section class="ac-section">
             <div class="ac-narrow">
-                <h2 class="cr-h">Internships</h2>
+                <h2 class="cr-h">Academy internships</h2>
+                <p class="ac-muted cr-sub">Join the small team running Open Fraud Labs Academy, our online school for data and AI skills.</p>
                 <div id="cr-roles"><p class="ac-muted">Loading&hellip;</p></div>
-                <h2 class="cr-h">Programmes</h2>
+                <h2 class="cr-h">Academy programmes</h2>
                 <article class="cr-job" id="cr-cohort">
                     <div>
                         <span class="ac-status ac-status--soon" id="cr-state">Loading</span>
-                        <h3>Academy Founding Cohort: free learning internship</h3>
+                        <p class="cr-org">Open Fraud Labs Academy</p>
+                        <h3>Founding Cohort: free learning internship</h3>
                         <p class="ac-muted">Learn Data Science from Scratch for free before the Academy launches. For people with their own laptop who follow Open Fraud Labs on TikTok and LinkedIn. Offers go to eligible applicants in ranked order.</p>
                         <p class="cr-meta" id="cr-meta">Online · Free · Unpaid</p>
                     </div>
@@ -3245,7 +3320,7 @@ careers_script = r"""        (async function () {
                 var open = r.status === 'open';
                 box.appendChild(el('article', { class: 'cr-job' }, el('div', {},
                     el('span', { class: 'ac-status ' + (open ? 'ac-status--live' : 'ac-status--soon'), text: open ? (r.rolling ? 'Open: rolling applications' : 'Open') : 'Filled' }),
-                    el('h3', { text: r.title }), el('p', { class: 'ac-muted', text: r.summary }),
+                    el('p', { class: 'cr-org', text: 'Open Fraud Labs Academy' }), el('h3', { text: r.title }), el('p', { class: 'ac-muted', text: r.summary }),
                     el('p', { class: 'cr-meta', text: [r.paid ? 'Paid' : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
                     el('a', { class: 'ac-btn ac-btn--' + (open ? 'primary' : 'secondary'), href: '/careers/role/?r=' + encodeURIComponent(r.slug), text: open ? 'See role and apply' : 'See role' })));
             });
@@ -3333,7 +3408,7 @@ role_script = r"""        (async function () {
             document.getElementById('rl-crumb').textContent = r.title;
             document.getElementById('rl-title').textContent = r.title;
             document.getElementById('rl-summary').textContent = r.summary;
-            document.getElementById('rl-eyebrow').textContent = (r.paid ? 'Paid ' : 'Unpaid ') + r.kind + (r.team ? ' · ' + r.team : '');
+            document.getElementById('rl-eyebrow').textContent = 'Open Fraud Labs Academy \u00b7 ' + (r.paid ? 'Paid ' : 'Unpaid ') + r.kind;
             var facts = document.getElementById('rl-facts');
             [[r.paid ? 'Paid' : 'Unpaid', r.paid ? '' : 'Experience and a recommendation letter'], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
                 .forEach(function (f) { if (f[0]) facts.appendChild(el('li', {}, el('b', { text: f[0] }), el('span', { text: f[1] }))); });

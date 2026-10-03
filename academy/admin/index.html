@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -41,6 +41,7 @@
                 <a href="/academy/#courses">Courses</a>
                 <a href="/academy/dashboard/">My learning</a>
                 <a href="/verify/">Verify a certificate</a>
+                <a href="/careers/">Careers</a>
                 <a href="/">Open Fraud Labs</a>
             </nav>
             <div class="ac-account" id="ac-account"></div>
@@ -288,8 +289,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003e"></script>
-    <script src="/assets/js/academy.js?v=20261003e"></script>
+    <script src="/assets/js/learn.js?v=20261003f"></script>
+    <script src="/assets/js/academy.js?v=20261003f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -621,7 +622,7 @@
                     if (a.status === 'waitlisted') stCell.appendChild(el('small', { class: 'ac-muted', text: a.score >= c.min_score ? '#' + (++wl) + ' in line' : 'below minimum score' }));
                     var ans = a.answers || {}, pr = PROOF[a.proof_status] || ['—', 'end'], follows = el('td', { class: 'app-follows' }, el('span', { class: 'app-st app-st--' + pr[1], text: pr[0] }));
                     if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
-                    if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
+                    if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (a.offer_signed_at ? 'Signed \u2713 ' : 'Signed \u2717 ') + (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
                     var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
                     if (a.status === 'waitlisted' && a.proof_status === 'pending') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Check', onclick: function () { openApp(a); } }));
                     tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
@@ -681,6 +682,8 @@
                 }
                 if (a.status === 'shortlisted' || a.status === 'completed' || a.status === 'missed') {
                     var os = el('div', { class: 'app-card' }, el('h3', { text: 'Offer steps' }));
+                    os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer letter' }), el('b', { text: a.offer_signed_at ? 'Signed by ' + a.offer_signed_name + ', ' + dt(a.offer_signed_at) : 'Not signed yet' })));
+                    if (a.offer_letter) { var lt = el('details', { class: 'app-letter' }, el('summary', { text: 'Read the letter they were sent' }), el('p', { class: 'app-text', text: a.offer_letter })); os.appendChild(lt); }
                     if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
                     if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : 'Not yet' })));
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Lesson ' + c0.trial_lesson }), el('b', { text: a.trial_done ? 'Passed' : 'Not yet' })));

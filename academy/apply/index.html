@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -41,6 +41,7 @@
                 <a href="/academy/#courses" aria-current="page">Courses</a>
                 <a href="/academy/dashboard/">My learning</a>
                 <a href="/verify/">Verify a certificate</a>
+                <a href="/careers/">Careers</a>
                 <a href="/">Open Fraud Labs</a>
             </nav>
             <div class="ac-account" id="ac-account"></div>
@@ -51,7 +52,7 @@
         <section class="cp-hero ap-hero">
             <div class="ac-wrap">
                 <nav class="cp-crumbs" aria-label="Breadcrumb"><a href="/careers/">Careers</a><span aria-hidden="true">/</span><span>Founding Cohort</span></nav>
-                <p class="ac-eyebrow" id="ap-eyebrow">Pre-launch · Free learning internship</p>
+                <p class="ac-eyebrow" id="ap-eyebrow">Open Fraud Labs Academy · Pre-launch · Free learning internship</p>
                 <h1 id="ap-title">Join the Academy's Founding Cohort</h1>
                 <p class="cp-hero__lead">Before the Academy opens to everyone, we're taking a small group of learners through <b>Data Science from Scratch</b> for free. Places are limited, so we shortlist from applications and keep a waitlist.</p>
                 <ul class="ap-facts" id="ap-facts">
@@ -185,8 +186,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003e"></script>
-    <script src="/assets/js/academy.js?v=20261003e"></script>
+    <script src="/assets/js/learn.js?v=20261003f"></script>
+    <script src="/assets/js/academy.js?v=20261003f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -372,6 +373,11 @@
                     var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
                     var list = el('ol', { class: 'ap-offer' });
                     function item(done, title, body) { list.appendChild(el('li', { class: done ? 'is-done' : '' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: done ? '✓' : '' }), el('div', {}, el('b', { text: title + (done ? ' (done)' : '') }), body))); }
+                    if (m.require_signature) {
+                        item(!!m.offer_signed_at, 'Sign your offer letter', el('div', { class: 'ap-offer__body' },
+                            el('p', { text: m.offer_signed_at ? 'Signed by ' + m.offer_signed_name + '. You can read it again or save a copy any time.' : 'Your offer letter sets out what we provide and what we ask of you. It was also emailed to you.' }),
+                            el('a', { class: 'ac-btn ac-btn--' + (m.offer_signed_at ? 'secondary' : 'primary') + ' ac-btn--sm', href: '/academy/offer/?c=' + encodeURIComponent(info.slug), text: m.offer_signed_at ? 'View signed letter' : 'Read and sign' })));
+                    }
                     if (info.require_post) {
                         var post = 'I’ve been offered a place in the Founding Cohort of Open Fraud Labs Academy.\n\nOver the coming weeks I’ll be learning Data Science from Scratch: Python, statistics and machine learning, with hands-on projects.\n\nThank you @Ayodele Odugbile and @Open Fraud Labs for the opportunity. If you’re curious about data, take a look: openfraudlabs.com/academy\n\n#OpenFraudLabsAcademy #DataScience';
                         var url = el('input', { type: 'url', placeholder: 'https://www.linkedin.com/posts/…', value: m.post_url || '', 'aria-label': 'Link to your LinkedIn post' });
