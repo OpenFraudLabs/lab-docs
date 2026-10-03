@@ -11,9 +11,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Careers | Open Fraud Labs</title>
-    <meta name="description" content="Open programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
+    <meta name="description" content="Internships, programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
     <meta property="og:title" content="Careers | Open Fraud Labs">
-    <meta property="og:description" content="Open programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
+    <meta property="og:description" content="Internships, programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003d">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003e">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -52,11 +52,13 @@
             <div class="ac-wrap">
                 <p class="ac-eyebrow">Careers</p>
                 <h1>Work and learn with Open Fraud Labs</h1>
-                <p class="cp-hero__lead">Open Fraud Labs builds practical, trustworthy data and AI skills for Africa and beyond. Here's what's open right now.</p>
+                <p class="cp-hero__lead">Open Fraud Labs builds practical, trustworthy data and AI skills for Africa and beyond. Join us as a learner or as part of the team that runs the Academy.</p>
             </div>
         </section>
         <section class="ac-section">
             <div class="ac-narrow">
+                <h2 class="cr-h">Internships</h2>
+                <div id="cr-roles"><p class="ac-muted">Loading&hellip;</p></div>
                 <h2 class="cr-h">Programmes</h2>
                 <article class="cr-job" id="cr-cohort">
                     <div>
@@ -101,9 +103,23 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003d"></script>
-    <script src="/assets/js/academy.js?v=20261003d"></script>
+    <script src="/assets/js/learn.js?v=20261003e"></script>
+    <script src="/assets/js/academy.js?v=20261003e"></script>
     <script>
+        (async function () {
+            var el = OFL.el, box = document.getElementById('cr-roles');
+            var roles = ((await OFL.sb.from('roles').select('slug, title, summary, paid, kind, location, commitment, duration, status, rolling').in('status', ['open', 'filled']).order('sort')).data || []);
+            box.textContent = '';
+            if (!roles.length) box.appendChild(el('p', { class: 'ac-muted', text: 'No internships are open right now.' }));
+            roles.forEach(function (r) {
+                var open = r.status === 'open';
+                box.appendChild(el('article', { class: 'cr-job' }, el('div', {},
+                    el('span', { class: 'ac-status ' + (open ? 'ac-status--live' : 'ac-status--soon'), text: open ? (r.rolling ? 'Open: rolling applications' : 'Open') : 'Filled' }),
+                    el('h3', { text: r.title }), el('p', { class: 'ac-muted', text: r.summary }),
+                    el('p', { class: 'cr-meta', text: [r.paid ? 'Paid' : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
+                    el('a', { class: 'ac-btn ac-btn--' + (open ? 'primary' : 'secondary'), href: '/careers/role/?r=' + encodeURIComponent(r.slug), text: open ? 'See role and apply' : 'See role' })));
+            });
+        })();
         (async function () {
             var info = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
             var s = document.getElementById('cr-state'), meta = document.getElementById('cr-meta'), a = document.getElementById('cr-apply');

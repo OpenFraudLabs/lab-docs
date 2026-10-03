@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003d">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003e">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -79,6 +79,7 @@
                     <ul class="ac-outcomes" id="ap-reqs">
                         <li data-req="laptop">You have your own laptop or desktop computer</li>
                         <li data-req="proofs">You have a LinkedIn account and follow <a href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">@_drhola on TikTok</a>, <a class="ap-founder-link" href="https://www.linkedin.com/search/results/people/?keywords=Ayodele%20Odugbile" target="_blank" rel="noopener noreferrer">Ayodele Odugbile</a> and <a href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">Open Fraud Labs</a> on LinkedIn, with a screenshot of each</li>
+                        <li data-req="cv">You attach your CV (PDF or Word)</li>
                         <li data-req="post">If offered a place, you're happy to post about it on LinkedIn and tag us</li>
                         <li>You can finish the offer steps within 7 days</li>
                     </ul>
@@ -114,6 +115,7 @@
                             </div>
                         </div>
                         <label class="au-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
+                        <div class="au-field" id="ap-cv-field" hidden><span>Your CV <em>(PDF or Word)</em></span><div class="ap-upload" id="ap-cv"></div></div>
                     </fieldset>
                     <fieldset class="wb-group">
                         <legend>2. Your time and setup</legend>
@@ -183,11 +185,33 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003d"></script>
-    <script src="/assets/js/academy.js?v=20261003d"></script>
+    <script src="/assets/js/learn.js?v=20261003e"></script>
+    <script src="/assets/js/academy.js?v=20261003e"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+
+            function cvUploader(box, uid, context, onDone) {
+                box.textContent = '';
+                var input = OFL.el('input', { type: 'file', accept: '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document', class: 'ap-file', 'aria-label': 'Upload your CV' });
+                var state = OFL.el('span', { class: 'ap-up-state', text: 'PDF or Word, up to 2 MB' });
+                var pick = OFL.el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Upload CV', onclick: function () { input.click(); } });
+                input.addEventListener('change', async function () {
+                    var f = input.files[0]; if (!f) return;
+                    var ext = (f.name.split('.').pop() || '').toLowerCase();
+                    if (['pdf', 'doc', 'docx'].indexOf(ext) < 0) { state.textContent = 'Use a PDF or Word file.'; state.className = 'ap-up-state is-err'; return; }
+                    if (f.size > 2097152) { state.textContent = 'That file is over 2 MB. Save it as a smaller PDF and try again.'; state.className = 'ap-up-state is-err'; return; }
+                    state.textContent = 'Uploading…'; state.className = 'ap-up-state'; pick.disabled = true;
+                    var types = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+                    var r = await OFL.sb.storage.from('cvs').upload(uid + '/' + context + '/cv.' + ext, f, { upsert: true, contentType: types[ext] });
+                    pick.disabled = false; input.value = '';
+                    if (r.error) { state.textContent = r.error.message || 'Upload failed. Try again.'; state.className = 'ap-up-state is-err'; return; }
+                    state.textContent = f.name + ' uploaded'; state.className = 'ap-up-state is-ok'; pick.textContent = 'Replace CV';
+                    onDone(true);
+                });
+                box.append(OFL.el('div', { class: 'ap-up-row' }, pick, state), input);
+            }
+
             var info = (await sb.rpc('cohort_public', { p_slug: OFL.qs('c') || null })).data;
             var cta = document.getElementById('ap-cta'), form = document.getElementById('ap-form'), status = document.getElementById('ap-status');
             var KINDS = [['tiktok', 'TikTok: @_drhola'], ['linkedin-founder', 'LinkedIn: Ayodele Odugbile'], ['linkedin-page', 'LinkedIn: Open Fraud Labs']];
@@ -291,7 +315,9 @@
             });
             if (info.require_laptop) document.querySelector('[data-name="device"]').before(el('p', { class: 'ap-help ac-muted', text: 'This cohort needs your own laptop or desktop computer.' }));
             if (info.require_proofs) document.querySelectorAll('#ap-follow-group .ap-proof').forEach(function (p) { var k = p.getAttribute('data-kind'); uploader(p.querySelector('.ap-upload'), k, KINDS.filter(function (x) { return x[0] === k; })[0][1]); });
-            else document.querySelectorAll('.ap-upload').forEach(function (u) { u.hidden = true; });
+            else document.querySelectorAll('#ap-follow-group .ap-proof .ap-upload').forEach(function (u) { u.hidden = true; });
+            var hasCv = false;
+            if (info.require_cv) { document.getElementById('ap-cv-field').hidden = false; cvUploader(document.getElementById('ap-cv'), user.id, 'cohort-' + info.slug, function () { hasCv = true; }); }
             document.querySelectorAll('.ap-count').forEach(function (c) {
                 var t = form[c.getAttribute('data-for')], min = c.getAttribute('data-for') === 'motivation' ? 30 : 0;
                 function upd() { var n = t.value.trim().length; c.textContent = n + ' characters' + (min && n < min ? ' (at least ' + min + ')' : ''); c.classList.toggle('is-short', !!min && n < min); }
@@ -310,6 +336,7 @@
                     if (missing.length) return stop(document.getElementById('ap-follow-group'), 'Upload a screenshot for: ' + missing.map(function (k) { return k[1]; }).join(', ') + '.');
                     if (!/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
                 }
+                if (info.require_cv && !hasCv) return stop(document.getElementById('ap-cv-field'), 'Upload your CV.');
                 if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); return stop(g, 'Tell us how many hours a week you can study.'); }
                 if (info.require_laptop && val('device') !== 'laptop') { var gd = f.querySelector('[data-name="device"]'); gd.classList.add('is-invalid'); return stop(gd, 'This cohort needs your own laptop or desktop computer.'); }
                 if (f.motivation.value.trim().length < 30) return stop(f.motivation, 'Tell us a little more about why you want to join (at least 30 characters).');

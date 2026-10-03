@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003d">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003e">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -126,6 +126,18 @@
                     <div class="ac-dialog__head"><h2 id="manage-title">Manage learner</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" id="manage-close" aria-label="Close">Close</button></div>
                     <div id="manage-msg"></div>
                     <div id="manage-body"></div>
+                </dialog>
+                <section class="ac-admin__sec" data-cap="manage_applications" id="roles-sec">
+                    <div class="ac-admin__head"><h2>Internship applications</h2><p class="ac-muted">Applications for roles on the careers page. Move each person through the stages; they're told on the site and by email at every step except notes.</p>
+                        <div class="ac-admin__tools"><select id="role-pick" aria-label="Role"></select><select id="role-status" aria-label="Role status"><option value="open">Open (rolling)</option><option value="filled">Filled</option><option value="closed">Closed</option><option value="draft">Hidden</option></select>
+                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="role-csv">Download CSV</button></div></div>
+                    <p class="app-line" id="role-line"></p>
+                    <div class="ac-table-wrap"><table class="ac-table" id="role-table"></table></div>
+                </section>
+                <dialog class="ac-dialog ac-dialog--wide" id="role-dlg" aria-labelledby="role-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="role-dlg-title">Applicant</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="role-dlg-msg"></div>
+                    <div id="role-dlg-body"></div>
                 </dialog>
                 <section class="ac-admin__sec" data-cap="manage_scholarships" id="sch-sec">
                     <div class="ac-admin__head"><h2>Scholarships</h2><p class="ac-muted">Full access to a course, or every course, without paying. Each scholarship records how long it lasts and why it was given. The learner is told on the site and by email.</p>
@@ -276,8 +288,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003d"></script>
-    <script src="/assets/js/academy.js?v=20261003d"></script>
+    <script src="/assets/js/learn.js?v=20261003e"></script>
+    <script src="/assets/js/academy.js?v=20261003e"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -685,6 +697,7 @@
                 row('TikTok', ans.tiktok_handle ? el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle + (ans.follows_tiktok ? ' (says they follow)' : '') }) : (ans.follows_tiktok ? 'Says they follow' : 'No'));
                 row('Follows founder', ans.follows_founder ? 'Says yes' : 'No'); row('Follows page', ans.follows_linkedin ? 'Says yes' : 'No');
                 row('LinkedIn profile', ans.linkedin_url ? el('a', { href: ans.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
+                if (a.cv_path) { var cvA = el('a', { href: '#', text: 'Open CV' }); cvA.addEventListener('click', async function (e) { e.preventDefault(); var r = await sb.storage.from('cvs').createSignedUrl(a.cv_path, 600); if (r.data) window.open(r.data.signedUrl, '_blank', 'noopener'); }); row('CV', cvA); }
                 row('Consent: funder reports', ans.consent_reports ? 'Yes, without name' : 'No'); row('Consent: job alerts', ans.consent_jobs ? 'Yes' : 'No');
                 grid.append(sc, info); b.appendChild(grid);
                 b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why they want to join' }), el('p', { class: 'app-text', text: ans.motivation || '—' }),
@@ -766,7 +779,99 @@
                 if (r2.error) return OFL.notice(m, OFL.friendlyError(r2.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
-            await loadCourses(); loadScholarships(); loadContent(); loadCohorts();
+
+            // ---- Internship / job applications
+            var roles = [], roleId = null, roleApps = [];
+            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offered', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var RL = { stage: { student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
+            async function loadRoles(keep) {
+                if (!can('manage_applications')) return;
+                roles = (await sb.from('roles').select('*').order('sort')).data || [];
+                var sel = document.getElementById('role-pick'); sel.textContent = '';
+                roles.forEach(function (r) { sel.appendChild(el('option', { value: r.id, text: r.title })); });
+                roleId = keep || (roles[0] || {}).id; if (roleId) sel.value = roleId;
+                loadRoleApps();
+            }
+            function curRole() { return roles.filter(function (r) { return r.id == roleId; })[0]; }
+            document.getElementById('role-pick').addEventListener('change', function (e) { roleId = e.target.value; loadRoleApps(); });
+            document.getElementById('role-status').addEventListener('change', async function (e) {
+                var r = curRole(); if (!r) return;
+                var labels = { open: 'Open this role for rolling applications?', filled: 'Mark this role as filled? It stays on the careers page as Filled and stops taking applications.', closed: 'Close this role? It stops taking applications.', draft: 'Hide this role from the careers page?' };
+                if (!window.confirm(labels[e.target.value])) { e.target.value = r.status; return; }
+                var res = await sb.rpc('role_set_status', { p_role: r.id, p_status: e.target.value });
+                if (res.error) { e.target.value = r.status; return OFL.notice(msg, OFL.friendlyError(res.error), 'error'); }
+                OFL.notice(msg, 'Role updated.', 'success'); loadRoles(r.id);
+            });
+            async function loadRoleApps() {
+                var r = curRole(); if (!r) { document.getElementById('role-line').textContent = 'No roles yet.'; return; }
+                document.getElementById('role-status').value = r.status;
+                var res = await sb.rpc('role_applications_admin', { p_role: r.id });
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                roleApps = res.data || [];
+                var n = function (st) { return roleApps.filter(function (a) { return a.status === st; }).length; };
+                var line = document.getElementById('role-line'); line.textContent = '';
+                line.append(roleApps.length + ' applications · ' + n('new') + ' new · ' + (n('shortlisted') + n('interview')) + ' in progress · ' + n('hired') + ' hired · ', el('a', { href: '/careers/role/?r=' + r.slug, target: '_blank', rel: 'noopener', text: 'Role page' }));
+                var t = document.getElementById('role-table'); t.textContent = '';
+                var hr = el('tr'); ['Applicant', 'Now', 'Location', 'Hours', 'Stage', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                if (!roleApps.length) tb.appendChild(el('tr', {}, el('td', { colspan: '7', class: 'ac-muted', text: 'No applications yet.' })));
+                roleApps.forEach(function (a) {
+                    var an = a.answers || {}, st = RSTAGE[a.status] || [a.status, 'end'];
+                    tb.appendChild(el('tr', {}, el('td', {}, el('div', { text: a.full_name || '(no name)' }), el('small', { class: 'ac-muted', text: a.email })),
+                        el('td', {}, el('div', { text: RL.stage[an.stage] || '—' }), el('small', { class: 'ac-muted', text: an.institution || '' })),
+                        el('td', {}, el('div', { text: [an.city, an.country].filter(Boolean).join(', ') || '—' }), el('small', { class: 'ac-muted', text: an.timezone || '' })),
+                        el('td', { text: RL.hours[an.hours] || '—' }), el('td', {}, el('span', { class: 'app-st app-st--' + st[1], text: st[0] })),
+                        el('td', { text: dOnly(a.applied_at) }), el('td', {}, el('button', { class: 'ac-btn ac-btn--' + (a.status === 'new' ? 'primary' : 'secondary') + ' ac-btn--sm', type: 'button', text: a.status === 'new' ? 'Review' : 'View', onclick: function () { openRoleApp(a); } }))));
+                });
+            }
+            var roleDlg = document.getElementById('role-dlg');
+            function openRoleApp(a) {
+                var r = curRole(), an = a.answers || {}, b = document.getElementById('role-dlg-body'); b.textContent = ''; document.getElementById('role-dlg-msg').textContent = '';
+                document.getElementById('role-dlg-title').textContent = (a.full_name || '(no name)') + ' · ' + (RSTAGE[a.status] || [a.status])[0];
+                b.appendChild(el('p', { class: 'ac-muted', text: a.email + ' · ' + r.title + ' · applied ' + dt(a.applied_at) }));
+                var info = el('div', { class: 'app-card' }, el('h3', { text: 'Details' }));
+                function row(label, v) { if (v) info.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
+                var cv = el('a', { href: '#', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Open CV' });
+                cv.addEventListener('click', async function (e) { e.preventDefault(); var s2 = await sb.storage.from('cvs').createSignedUrl(a.cv_path, 600); if (s2.error) return OFL.notice(document.getElementById('role-dlg-msg'), 'CV not found.', 'error'); window.open(s2.data.signedUrl, '_blank', 'noopener'); });
+                row('CV', a.cv_path ? cv : null); row('Now', RL.stage[an.stage]); row('Institution', an.institution); row('Course', an.course); row('Graduation', an.grad_year);
+                row('Location', [an.city, an.country].filter(Boolean).join(', ')); row('Time zone', an.timezone); row('Hours a week', RL.hours[an.hours]); row('Can start', an.start_date);
+                row('WhatsApp', an.phone ? el('a', { href: 'https://wa.me/' + an.phone.replace(/\D/g, ''), target: '_blank', rel: 'noopener noreferrer', text: an.phone }) : null);
+                row('LinkedIn', an.linkedin_url ? el('a', { href: an.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
+                row('Portfolio', an.portfolio_url ? el('a', { href: an.portfolio_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open link' }) : null);
+                row('Keep for future roles', an.consent_keep ? 'Yes' : 'No');
+                b.appendChild(info);
+                b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why this role' }), el('p', { class: 'app-text', text: an.why || '—' }), el('h3', { text: 'Relevant experience' }), el('p', { class: 'app-text', text: an.experience || '—' })));
+                var note = el('textarea', { rows: '2', maxlength: '2000', placeholder: 'Private staff note (interview notes, impressions)', class: 'app-note' }); note.value = a.staff_note || '';
+                b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
+                var msgBox = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Optional personal message to the applicant (replaces the standard text in their email)', class: 'app-note' });
+                b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Message with the next step (optional)' }), msgBox));
+                var acts = el('div', { class: 'ofl-actions' });
+                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', 'Make offer', 'secondary'], ['hired', 'Mark hired', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
+                    if (a.status === x[0]) return;
+                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
+                });
+                acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { roleDecide(a, 'note', note.value, null); } }));
+                b.appendChild(acts);
+                if (a.status === 'hired') b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'To give them dashboard access, the owner sets their staff role in Staff and roles (HR for the coordinator; the communications intern usually needs no dashboard access).' }));
+                roleDlg.showModal();
+            }
+            async function roleDecide(a, status, note, message) {
+                var names = { shortlisted: 'shortlist', interview: 'invite to interview', offered: 'make an offer to', hired: 'mark as hired', not_progressed: 'tell they are not progressing' };
+                if (status !== 'note' && !window.confirm('This will ' + names[status] + ' ' + (a.full_name || a.email) + ' and email them. Continue?')) return;
+                var res = await sb.rpc('role_application_decide', { p_id: a.id, p_status: status, p_note: note, p_message: message });
+                if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
+                roleDlg.close(); OFL.notice(msg, status === 'note' ? 'Note saved.' : 'Updated and emailed.', 'success'); loadRoleApps();
+            }
+            document.getElementById('role-csv').addEventListener('click', function () {
+                var r = curRole(); if (!r) return;
+                var keys = ['stage', 'institution', 'course', 'grad_year', 'city', 'country', 'timezone', 'phone', 'linkedin_url', 'portfolio_url', 'hours', 'start_date', 'why', 'experience', 'consent_keep'];
+                function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+                var lines = [['full_name', 'email', 'status', 'applied_at'].concat(keys, ['staff_note']).join(',')];
+                roleApps.forEach(function (a) { lines.push([a.full_name, a.email, a.status, a.applied_at].map(esc).concat(keys.map(function (k) { return esc((a.answers || {})[k]); }), [esc(a.staff_note)]).join(',')); });
+                var x = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: r.slug + '-applications-' + new Date().toISOString().slice(0, 10) + '.csv' });
+                document.body.appendChild(x); x.click(); x.remove();
+            });
+            await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
                 var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');
