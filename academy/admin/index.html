@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003a">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003b">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -66,7 +66,8 @@
                     <div class="ac-kpis ac-kpis--sm" id="app-kpis"></div>
                     <div class="app-filter"><div class="ofl-tabs" id="app-tabs">
                         <button type="button" class="ofl-tab is-active" data-f="all">All</button>
-                        <button type="button" class="ofl-tab" data-f="shortlisted">In trial</button>
+                        <button type="button" class="ofl-tab" data-f="check">To check</button>
+                        <button type="button" class="ofl-tab" data-f="shortlisted">Offered</button>
                         <button type="button" class="ofl-tab" data-f="completed">Confirmed</button>
                         <button type="button" class="ofl-tab" data-f="waitlisted">Waitlist</button>
                         <button type="button" class="ofl-tab" data-f="missed">Missed</button>
@@ -104,8 +105,17 @@
                             <label><input type="radio" name="co-mode" value="batch"> <b>Once, when applications close</b><span>Everyone waits until the closing date, then the top applicants are shortlisted.</span></label>
                         </fieldset>
                         <label>Applications close <em class="ac-muted">(optional, Lagos time)</em><input id="co-closes" type="datetime-local"></label>
+                        <fieldset class="co-cond"><legend>Conditions</legend>
+                            <label class="ap-check"><input type="checkbox" id="co-c-laptop"> Applicants must have their own laptop or desktop</label>
+                            <label class="ap-check"><input type="checkbox" id="co-c-proofs"> Applicants must give a LinkedIn profile and upload screenshots showing they follow @_drhola on TikTok, the founder and the Open Fraud Labs page on LinkedIn. Staff check them before anyone is offered a place.</label>
+                            <label class="ap-check"><input type="checkbox" id="co-c-post"> To accept an offer, post about it on LinkedIn tagging the founder and the page</label>
+                            <label class="ap-check"><input type="checkbox" id="co-c-wa"> To accept an offer, join the cohort WhatsApp group</label>
+                        </fieldset>
+                        <label>Founder's LinkedIn profile<input id="co-founder" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/..."><small class="ac-muted">Linked from the apply page so applicants follow the right person.</small></label>
+                        <label>WhatsApp group invite link<input id="co-wa" type="url" maxlength="300" placeholder="https://chat.whatsapp.com/..."><small class="ac-muted">Shown only to applicants with an offer or a confirmed place.</small></label>
                         <label class="ap-check"><input type="checkbox" id="co-require"> Only shortlisted applicants (plus staff and scholarship holders) can enrol in this course. Learners already enrolled keep their place.</label>
                         <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save settings</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                        <p class="ac-muted ac-small">Screenshots are only needed to check eligibility. <button type="button" class="au-link" id="co-del-proofs">Delete all screenshots for this cohort</button> once you've finished checking.</p>
                     </form>
                 </dialog>
                 <section class="ac-admin__sec" data-cap="view_people">
@@ -266,8 +276,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003a"></script>
-    <script src="/assets/js/academy.js?v=20261003a"></script>
+    <script src="/assets/js/learn.js?v=20261003b"></script>
+    <script src="/assets/js/academy.js?v=20261003b"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -546,7 +556,9 @@
                 device: { laptop: 'Own laptop/desktop', shared: 'Shared computer', phone: 'Phone only' }, internet: { reliable: 'Reliable', sometimes: 'Sometimes unreliable', poor: 'Often poor' },
                 career_goal: { first_job: 'First data job', switch: 'Switch careers', upskill: 'Upskill in current job', freelance: 'Freelance', business: 'Own business', study: 'Further study' },
                 can_afford: { '0': 'Nothing right now', lt5k: 'Under ₦5,000', '5-15k': '₦5,000–15,000', '15-30k': '₦15,000–30,000', '30k+': 'Over ₦30,000' } };
-            var PART = { tiktok: ['Follows TikTok', 15], linkedin_page: ['Follows LinkedIn page', 15], hours: ['Weekly study time', 20], motivation: ['Why they want to join', 20], problem: ['Problem to solve', 15], about_you: ['About-you profile', 10], linkedin_profile: ['LinkedIn profile', 5] };
+            var PART = { hours: ['Weekly study time', 30], motivation: ['Why they want to join', 30], problem: ['Problem to solve', 25], about_you: ['About-you profile', 15] };
+            var PROOF = { pending: ['To check', 'wait'], ok: ['Eligible', 'done'], fix: ['Asked to fix', 'end'] };
+            var KINDS = [['tiktok', 'TikTok: @_drhola'], ['linkedin-founder', 'LinkedIn: founder'], ['linkedin-page', 'LinkedIn: Open Fraud Labs']];
             async function loadCohorts(keep) {
                 if (!can('manage_applications')) return;
                 cohorts = (await sb.from('cohorts').select('*').order('created_at', { ascending: false })).data || [];
@@ -579,28 +591,27 @@
                 var n = function (s) { return apps.filter(function (a) { return a.status === s; }).length; };
                 var trialsEnded = n('completed') + n('missed');
                 var k = document.getElementById('app-kpis'); k.textContent = '';
-                [['Applied', apps.length], ['In trial', n('shortlisted')], ['Confirmed', n('completed')], ['Missed deadline', n('missed')], ['Waitlist', n('waitlisted')],
-                 ['Places left', Math.max(0, c.capacity - n('shortlisted') - n('completed'))], ['Trial completion', trialsEnded ? Math.round(100 * n('completed') / trialsEnded) + '%' : '—']]
+                [['Applied', apps.length], ['To check', apps.filter(function (a) { return a.status === 'waitlisted' && a.proof_status === 'pending'; }).length], ['Offered', n('shortlisted')], ['Confirmed', n('completed')], ['Missed deadline', n('missed')], ['Waitlist', n('waitlisted')],
+                 ['Places left', Math.max(0, c.capacity - n('shortlisted') - n('completed'))], ['Offers accepted', trialsEnded ? Math.round(100 * n('completed') / trialsEnded) + '%' : '—']]
                     .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
                 drawApps();
             }
             function drawApps() {
                 var q = document.getElementById('app-q').value.trim().toLowerCase(), t = document.getElementById('app-table'); t.textContent = '';
-                var hr = el('tr'); ['', 'Applicant', 'Score', 'Study time', 'Follows', 'Status', 'Lessons passed', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                var hr = el('tr'); ['', 'Applicant', 'Score', 'Study time', 'Eligibility', 'Status', 'Lessons passed', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
                 t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
-                var wl = 0, list = apps.filter(function (a) { return (appFilter === 'all' || a.status === appFilter) && (!q || ((a.full_name || '') + ' ' + a.email).toLowerCase().indexOf(q) >= 0); });
+                var wl = 0, list = apps.filter(function (a) { return (appFilter === 'all' || (appFilter === 'check' ? a.status === 'waitlisted' && a.proof_status === 'pending' : a.status === appFilter)) && (!q || ((a.full_name || '') + ' ' + a.email).toLowerCase().indexOf(q) >= 0); });
                 if (!list.length) tb.appendChild(el('tr', {}, el('td', { colspan: '9', class: 'ac-muted', text: apps.length ? 'No applications match.' : 'No applications yet. Share the apply link to get started.' })));
                 list.forEach(function (a) {
                     var st = APP_STATUS[a.status] || [a.status, 'end'], c = cur();
                     var stCell = el('td', {}, el('span', { class: 'app-st app-st--' + st[1], text: st[0] }));
                     if (a.status === 'shortlisted' && a.deadline_at) { var left = new Date(a.deadline_at) - Date.now(); stCell.appendChild(el('small', { class: left < 2 * 864e5 ? 'app-warn' : 'ac-muted', text: left > 0 ? Math.floor(left / 864e5) + 'd ' + Math.floor(left % 864e5 / 36e5) + 'h left' : 'deadline passed' })); }
                     if (a.status === 'waitlisted') stCell.appendChild(el('small', { class: 'ac-muted', text: a.score >= c.min_score ? '#' + (++wl) + ' in line' : 'below minimum score' }));
-                    var ans = a.answers || {}, follows = el('td', { class: 'app-follows' });
-                    follows.appendChild(el('span', { class: ans.follows_tiktok ? 'is-yes' : 'is-no', text: 'TikTok' + (ans.follows_tiktok ? ' ✓' : ' ✗') }));
+                    var ans = a.answers || {}, pr = PROOF[a.proof_status] || ['—', 'end'], follows = el('td', { class: 'app-follows' }, el('span', { class: 'app-st app-st--' + pr[1], text: pr[0] }));
                     if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
-                    follows.appendChild(el('span', { class: ans.follows_linkedin ? 'is-yes' : 'is-no', text: 'LinkedIn' + (ans.follows_linkedin ? ' ✓' : ' ✗') }));
+                    if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
                     var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
-                    if (a.status === 'waitlisted' || a.status === 'missed' || a.status === 'rejected') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist'); } }));
+                    if (a.status === 'waitlisted' && a.proof_status === 'pending') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Check', onclick: function () { openApp(a); } }));
                     tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
                         el('td', {}, el('div', { text: a.full_name || '(no name)' }), el('small', { class: 'ac-muted', text: a.email })),
                         el('td', {}, el('b', { class: 'app-score num', text: String(a.score) })),
@@ -613,7 +624,7 @@
                 document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); appFilter = b.dataset.f; drawApps(); }); });
             document.getElementById('app-q').addEventListener('input', drawApps);
             async function decide(a, action, note) {
-                var text = { shortlist: 'Shortlist ' + (a.full_name || a.email) + '? They’ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to finish Lesson ' + cur().trial_lesson + '.',
+                var text = { shortlist: 'Offer ' + (a.full_name || a.email) + ' a place now' + (a.proof_status !== 'ok' ? ', even though their screenshots aren\u2019t confirmed' : '') + '? They\u2019ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to complete the offer steps.',
                     waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
                 if (text && !window.confirm(text)) return false;
                 var res = await sb.rpc('application_decide', { p_id: a.id, p_action: action, p_note: note == null ? null : note });
@@ -622,21 +633,57 @@
                 appDlg.close(); loadApps(); return true;
             }
             var appDlg = document.getElementById('app-dlg');
+            async function review(a, ok, note) {
+                var r = await sb.rpc('application_proof_review', { p_id: a.id, p_ok: ok, p_note: note || null });
+                if (r.error) return OFL.notice(document.getElementById('app-dlg-msg'), OFL.friendlyError(r.error), 'error');
+                appDlg.close();
+                OFL.notice(msg, ok ? ((a.full_name || a.email) + ' is eligible' + (r.data.shortlisted ? '. Offers sent automatically: ' + r.data.shortlisted + '.' : ' and on the waitlist.')) : 'Asked ' + (a.full_name || a.email) + ' to fix their screenshots. They\u2019ve been told on the site and by email.', 'success');
+                loadApps();
+            }
             function openApp(a) {
                 var b = document.getElementById('app-dlg-body'); b.textContent = ''; document.getElementById('app-dlg-msg').textContent = '';
                 document.getElementById('app-dlg-title').textContent = (a.full_name || '(no name)') + ' · ' + (APP_STATUS[a.status] || [a.status])[0];
                 var ans = a.answers || {}, bgr = a.background || {};
                 b.appendChild(el('p', { class: 'ac-muted', text: a.email + ' · applied ' + dt(a.applied_at) + (a.deadline_at ? ' · trial deadline ' + dt(a.deadline_at) : '') + (a.completed_at ? ' · trial completed ' + dt(a.completed_at) : '') }));
+                var c0 = cur();
+                if (c0.require_proofs) {
+                    var pf = el('div', { class: 'app-card app-proofcard' }, el('h3', {}, 'Eligibility screenshots ', el('span', { class: 'app-st app-st--' + (PROOF[a.proof_status] || ['', 'end'])[1], text: (PROOF[a.proof_status] || ['—'])[0] })));
+                    var shots = el('div', { class: 'app-shots' }); pf.appendChild(shots);
+                    KINDS.forEach(function (k) {
+                        var fig = el('figure', {}, el('div', { class: 'app-shot__img', text: 'Loading\u2026' }), el('figcaption', { text: k[1] })); shots.appendChild(fig);
+                        sb.storage.from('application-proofs').createSignedUrl(a.user_id + '/' + a.cohort_slug + '/' + k[0] + '.jpg', 600).then(function (r) {
+                            var box = fig.firstChild; box.textContent = '';
+                            if (r.error || !r.data) { box.textContent = 'Not uploaded'; return; }
+                            box.appendChild(el('a', { href: r.data.signedUrl, target: '_blank', rel: 'noopener' }, el('img', { src: r.data.signedUrl, alt: k[1] + ' screenshot' })));
+                        });
+                    });
+                    pf.appendChild(el('p', { class: 'ac-muted ac-small' }, 'Check each shows the right profile and \u201cFollowing\u201d. Click to enlarge. ',
+                        ans.tiktok_handle ? el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: 'Their TikTok' }) : null, ans.tiktok_handle ? ' \u00b7 ' : null,
+                        ans.linkedin_url ? el('a', { href: ans.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Their LinkedIn' }) : null));
+                    if (a.proof_note) pf.appendChild(el('p', { class: 'app-warn', text: 'Asked to fix: ' + a.proof_note }));
+                    if (a.status === 'waitlisted' || a.status === 'rejected') pf.appendChild(el('div', { class: 'ofl-actions' },
+                        a.proof_status !== 'ok' ? el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Screenshots OK', onclick: function () { review(a, true); } }) : null,
+                        el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Ask to fix', onclick: function () {
+                            var why = window.prompt('What should they fix? They\u2019ll see this message, e.g. \u201cThe LinkedIn page screenshot doesn\u2019t show Following.\u201d', ''); if (why) review(a, false, why); } })));
+                    b.appendChild(pf);
+                }
+                if (a.status === 'shortlisted' || a.status === 'completed' || a.status === 'missed') {
+                    var os = el('div', { class: 'app-card' }, el('h3', { text: 'Offer steps' }));
+                    if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
+                    if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : 'Not yet' })));
+                    os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Lesson ' + c0.trial_lesson }), el('b', { text: a.trial_done ? 'Passed' : 'Not yet' })));
+                    b.appendChild(os);
+                }
                 var grid = el('div', { class: 'app-detail' });
                 var sc = el('div', { class: 'app-card' }, el('h3', {}, 'Score ', el('b', { class: 'num', text: a.score + ' / 100' })));
                 Object.keys(PART).forEach(function (k) { var got = (a.score_detail || {})[k] || 0; sc.appendChild(el('div', { class: 'app-part' }, el('span', { text: PART[k][0] }), el('span', { class: 'num', text: got + ' / ' + PART[k][1] }), el('i', { style: 'width:' + Math.round(100 * got / PART[k][1]) + '%' }))); });
-                sc.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Following is self-declared. Check the TikTok username if it matters for this decision.' }));
+                sc.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Ranks eligible applicants. Longer answers score higher, so read the text too.' }));
                 var info = el('div', { class: 'app-card' }, el('h3', { text: 'Answers' }));
                 function row(label, v) { if (v) info.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
                 row('Study time', A_LABEL.hours[ans.hours]); row('Learns on', A_LABEL.device[ans.device]); row('Internet', A_LABEL.internet[ans.internet]);
                 row('Wants to', A_LABEL.career_goal[ans.career_goal]); row('Could pay after launch', A_LABEL.can_afford[ans.can_afford]);
                 row('TikTok', ans.tiktok_handle ? el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle + (ans.follows_tiktok ? ' (says they follow)' : '') }) : (ans.follows_tiktok ? 'Says they follow' : 'No'));
-                row('LinkedIn page', ans.follows_linkedin ? 'Says they follow' : 'No');
+                row('Follows founder', ans.follows_founder ? 'Says yes' : 'No'); row('Follows page', ans.follows_linkedin ? 'Says yes' : 'No');
                 row('LinkedIn profile', ans.linkedin_url ? el('a', { href: ans.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
                 row('Consent: funder reports', ans.consent_reports ? 'Yes, without name' : 'No'); row('Consent: job alerts', ans.consent_jobs ? 'Yes' : 'No');
                 grid.append(sc, info); b.appendChild(grid);
@@ -646,7 +693,7 @@
                 var note = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Private staff note (optional)', class: 'app-note' }); note.value = a.staff_note || '';
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
                 var acts = el('div', { class: 'ofl-actions' });
-                if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Shortlist', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
+                if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Offer a place', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
                 if (a.status === 'shortlisted' || a.status === 'missed' || a.status === 'rejected') acts.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Move to waitlist', onclick: function () { decide(a, 'waitlist', note.value || null); } }));
                 if (a.status !== 'rejected' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Reject', onclick: function () { decide(a, 'reject', note.value || null); } }));
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { decide(a, 'note', note.value); } }));
@@ -662,8 +709,8 @@
             });
             document.getElementById('app-csv').addEventListener('click', function () {
                 var c = cur(); if (!c) return;
-                var keys = ['full_name', 'email', 'status', 'score', 'applied_at', 'shortlisted_at', 'deadline_at', 'completed_at', 'lessons_done'];
-                var ak = ['hours', 'device', 'internet', 'career_goal', 'can_afford', 'follows_tiktok', 'tiktok_handle', 'follows_linkedin', 'linkedin_url', 'motivation', 'problem', 'consent_reports', 'consent_jobs'];
+                var keys = ['full_name', 'email', 'status', 'proof_status', 'score', 'applied_at', 'shortlisted_at', 'deadline_at', 'completed_at', 'post_url', 'whatsapp_joined_at', 'trial_done', 'lessons_done'];
+                var ak = ['hours', 'device', 'internet', 'career_goal', 'can_afford', 'follows_tiktok', 'tiktok_handle', 'follows_founder', 'follows_linkedin', 'linkedin_url', 'motivation', 'problem', 'consent_reports', 'consent_jobs'];
                 var bk = ['country', 'city', 'gender', 'age_range', 'employment', 'industry', 'education', 'python_level', 'data_level', 'goal', 'heard_from'];
                 var pk = Object.keys(PART);
                 function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
@@ -687,9 +734,21 @@
                 document.getElementById('co-lesson').value = c ? c.trial_lesson : 1; document.getElementById('co-days').value = c ? c.trial_days : 7;
                 document.getElementById('co-closes').value = c ? localInput(c.closes_at) : '';
                 document.getElementById('co-require').checked = c ? !!c._require : true;
+                document.getElementById('co-c-laptop').checked = c ? c.require_laptop !== false : true; document.getElementById('co-c-proofs').checked = c ? c.require_proofs !== false : true;
+                document.getElementById('co-c-post').checked = c ? c.require_post !== false : true; document.getElementById('co-c-wa').checked = c ? c.require_whatsapp !== false : true;
+                document.getElementById('co-founder').value = c && c.founder_linkedin_url || ''; document.getElementById('co-wa').value = c && c.whatsapp_url || '';
+                document.getElementById('co-del-proofs').hidden = !c;
                 cohortDlg.showModal();
             }
             document.getElementById('app-settings').addEventListener('click', function () { openCohort(cur() || null); });
+            document.getElementById('co-del-proofs').addEventListener('click', async function () {
+                var c = cur(); if (!c) return;
+                if (!window.confirm('Delete every eligibility screenshot for ' + c.title + '? Do this only after you\u2019ve finished checking. Applicants keep their status.')) return;
+                var paths = []; apps.forEach(function (a) { KINDS.forEach(function (k) { paths.push(a.user_id + '/' + c.slug + '/' + k[0] + '.jpg'); }); });
+                var r = paths.length ? await sb.storage.from('application-proofs').remove(paths) : { data: [] };
+                if (r.error) return OFL.notice(document.getElementById('cohort-msg'), OFL.friendlyError(r.error), 'error');
+                OFL.notice(document.getElementById('cohort-msg'), 'Deleted ' + (r.data || []).length + ' screenshots.', 'success');
+            });
             document.getElementById('cohort-form').addEventListener('submit', async function (e) {
                 e.preventDefault(); var m = document.getElementById('cohort-msg');
                 var title = document.getElementById('co-title').value.trim(), slug = document.getElementById('co-slug').value.trim().toLowerCase();
@@ -702,6 +761,9 @@
                     p_min_score: +document.getElementById('co-min').value, p_mode: document.querySelector('input[name="co-mode"]:checked').value,
                     p_closes_at: closes ? closes + ':00+01:00' : null, p_require_application: require });
                 if (res.error) return OFL.notice(m, OFL.friendlyError(res.error), 'error');
+                var r2 = await sb.rpc('cohort_save_conditions', { p_cohort: res.data.id, p_founder_linkedin: document.getElementById('co-founder').value, p_whatsapp: document.getElementById('co-wa').value,
+                    p_laptop: document.getElementById('co-c-laptop').checked, p_proofs: document.getElementById('co-c-proofs').checked, p_post: document.getElementById('co-c-post').checked, p_whatsapp_required: document.getElementById('co-c-wa').checked });
+                if (r2.error) return OFL.notice(m, OFL.friendlyError(r2.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
             await loadCourses(); loadScholarships(); loadContent(); loadCohorts();

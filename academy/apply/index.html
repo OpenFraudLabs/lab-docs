@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003a">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003b">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -69,33 +69,50 @@
                 <div class="ap-how" id="ap-how">
                     <h2>How it works</h2>
                     <ol class="ap-steps">
-                        <li><b>Apply</b><span>Create a free account and answer a few questions (about 5 minutes).</span></li>
-                        <li><b>Get shortlisted</b><span>We shortlist automatically as places open, using the criteria below. Everyone else joins the waitlist in order.</span></li>
-                        <li><b>Complete the trial</b><span id="ap-step3">Finish Lesson 1 (video, notes, practice and quiz) within 7 days of being shortlisted. If you don't, your place goes to the next person.</span></li>
+                        <li><b>Apply</b><span>Create a free account, answer a few questions and upload three screenshots showing you follow us (about 10 minutes).</span></li>
+                        <li><b>We check and rank</b><span>We check your screenshots, usually within two days. Eligible applicants are ranked and offered places in order as they open; everyone else waits on the waitlist.</span></li>
+                        <li><b>Accept your offer</b><span id="ap-step3">You'll get the offer by email and on this page. Within 7 days: post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs, join the cohort WhatsApp group, and complete Lesson 1 (video, notes, practice and quiz).</span></li>
                         <li><b>Carry on as a founding learner</b><span>Work through the course and projects, earn a verifiable certificate, and help shape the Academy with your feedback.</span></li>
                     </ol>
-                    <h3>What we look for</h3>
+                    <h3>Who can apply</h3>
+                    <ul class="ac-outcomes" id="ap-reqs">
+                        <li data-req="laptop">You have your own laptop or desktop computer</li>
+                        <li data-req="proofs">You have a LinkedIn account and follow <a href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">@_drhola on TikTok</a>, <a class="ap-founder-link" href="https://www.linkedin.com/search/results/people/?keywords=Ayodele%20Odugbile" target="_blank" rel="noopener noreferrer">Ayodele Odugbile</a> and <a href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">Open Fraud Labs</a> on LinkedIn, with a screenshot of each</li>
+                        <li data-req="post">If offered a place, you're happy to post about it on LinkedIn and tag us</li>
+                        <li>You can finish the offer steps within 7 days</li>
+                    </ul>
+                    <h3>How we rank eligible applicants</h3>
                     <ul class="ac-outcomes">
-                        <li>You follow Open Fraud Labs on <a href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">TikTok</a> and <a href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-                        <li>You can give the course regular time each week</li>
+                        <li>The time you can give the course each week</li>
                         <li>A clear reason for joining and a problem you'd like to solve with data</li>
-                        <li>A completed About-you profile and, if you have one, a LinkedIn profile</li>
+                        <li>A completed About-you profile</li>
                     </ul>
                     <p class="ac-muted ac-small">Your country, gender, age and other About-you answers are never used to decide who gets a place. This is a free learning programme, not a paid job.</p>
                 </div>
                 <div id="ap-cta"></div>
                 <form id="ap-form" class="wb-form" novalidate hidden>
-                    <fieldset class="wb-group">
-                        <legend>1. Follow us</legend>
-                        <p class="ac-muted ap-help">New lessons and opportunities are announced here first.</p>
-                        <div class="ap-follow">
-                            <a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Open TikTok @_drhola</a>
-                            <a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">Open our LinkedIn page</a>
+                    <fieldset class="wb-group" id="ap-follow-group">
+                        <legend>1. Follow us and show us</legend>
+                        <p class="ac-muted ap-help">Follow all three, then upload a screenshot of each profile showing &ldquo;Following&rdquo;. Screenshots are private: only the Open Fraud Labs team checking applications can see them.</p>
+                        <div class="ap-proofs">
+                            <div class="ap-proof" data-kind="tiktok">
+                                <div class="ap-proof__head"><b>TikTok: @_drhola</b><a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Open</a></div>
+                                <label class="ap-check"><input type="checkbox" name="follows_tiktok"> I follow @_drhola</label>
+                                <label class="au-field"><span>Your TikTok username</span><input name="tiktok_handle" maxlength="40" placeholder="@yourname" autocomplete="off"></label>
+                                <div class="ap-upload"></div>
+                            </div>
+                            <div class="ap-proof" data-kind="linkedin-founder">
+                                <div class="ap-proof__head"><b>LinkedIn: Ayodele Odugbile</b><a class="ac-btn ac-btn--secondary ac-btn--sm ap-founder-link" href="https://www.linkedin.com/search/results/people/?keywords=Ayodele%20Odugbile" target="_blank" rel="noopener noreferrer">Open</a></div>
+                                <label class="ap-check"><input type="checkbox" name="follows_founder"> I follow Ayodele Odugbile (founder)</label>
+                                <div class="ap-upload"></div>
+                            </div>
+                            <div class="ap-proof" data-kind="linkedin-page">
+                                <div class="ap-proof__head"><b>LinkedIn: Open Fraud Labs</b><a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">Open</a></div>
+                                <label class="ap-check"><input type="checkbox" name="follows_linkedin"> I follow the Open Fraud Labs page</label>
+                                <div class="ap-upload"></div>
+                            </div>
                         </div>
-                        <label class="ap-check"><input type="checkbox" name="follows_tiktok"> I follow @_drhola on TikTok</label>
-                        <label class="au-field"><span>Your TikTok username <em>(so we can check)</em></span><input name="tiktok_handle" maxlength="40" placeholder="@yourname" autocomplete="off"></label>
-                        <label class="ap-check"><input type="checkbox" name="follows_linkedin"> I follow Open Fraud Labs on LinkedIn</label>
-                        <label class="au-field"><span>Your LinkedIn profile <em>(optional)</em></span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
+                        <label class="au-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
                     </fieldset>
                     <fieldset class="wb-group">
                         <legend>2. Your time and setup</legend>
@@ -124,14 +141,14 @@
                     </fieldset>
                     <fieldset class="wb-group">
                         <legend>5. Commitment</legend>
-                        <label class="ap-check ap-check--req"><input type="checkbox" name="commit_deadline"> <span id="ap-commit">If I'm shortlisted, I'll complete Lesson 1 (video, notes, practice and quiz) within 7 days.</span></label>
+                        <label class="ap-check ap-check--req"><input type="checkbox" name="commit_deadline"> <span id="ap-commit">If I'm offered a place, I'll complete the offer steps within 7 days.</span></label>
                         <label class="ap-check"><input type="checkbox" name="consent_reports"> You can include my answers, without my name, in reports to funders and partners.</label>
                         <label class="ap-check"><input type="checkbox" name="consent_jobs"> Tell me about internships and job opportunities that match my profile.</label>
                     </fieldset>
                     <div class="wb-actions">
                         <button class="ac-btn ac-btn--primary au-submit" type="submit" id="ap-submit">Submit application</button>
                     </div>
-                    <p class="wb-privacy">One application per person. You can't edit it after you submit. See how we use your answers in our <a href="/privacy/">Privacy Policy</a>.</p>
+                    <p class="wb-privacy">One application per person. You can't edit it after you submit, except to replace screenshots if we ask. See how we use your answers in our <a href="/privacy/">Privacy Policy</a>.</p>
                 </form>
             </div>
         </section>
@@ -165,13 +182,14 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003a"></script>
-    <script src="/assets/js/academy.js?v=20261003a"></script>
+    <script src="/assets/js/learn.js?v=20261003b"></script>
+    <script src="/assets/js/academy.js?v=20261003b"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
             var info = (await sb.rpc('cohort_public', { p_slug: OFL.qs('c') || null })).data;
             var cta = document.getElementById('ap-cta'), form = document.getElementById('ap-form'), status = document.getElementById('ap-status');
+            var KINDS = [['tiktok', 'TikTok: @_drhola'], ['linkedin-founder', 'LinkedIn: Ayodele Odugbile'], ['linkedin-page', 'LinkedIn: Open Fraud Labs']];
             if (!info || info.status !== 'open') {
                 document.getElementById('ap-places').textContent = 'Applications closed';
                 document.getElementById('ap-places-sub').textContent = 'Follow us to hear about the next cohort';
@@ -180,17 +198,23 @@
             }
             if (info) {
                 document.getElementById('ap-title').textContent = 'Join the Academy’s ' + info.title;
-                document.getElementById('ap-trial').textContent = info.trial_days + '-day trial';
-                document.querySelector('#ap-facts li:nth-child(3) span').textContent = 'Finish Lesson ' + info.trial_lesson + ' in time to keep your place';
-                document.getElementById('ap-step3').textContent = 'Finish Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz) within ' + info.trial_days + ' days of being shortlisted. If you don’t, your place goes to the next person.';
-                document.getElementById('ap-commit').textContent = 'If I’m shortlisted, I’ll complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz) within ' + info.trial_days + ' days.';
+                document.getElementById('ap-trial').textContent = info.trial_days + '-day offer window';
+                document.querySelector('#ap-facts li:nth-child(3) span').textContent = 'Accept your offer and finish Lesson ' + info.trial_lesson + ' in time';
+                var steps = [];
+                if (info.require_post) steps.push('post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs');
+                if (info.require_whatsapp) steps.push('join the cohort WhatsApp group');
+                steps.push('complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz)');
+                document.getElementById('ap-step3').textContent = 'You’ll get the offer by email and on this page. Within ' + info.trial_days + ' days: ' + steps.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.';
+                document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days.';
+                document.querySelectorAll('#ap-reqs [data-req]').forEach(function (li) { li.hidden = !info['require_' + li.getAttribute('data-req')]; });
+                if (info.founder_linkedin_url) document.querySelectorAll('.ap-founder-link').forEach(function (a) { a.href = info.founder_linkedin_url; });
                 if (info.status === 'open') {
                     document.getElementById('ap-places').textContent = info.places_left > 0 ? info.places_left + ' of ' + info.capacity + ' places open' : 'All ' + info.capacity + ' places taken';
-                    document.getElementById('ap-places-sub').textContent = info.places_left > 0 ? 'Shortlisted from applications' : 'Apply to join the waitlist';
+                    document.getElementById('ap-places-sub').textContent = info.places_left > 0 ? 'Offered to eligible applicants in order' : 'Apply to join the waitlist';
                 }
             }
-            if (!info || info.status !== 'open') { return showStatusOnly(); }
             var user = await OFL.getUser();
+            if (!info || info.status !== 'open') { if (user && info) { var m0 = (await sb.rpc('application_mine', { p_slug: info.slug })).data; if (m0) drawStatus(m0); } return; }
             var next = '/academy/apply/' + (OFL.qs('c') ? '?c=' + encodeURIComponent(OFL.qs('c')) : '');
             if (!user) {
                 cta.appendChild(el('div', { class: 'ap-cta' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Create a free account to apply' }),
@@ -199,6 +223,43 @@
             }
             var prof = (await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
             if (!prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(next); return; }
+
+            // ---- screenshot uploads: resized and compressed in the browser, stored privately
+            var uploaded = {};
+            function path(kind) { return user.id + '/' + info.slug + '/' + kind + '.jpg'; }
+            function compress(file) {
+                return new Promise(function (resolve, reject) {
+                    var img = new Image(), url = URL.createObjectURL(file);
+                    img.onload = function () {
+                        var max = 1280, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+                        var cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+                        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url);
+                        (function tryQ(q) { cv.toBlob(function (b) { if (!b) return reject(new Error('Could not read that image')); if (b.size > 450000 && q > 0.4) return tryQ(q - 0.15); resolve(b); }, 'image/jpeg', q); })(0.75);
+                    };
+                    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('That file isn’t an image we can read. Use a PNG or JPG screenshot.')); };
+                    img.src = url;
+                });
+            }
+            function uploader(box, kind, label) {
+                box.textContent = '';
+                var input = el('input', { type: 'file', accept: 'image/*', class: 'ap-file', 'aria-label': 'Screenshot for ' + label });
+                var thumb = el('div', { class: 'ap-thumb' }), state = el('span', { class: 'ap-up-state', text: 'No screenshot yet' });
+                var pick = el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Upload screenshot', onclick: function () { input.click(); } });
+                input.addEventListener('change', async function () {
+                    var f = input.files[0]; if (!f) return;
+                    state.textContent = 'Uploading…'; state.className = 'ap-up-state'; pick.disabled = true;
+                    try {
+                        var blob = await compress(f);
+                        var r = await sb.storage.from('application-proofs').upload(path(kind), blob, { upsert: true, contentType: 'image/jpeg' });
+                        if (r.error) throw r.error;
+                        uploaded[kind] = true; thumb.textContent = ''; thumb.appendChild(el('img', { src: URL.createObjectURL(blob), alt: 'Your ' + label + ' screenshot' }));
+                        state.textContent = 'Uploaded'; state.className = 'ap-up-state is-ok'; pick.textContent = 'Replace';
+                    } catch (e) { state.textContent = e.message || 'Upload failed. Try again.'; state.className = 'ap-up-state is-err'; }
+                    pick.disabled = false; input.value = '';
+                });
+                box.append(thumb, el('div', { class: 'ap-up-row' }, pick, state), input);
+            }
+
             var mine = (await sb.rpc('application_mine', { p_slug: info.slug })).data;
             if (mine) return drawStatus(mine);
             var bg = (await sb.from('learner_background').select('completed_at').eq('user_id', user.id).maybeSingle()).data;
@@ -212,6 +273,9 @@
                 var name = g.getAttribute('data-name');
                 (OPTS[name] || []).forEach(function (o) { g.appendChild(el('label', { class: 'wb-chip' }, el('input', { type: 'radio', name: name, value: o[0] }), el('span', { text: o[1] }))); });
             });
+            if (info.require_laptop) document.querySelector('[data-name="device"]').before(el('p', { class: 'ap-help ac-muted', text: 'This cohort needs your own laptop or desktop computer.' }));
+            if (info.require_proofs) document.querySelectorAll('#ap-follow-group .ap-proof').forEach(function (p) { var k = p.getAttribute('data-kind'); uploader(p.querySelector('.ap-upload'), k, KINDS.filter(function (x) { return x[0] === k; })[0][1]); });
+            else document.querySelectorAll('.ap-upload').forEach(function (u) { u.hidden = true; });
             document.querySelectorAll('.ap-count').forEach(function (c) {
                 var t = form[c.getAttribute('data-for')], min = c.getAttribute('data-for') === 'motivation' ? 30 : 0;
                 function upd() { var n = t.value.trim().length; c.textContent = n + ' characters' + (min && n < min ? ' (at least ' + min + ')' : ''); c.classList.toggle('is-short', !!min && n < min); }
@@ -221,14 +285,22 @@
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 var f = form, val = function (n) { var x = f.querySelector('input[name="' + n + '"]:checked'); return x ? x.value : null; };
+                function stop(target, text) { if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' }); if (target && target.focus) target.focus(); return OFL.notice(msg, text, 'error'); }
                 document.querySelectorAll('#ap-form .wb-chips').forEach(function (g) { g.classList.remove('is-invalid'); });
-                if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); g.scrollIntoView({ block: 'center' }); return OFL.notice(msg, 'Tell us how many hours a week you can study.', 'error'); }
-                if (f.motivation.value.trim().length < 30) { f.motivation.focus(); return OFL.notice(msg, 'Tell us a little more about why you want to join (at least 30 characters).', 'error'); }
-                if (!f.commit_deadline.checked) { f.commit_deadline.focus(); return OFL.notice(msg, 'Please confirm you can complete the trial lesson in time.', 'error'); }
-                if (f.follows_tiktok.checked && f.tiktok_handle.value.trim().length < 2) { f.tiktok_handle.focus(); return OFL.notice(msg, 'Add your TikTok username so we can check.', 'error'); }
+                if (info.require_proofs) {
+                    if (!f.follows_tiktok.checked || !f.follows_founder.checked || !f.follows_linkedin.checked) return stop(f.follows_tiktok, 'Follow all three and tick each box.');
+                    if (f.tiktok_handle.value.replace(/^@/, '').trim().length < 2) return stop(f.tiktok_handle, 'Add your TikTok username.');
+                    var missing = KINDS.filter(function (k) { return !uploaded[k[0]]; });
+                    if (missing.length) return stop(document.getElementById('ap-follow-group'), 'Upload a screenshot for: ' + missing.map(function (k) { return k[1]; }).join(', ') + '.');
+                    if (!/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
+                }
+                if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); return stop(g, 'Tell us how many hours a week you can study.'); }
+                if (info.require_laptop && val('device') !== 'laptop') { var gd = f.querySelector('[data-name="device"]'); gd.classList.add('is-invalid'); return stop(gd, 'This cohort needs your own laptop or desktop computer.'); }
+                if (f.motivation.value.trim().length < 30) return stop(f.motivation, 'Tell us a little more about why you want to join (at least 30 characters).');
+                if (!f.commit_deadline.checked) return stop(f.commit_deadline, 'Please confirm you can complete the offer steps in time.');
                 var btn = document.getElementById('ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
                 var res = await sb.rpc('application_submit', { p_slug: info.slug, p_answers: {
-                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_linkedin: f.follows_linkedin.checked, linkedin_url: f.linkedin_url.value,
+                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_founder: f.follows_founder.checked, follows_linkedin: f.follows_linkedin.checked, linkedin_url: f.linkedin_url.value,
                     hours: val('hours'), device: val('device'), internet: val('internet'), career_goal: val('career_goal'), can_afford: val('can_afford'),
                     motivation: f.motivation.value, problem: f.problem.value,
                     commit_deadline: f.commit_deadline.checked, consent_reports: f.consent_reports.checked, consent_jobs: f.consent_jobs.checked } });
@@ -237,35 +309,78 @@
                 form.hidden = true; cta.textContent = ''; msg.textContent = ''; window.scrollTo({ top: 0, behavior: 'smooth' });
                 drawStatus(res.data, true);
             });
-            async function showStatusOnly() {
-                var u = await OFL.getUser(); if (!u || !info) return;
-                var m = (await sb.rpc('application_mine', { p_slug: info.slug })).data; if (m) drawStatus(m);
-            }
+
             function when(v) { return new Date(v).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+            function copyBtn(text) {
+                var b = el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Copy post text' });
+                b.addEventListener('click', function () { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy post text'; }, 1800); }, function () { window.prompt('Copy this text:', text); }); });
+                return b;
+            }
+            async function step(name, value) {
+                var r = await sb.rpc('application_offer_step', { p_slug: info.slug, p_step: name, p_value: value || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                msg.textContent = ''; drawStatus(r.data);
+            }
             function drawStatus(m, fresh) {
-                document.getElementById('ap-how').hidden = m.status !== 'waitlisted';
+                document.getElementById('ap-how').hidden = !(m.status === 'waitlisted' && m.proof_status === 'ok');
                 document.getElementById('ap-facts').hidden = true; document.querySelector('.ap-hero .cp-hero__lead').hidden = true;
                 var lesson = '/academy/lesson/?course=' + info.course + '&n=' + info.trial_lesson, box;
                 if (m.status === 'shortlisted') {
                     var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
-                    box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Shortlisted' }),
-                        el('h2', { text: 'You have a place: now complete Lesson ' + info.trial_lesson }),
-                        el('p', { text: 'Finish the video, notes, practice and quiz by ' + when(m.deadline_at) + ' to keep your place.' }),
-                        el('div', { class: 'ap-countdown' }, el('b', { class: 'num', text: d + 'd ' + h + 'h' }), el('span', { text: 'left' })),
-                        el('a', { class: 'ac-btn ac-btn--primary', href: lesson, text: 'Start Lesson ' + info.trial_lesson }));
+                    var list = el('ol', { class: 'ap-offer' });
+                    function item(done, title, body) { list.appendChild(el('li', { class: done ? 'is-done' : '' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: done ? '✓' : '' }), el('div', {}, el('b', { text: title + (done ? ' (done)' : '') }), body))); }
+                    if (info.require_post) {
+                        var post = 'I’ve been offered a place in the Founding Cohort of Open Fraud Labs Academy.\n\nOver the coming weeks I’ll be learning Data Science from Scratch: Python, statistics and machine learning, with hands-on projects.\n\nThank you @Ayodele Odugbile and @Open Fraud Labs for the opportunity. If you’re curious about data, take a look: openfraudlabs.com/academy\n\n#OpenFraudLabsAcademy #DataScience';
+                        var url = el('input', { type: 'url', placeholder: 'https://www.linkedin.com/posts/…', value: m.post_url || '', 'aria-label': 'Link to your LinkedIn post' });
+                        item(!!m.post_url, 'Post your offer on LinkedIn', el('div', { class: 'ap-offer__body' },
+                            el('p', { text: 'Share the news and tag Ayodele Odugbile and Open Fraud Labs. You can use this text. When you paste it into LinkedIn, type @ and pick both names from the list so the tags work.' }),
+                            el('pre', { class: 'ap-post', text: post }),
+                            el('div', { class: 'ap-up-row' }, copyBtn(post), el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: 'https://www.linkedin.com/feed/', target: '_blank', rel: 'noopener noreferrer', text: 'Open LinkedIn' })),
+                            el('label', { class: 'au-field' }, el('span', { text: 'Then paste the link to your post (on the post, choose … then “Copy link to post”)' }), url),
+                            el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: m.post_url ? 'Update link' : 'Save link', onclick: function () { step('post', url.value); } })));
+                    }
+                    if (info.require_whatsapp) {
+                        item(!!m.whatsapp_joined, 'Join the cohort WhatsApp group', el('div', { class: 'ap-offer__body' },
+                            m.whatsapp_url ? el('p', { text: 'Updates, reminders and questions go here. Please don’t share the link outside the cohort.' }) : el('p', { text: 'The group link will appear here shortly. Check back soon; your deadline already allows for this.' }),
+                            m.whatsapp_url ? el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open WhatsApp group' }),
+                                m.whatsapp_joined ? null : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'I’ve joined', onclick: function () { step('whatsapp'); } })) : null));
+                    }
+                    item(!!m.trial_done, 'Complete Lesson ' + info.trial_lesson, el('div', { class: 'ap-offer__body' },
+                        el('p', { text: 'Watch the video, read the notes, try the practice and pass the quiz.' }),
+                        m.trial_done ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
+                    box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Offer' }),
+                        el('h2', { text: 'You’ve been offered a place' }),
+                        el('p', { text: 'Finish every step below by ' + when(m.deadline_at) + ' to accept it. If they aren’t all done in time, the place goes to the next person on the waitlist.' }),
+                        el('div', { class: 'ap-countdown' }, el('b', { class: 'num', text: d + 'd ' + h + 'h' }), el('span', { text: 'left' })), list);
                 } else if (m.status === 'completed') {
                     box = el('div', { class: 'ap-state ap-state--done' }, el('span', { class: 'ap-state__tag', text: 'Place confirmed' }),
-                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed the trial in time. Carry on with the course whenever you’re ready.' }),
-                        el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to my learning' }));
-                } else if (m.status === 'waitlisted') {
-                    box = el('div', { class: 'ap-state' }, el('span', { class: 'ap-state__tag', text: fresh ? 'Application received' : 'On the waitlist' }),
-                        el('h2', { text: fresh ? 'Thank you for applying' : 'You’re on the waitlist' }),
-                        el('p', { text: m.meets_min ? 'You’re number ' + m.position + ' on the waitlist. Places open when shortlisted learners don’t finish the trial in time, and we shortlist the next person automatically.'
-                                                   : 'Our team will review your application. We’ll tell you on the site and by email if a place opens for you.' }),
+                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed every step in time. Carry on with the course whenever you’re ready.' }),
+                        el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to my learning' }),
+                            m.whatsapp_url ? el('a', { class: 'ac-btn ac-btn--secondary', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Cohort WhatsApp group' }) : null));
+                } else if (m.status === 'waitlisted' && m.proof_status === 'fix') {
+                    var ups = el('div', { class: 'ap-proofs' });
+                    KINDS.forEach(function (k) { var b = el('div', { class: 'ap-proof' }, el('div', { class: 'ap-proof__head' }, el('b', { text: k[1] })), el('div', { class: 'ap-upload' })); ups.appendChild(b); uploader(b.querySelector('.ap-upload'), k[0], k[1]); });
+                    box = el('div', { class: 'ap-state ap-state--fix' }, el('span', { class: 'ap-state__tag', text: 'Action needed' }),
+                        el('h2', { text: 'Please update your screenshots' }), el('p', { class: 'ap-note', text: m.proof_note || 'One or more screenshots didn’t show what we need.' }),
+                        el('p', { class: 'ac-muted ac-small', text: 'Upload new screenshots for the ones that need fixing (each should show the profile name and “Following”), then send them.' }), ups,
+                        el('button', { type: 'button', class: 'ac-btn ac-btn--primary', text: 'Send new screenshots', onclick: async function () {
+                            var r = await sb.rpc('application_proofs_resubmit', { p_slug: info.slug });
+                            if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                            OFL.notice(msg, 'Thank you. We’ll check them again soon.', 'success'); drawStatus(r.data);
+                        } }));
+                } else if (m.status === 'waitlisted' && m.proof_status === 'pending') {
+                    box = el('div', { class: 'ap-state' }, el('span', { class: 'ap-state__tag', text: fresh ? 'Application received' : 'Checking your screenshots' }),
+                        el('h2', { text: fresh ? 'Thank you for applying' : 'We’re checking your application' }),
+                        el('p', { text: 'We check screenshots by hand, usually within two days. You’ll hear from us here and by email.' }),
                         el('p', { class: 'ac-muted ac-small', text: 'While you wait, follow @_drhola on TikTok for free short lessons.' }));
+                } else if (m.status === 'waitlisted') {
+                    box = el('div', { class: 'ap-state' }, el('span', { class: 'ap-state__tag', text: 'On the waitlist' }),
+                        el('h2', { text: 'You’re eligible and on the waitlist' }),
+                        el('p', { text: m.meets_min ? 'You’re number ' + m.position + ' in line. Places open when offers aren’t accepted in time, and we offer the next place automatically.'
+                                                   : 'Our team will review your application. We’ll tell you here and by email if a place opens for you.' }));
                 } else if (m.status === 'missed') {
-                    box = el('div', { class: 'ap-state ap-state--end' }, el('span', { class: 'ap-state__tag', text: 'Trial ended' }),
-                        el('h2', { text: 'Your trial period has ended' }), el('p', { text: 'Lesson ' + info.trial_lesson + ' wasn’t completed by the deadline, so the place went to the next person on the waitlist. You’re welcome to apply for a future cohort.' }));
+                    box = el('div', { class: 'ap-state ap-state--end' }, el('span', { class: 'ap-state__tag', text: 'Offer expired' }),
+                        el('h2', { text: 'Your offer has expired' }), el('p', { text: 'The offer steps weren’t all completed by the deadline, so the place went to the next person on the waitlist. You’re welcome to apply for a future cohort.' }));
                 } else {
                     box = el('div', { class: 'ap-state ap-state--end' }, el('span', { class: 'ap-state__tag', text: 'Application closed' }),
                         el('h2', { text: 'Thank you for applying' }), el('p', { text: 'We weren’t able to offer you a place in this cohort. You’re welcome to apply for a future one.' }));
