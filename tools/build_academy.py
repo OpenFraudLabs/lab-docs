@@ -3079,7 +3079,7 @@ careers_main = f"""        <section class="cp-hero">
                     <a class="ac-btn ac-btn--primary" href="/academy/apply/" id="cr-apply">See details and apply</a>
                 </article>
                 <h2 class="cr-h">Paid roles</h2>
-                <p class="ac-muted">No paid roles are open right now. Follow Open Fraud Labs on <a href="{LI}" target="_blank" rel="noopener noreferrer">LinkedIn</a> to hear when they are.</p>
+                <p class="ac-muted">No paid roles are open right now. Follow Open Fraud Labs on <a href="{LI}" target="_blank" rel="noopener noreferrer">LinkedIn</a> to hear when they are. Questions about careers: <a href="mailto:careers@openfraudlabs.com">careers@openfraudlabs.com</a>.</p>
             </div>
         </section>"""
 
