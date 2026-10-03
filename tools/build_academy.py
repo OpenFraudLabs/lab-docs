@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261003c"
+V = "20261003d"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -2753,7 +2753,7 @@ apply_main = f"""        <section class="cp-hero ap-hero">
                 <p class="cp-hero__lead">Before the Academy opens to everyone, we're taking a small group of learners through <b>Data Science from Scratch</b> for free. Places are limited, so we shortlist from applications and keep a waitlist.</p>
                 <ul class="ap-facts" id="ap-facts">
                     <li><b>Free</b><span>No fees during pre-launch</span></li>
-                    <li><b>Online</b><span>Learn at your own pace, from anywhere</span></li>
+                    <li><b id="ap-span">Online</b><span id="ap-span-sub">Learn at your own pace, from anywhere</span></li>
                     <li><b id="ap-trial">7-day trial</b><span>Finish Lesson 1 in time to keep your place</span></li>
                     <li><b id="ap-places">Limited places</b><span id="ap-places-sub">Shortlisted from applications</span></li>
                 </ul>
@@ -2764,6 +2764,7 @@ apply_main = f"""        <section class="cp-hero ap-hero">
                 <div id="msg"></div>
                 <div id="ap-status"></div>
                 <div class="ap-how" id="ap-how">
+                    <div id="ap-dates-wrap" hidden><h2>Key dates</h2><ol class="ap-dates" id="ap-dates"></ol></div>
                     <h2>How it works</h2>
                     <ol class="ap-steps">
                         <li><b>Apply</b><span>Create a free account, answer a few questions and upload three screenshots showing you follow us (about 10 minutes).</span></li>
@@ -2873,6 +2874,21 @@ apply_script = r"""        (async function () {
                 document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days.';
                 document.querySelectorAll('#ap-reqs [data-req]').forEach(function (li) { li.hidden = !info['require_' + li.getAttribute('data-req')]; });
                 if (info.founder_linkedin_url) document.querySelectorAll('.ap-founder-link').forEach(function (a) { a.href = info.founder_linkedin_url; });
+                (function dates() {
+                    function dd(v, time) { var d = new Date(v.length === 10 ? v + 'T12:00:00+01:00' : v); return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' }) + (time ? ', ' + d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Africa/Lagos' }).replace(':00', '') : ''); }
+                    if (info.starts_on && info.ends_on) { document.getElementById('ap-span').textContent = dd(info.starts_on).replace(/^\w+, /, '') + ' \u2013 ' + dd(info.ends_on).replace(/^\w+, /, ''); document.getElementById('ap-span-sub').textContent = 'Online, at your own pace within the weekly plan'; }
+                    var rows = [];
+                    if (info.closes_at) rows.push([dd(info.closes_at, true), 'Applications close']);
+                    if (info.offers_at) rows.push([dd(info.offers_at), 'Offers sent to eligible applicants, by email and on this page']);
+                    if (info.orientation_at) rows.push([dd(info.orientation_at, true), 'Online orientation (link shared in the cohort WhatsApp group)']);
+                    if (info.offers_at) rows.push([dd(new Date(new Date(info.offers_at).getTime() + info.trial_days * 864e5).toISOString()), 'Accept your offer by this date (' + info.trial_days + ' days after it arrives)']);
+                    if (info.starts_on) rows.splice(info.offers_at ? 2 : rows.length, 0, [dd(info.starts_on), 'Learning starts: a weekly plan of lessons, then three portfolio projects and a capstone']);
+                    if (info.ends_on) rows.push([dd(info.ends_on), 'Final deadline: lessons, projects and capstone all complete']);
+                    if (!rows.length) return;
+                    var ol = document.getElementById('ap-dates');
+                    rows.forEach(function (r) { ol.appendChild(OFL.el('li', {}, OFL.el('b', { text: r[0] }), OFL.el('span', { text: r[1] }))); });
+                    document.getElementById('ap-dates-wrap').hidden = false;
+                })();
                 if (info.status === 'open') {
                     document.getElementById('ap-places').textContent = info.places_left > 0 ? info.places_left + ' of ' + info.capacity + ' places open' : 'All ' + info.capacity + ' places taken';
                     document.getElementById('ap-places-sub').textContent = info.places_left > 0 ? 'Offered to eligible applicants in order' : 'Apply to join the waitlist';
