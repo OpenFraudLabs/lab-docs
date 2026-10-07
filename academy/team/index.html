@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007g">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007h">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -119,8 +119,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007g"></script>
-    <script src="/assets/js/academy.js?v=20261007g"></script>
+    <script src="/assets/js/learn.js?v=20261007h"></script>
+    <script src="/assets/js/academy.js?v=20261007h"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -275,7 +275,16 @@
             document.getElementById('tc-h1').textContent = info.is_team ? 'Team calendar' : 'Your calendar';
             document.getElementById('tc-sub').textContent = info.is_team ? 'Team meetings, activities, cohort sessions and Academy deadlines. All times are Lagos time (WAT).' : 'Your onboarding meeting, weekly deadlines, office hours and meetings. All times are Lagos time (WAT). Invitations also arrive by email.';
             document.title = (info.is_team ? 'Team calendar' : 'Your calendar') + ' | Open Fraud Labs Academy';
-            (info.cohorts || []).forEach(function (c) { if (c.orientation_doc_url) document.getElementById('tc-tools').prepend(el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: c.orientation_doc_url, target: '_blank', rel: 'noopener noreferrer', text: 'Orientation document' + ((info.cohorts || []).length > 1 ? ' (' + c.title + ')' : '') })); });
+            (async function () {
+                var dr = await sb.rpc('documents_list'), list = (dr.data && dr.data.documents || []).filter(function (d) { return d.audience !== 'staff'; }), seen = {};
+                list.forEach(function (d) { seen[d.url] = 1; });
+                (info.cohorts || []).forEach(function (c) { if (c.orientation_doc_url && !seen[c.orientation_doc_url]) list.unshift({ title: 'Orientation document', url: c.orientation_doc_url }); });
+                list = list.filter(function (d) { return d.url !== location.pathname; });
+                if (!list.length) return;
+                var row = el('div', { class: 'tc-docs' }, el('span', { class: 'ac-muted ac-small', text: 'Documents:' }));
+                list.forEach(function (d) { row.appendChild(el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.url, target: '_blank', rel: 'noopener noreferrer', text: d.title.replace(/ \(Google Doc\)$/, '') })); });
+                document.getElementById('tc-body').prepend(row);
+            })();
             var want = OFL.qs('e');
             if (want) {
                 if (!cache[want]) { try { await fetchRange(new Date(Date.now() - 120 * 864e5), new Date(Date.now() + 365 * 864e5)); } catch (x) {} }

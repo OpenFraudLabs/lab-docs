@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007g">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007h">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -57,6 +57,24 @@
             </div>
             <div id="admin-body" hidden>
                 <div class="ac-kpis" id="kpis"></div>
+                <section class="ac-admin__sec" data-cap="view_stats" id="doc-sec">
+                    <div class="ac-admin__head"><h2>Documents</h2><p class="ac-muted">Every Academy document and page in one place: the orientation document, policies, calendars, application pages and banners. “Who can see it” controls whether interns and cohort learners also see it on their calendar.</p>
+                        <div class="ac-admin__tools"><input type="search" id="doc-q" placeholder="Search documents" aria-label="Search documents"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="doc-add" hidden>Add document</button></div></div>
+                    <div id="doc-list" class="doc-list"></div>
+                </section>
+                <dialog class="ac-dialog" id="doc-dlg" aria-labelledby="doc-dlg-title">
+                    <div class="ac-dialog__head"><h2 id="doc-dlg-title">Add document</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="doc-dlg-msg"></div>
+                    <form class="ac-form" id="doc-form" novalidate>
+                        <label>Title<input name="title" maxlength="160" required placeholder="e.g. Office hours rota"></label>
+                        <label><span>Link <em class="ac-muted">(Google Doc, Sheet, Drive file or a page on the site)</em></span><input name="url" maxlength="500" required placeholder="https://docs.google.com/..."></label>
+                        <div class="co-two"><label>Category<input name="category" maxlength="60" list="doc-cats" placeholder="e.g. Founding Cohort 2026"><datalist id="doc-cats"></datalist></label>
+                        <label>Who can see it<select name="audience"><option value="staff">Staff dashboard only</option><option value="team">Staff and interns (team calendar)</option><option value="learners">Staff, interns and cohort learners</option></select></label></div>
+                        <label><span>Notes <em class="ac-muted">(optional)</em></span><textarea name="notes" rows="2" maxlength="500" placeholder="What it is and when to use it"></textarea></label>
+                        <p class="ac-muted ac-small">For a Google file, set its sharing to “Anyone with the link can view” so interns and learners can open it.</p>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
                 <section class="ac-admin__sec" data-cap="manage_applications" id="app-sec">
                     <div class="ac-admin__head"><h2>Applications</h2><p class="ac-muted" id="app-sub">Cohort applications, scored against the published criteria. Shortlisting, the trial deadline, reminders and waitlist moves run by themselves every hour; you can step in at any time.</p>
                         <div class="ac-admin__tools"><select id="app-cohort" aria-label="Cohort"></select>
@@ -300,8 +318,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007g"></script>
-    <script src="/assets/js/academy.js?v=20261007g"></script>
+    <script src="/assets/js/learn.js?v=20261007h"></script>
+    <script src="/assets/js/academy.js?v=20261007h"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -1007,6 +1025,50 @@
                     OFL.notice(msg, 'Reminder sent to ' + r.data.sent + '.', 'success'); loadIncomplete();
                 };
             }
+            // ---- Documents library
+            var docs = [], docEdit = null, docDlg = document.getElementById('doc-dlg'), docForm = document.getElementById('doc-form');
+            var DOC_AUD = { staff: 'Staff only', team: 'Staff and interns', learners: 'Staff, interns and learners' };
+            docDlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { docDlg.close(); }); });
+            async function loadDocs() {
+                var r = await sb.rpc('documents_list'); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                docs = r.data.documents || []; var mg = !!r.data.can_manage; document.getElementById('doc-add').hidden = !mg;
+                var q = document.getElementById('doc-q').value.trim().toLowerCase(), box = document.getElementById('doc-list'); box.textContent = '';
+                var groups = {}; docs.filter(function (d) { return !q || (d.title + ' ' + d.category + ' ' + (d.notes || '')).toLowerCase().indexOf(q) >= 0; })
+                    .forEach(function (d) { (groups[d.category] = groups[d.category] || []).push(d); });
+                var dl = document.getElementById('doc-cats'); dl.textContent = ''; Object.keys(docs.reduce(function (o, d) { o[d.category] = 1; return o; }, {})).forEach(function (c) { dl.appendChild(el('option', { value: c })); });
+                if (!Object.keys(groups).length) box.appendChild(el('p', { class: 'ac-muted', text: docs.length ? 'No documents match.' : 'No documents yet.' }));
+                Object.keys(groups).forEach(function (cat) {
+                    var ul = el('ul', { class: 'doc-group__list' });
+                    groups[cat].forEach(function (d) {
+                        var href = /^\//.test(d.url) ? d.url : d.url, kind = /docs\.google\.com\/document/.test(d.url) ? 'Google Doc' : /docs\.google\.com\/spreadsheets/.test(d.url) ? 'Google Sheet' : /drive\.google\.com/.test(d.url) ? 'Drive file' : /\.(png|jpe?g)$/i.test(d.url) ? 'Image' : /^\//.test(d.url) ? 'Site page' : 'Link';
+                        var li = el('li', { class: 'doc-item' }, el('div', { class: 'doc-item__main' }, el('a', { href: href, target: '_blank', rel: 'noopener noreferrer', text: d.title }),
+                            el('span', { class: 'doc-tag', text: kind }), el('span', { class: 'doc-tag doc-tag--' + d.audience, text: DOC_AUD[d.audience] })),
+                            d.notes ? el('p', { class: 'ac-muted ac-small', text: d.notes }) : null);
+                        if (mg) li.appendChild(el('div', { class: 'doc-item__acts' },
+                            el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Edit', onclick: function () { openDoc(d); } }),
+                            el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Remove', onclick: async function () {
+                                if (!window.confirm('Remove “' + d.title + '” from the documents list? The file itself isn\u2019t deleted.')) return;
+                                var x = await sb.rpc('document_archive', { p_id: d.id }); if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); loadDocs(); } })));
+                        ul.appendChild(li);
+                    });
+                    box.appendChild(el('div', { class: 'doc-group' }, el('h3', { text: cat }), ul));
+                });
+            }
+            function openDoc(d) {
+                docEdit = d || null; document.getElementById('doc-dlg-msg').textContent = ''; document.getElementById('doc-dlg-title').textContent = d ? 'Edit document' : 'Add document';
+                docForm.title.value = d ? d.title : ''; docForm.url.value = d ? d.url : ''; docForm.category.value = d ? d.category : ''; docForm.audience.value = d ? d.audience : 'staff'; docForm.notes.value = d && d.notes || '';
+                docDlg.showModal();
+            }
+            document.getElementById('doc-add').addEventListener('click', function () { openDoc(null); });
+            document.getElementById('doc-q').addEventListener('input', loadDocs);
+            docForm.addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = document.getElementById('doc-dlg-msg');
+                var r = await sb.rpc('document_save', { p_id: docEdit ? docEdit.id : null, p_title: docForm.title.value, p_url: docForm.url.value, p_category: docForm.category.value,
+                    p_audience: docForm.audience.value, p_notes: docForm.notes.value, p_sort: docEdit ? docEdit.sort : 100 });
+                if (r.error) return OFL.notice(m, OFL.friendlyError(r.error), 'error');
+                docDlg.close(); OFL.notice(msg, 'Document saved.', 'success'); loadDocs();
+            });
+            if (can('view_stats')) loadDocs();
             await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles(); loadIncomplete();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
