@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261007c"
+V = "20261007d"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -2139,12 +2139,16 @@ admin_script = r"""        (async function () {
             document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
                 document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); appFilter = b.dataset.f; drawApps(); }); });
             document.getElementById('app-q').addEventListener('input', drawApps);
+            var decideBusy = false;
             async function decide(a, action, note) {
                 var text = { shortlist: 'Offer ' + (a.full_name || a.email) + ' a place now' + (a.proof_status !== 'ok' ? ', even though their screenshots aren\u2019t confirmed' : '') + '? They\u2019ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to complete the offer steps.',
                     waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
                 if (text && !window.confirm(text)) return false;
+                if (decideBusy) return false; decideBusy = true;
+                var btns = document.querySelectorAll('#app-dlg-body button'); btns.forEach(function (x) { x.disabled = true; });
                 var res = await sb.rpc('application_decide', { p_id: a.id, p_action: action, p_note: note == null ? null : note });
-                if (res.error) { OFL.notice(document.getElementById('app-dlg').open ? document.getElementById('app-dlg-msg') : msg, OFL.friendlyError(res.error), 'error'); return false; }
+                decideBusy = false; btns.forEach(function (x) { x.disabled = false; });
+                if (res.error) { if (/Already offered/.test(res.error.message || '')) loadApps(); OFL.notice(document.getElementById('app-dlg').open ? document.getElementById('app-dlg-msg') : msg, OFL.friendlyError(res.error), 'error'); return false; }
                 OFL.notice(msg, action === 'note' ? 'Note saved.' : 'Done: ' + action + ' for ' + (a.full_name || a.email) + '.', 'success');
                 appDlg.close(); loadApps(); return true;
             }
@@ -2185,6 +2189,7 @@ admin_script = r"""        (async function () {
                 }
                 if (a.status === 'shortlisted' || a.status === 'completed' || a.status === 'missed') {
                     var os = el('div', { class: 'app-card' }, el('h3', { text: 'Offer steps' }));
+                    if (a.offered_at) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer sent' }), el('b', { text: dt(a.offered_at) + ' · ' + (a.offered_by_name === 'automatic' ? 'automatic (top of waitlist)' : 'by ' + (a.offered_by_name || 'staff')) })));
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer letter' }), el('b', { text: a.offer_signed_at ? 'Signed by ' + a.offer_signed_name + ', ' + dt(a.offer_signed_at) : 'Not signed yet' })));
                     if (a.offer_letter) { var lt = el('details', { class: 'app-letter' }, el('summary', { text: 'Read the letter they were sent' }), el('p', { class: 'app-text', text: a.offer_letter })); os.appendChild(lt); }
                     if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
@@ -2358,6 +2363,7 @@ admin_script = r"""        (async function () {
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Message with the next step (optional)' }), msgBox));
                 if (a.offer_letter) {
                     var oc = el('div', { class: 'app-card' }, el('h3', { text: 'Offer letter' }));
+                    if (a.offered_at) oc.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Sent ' + dt(a.offered_at) + ' by ' + (a.offered_by_name || 'staff') + '.' }));
                     oc.appendChild(el('p', { class: 'ac-muted ac-small', text: a.offer_signed_at ? 'Signed by typing “' + a.offer_signed_name + '” on ' + dt(a.offer_signed_at) + '.' : 'Sent. Not signed yet' + (a.offer_deadline ? ' (reply by ' + dOnly(a.offer_deadline) + ')' : '') + '.' }));
                     var det = el('details', {}, el('summary', { text: 'Read the letter' })); det.appendChild(el('p', { class: 'app-text', text: a.offer_letter })); oc.appendChild(det);
                     b.appendChild(oc);
@@ -2386,8 +2392,8 @@ admin_script = r"""        (async function () {
                     }
                 } else if (a.status === 'accepted') b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Offer signed. Waiting for their staff profile; they were emailed the link.' }));
                 var acts = el('div', { class: 'ofl-actions' });
-                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', a.offer_letter ? 'Resend offer letter' : 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
-                    if (a.status === x[0] && x[0] !== 'offered') return;
+                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
+                    if (a.status === x[0]) return;
                     if ((a.status === 'accepted' || a.status === 'hired') && x[0] !== 'not_progressed') return;
                     acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
                 });
@@ -2402,10 +2408,14 @@ admin_script = r"""        (async function () {
                 if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
                 roleDlg.close(); OFL.notice(msg, approve ? who + ' is approved and on the team.' : 'Sent back to ' + who + '.', 'success'); loadRoleApps();
             }
+            var roleBusy = false;
             async function roleDecide(a, status, note, message) {
                 var names = { shortlisted: 'shortlist', interview: 'invite to interview', offered: 'send an offer letter to', hired: 'mark as hired', not_progressed: 'tell they are not progressing' };
                 if (status !== 'note' && !window.confirm('This will ' + names[status] + ' ' + (a.full_name || a.email) + ' and email them. Continue?')) return;
+                if (roleBusy) return; roleBusy = true;
+                var rbtns = document.querySelectorAll('#role-dlg-body button'); rbtns.forEach(function (x) { x.disabled = true; });
                 var res = await sb.rpc('role_application_decide', { p_id: a.id, p_status: status, p_note: note, p_message: message });
+                roleBusy = false; rbtns.forEach(function (x) { x.disabled = false; });
                 if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
                 roleDlg.close(); OFL.notice(msg, status === 'note' ? 'Note saved.' : 'Updated and emailed.', 'success'); loadRoleApps();
             }
