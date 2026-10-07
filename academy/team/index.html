@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team calendar | Open Fraud Labs Academy</title>
+    <meta name="description" content="Meetings, activities and deadlines for the Open Fraud Labs team.">
+    <meta property="og:title" content="Team calendar | Open Fraud Labs Academy">
+    <meta property="og:description" content="Meetings, activities and deadlines for the Open Fraud Labs team.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/verify/">Verify a certificate</a>
+                <a href="/careers/">Careers</a>
+                <a href="/">Open Fraud Labs</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap tc">
+            <div class="ac-dash-head tc-head">
+                <div><h1>Team calendar</h1><p class="ac-muted">Meetings you're invited to, team activities and deadlines. All times are Lagos time (WAT).</p></div>
+                <div class="tc-tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
+            </div>
+            <div id="msg"></div>
+            <div id="tc-body" hidden>
+                <section class="tc-up" aria-labelledby="tc-up-h"><h2 id="tc-up-h">Coming up</h2><ol class="tc-agenda" id="tc-up"></ol></section>
+                <section class="tc-month" aria-label="Month view">
+                    <div class="tc-nav"><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" id="tc-prev" aria-label="Previous month">&larr;</button>
+                        <h2 id="tc-label">&nbsp;</h2>
+                        <button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" id="tc-next" aria-label="Next month">&rarr;</button>
+                        <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="tc-today">Today</button></div>
+                    <div class="tc-legend"><span class="tc-k tc-k--meeting">Meeting</span><span class="tc-k tc-k--activity">Activity</span><span class="tc-k tc-k--deadline">Deadline</span><span class="tc-k tc-k--auto">Academy date</span></div>
+                    <div class="tc-grid" id="tc-grid" role="grid"></div>
+                </section>
+            </div>
+            <dialog class="ac-dialog" id="tc-ev" aria-labelledby="tc-ev-title">
+                <div class="ac-dialog__head"><h2 id="tc-ev-title">Event</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                <div id="tc-ev-msg"></div><div id="tc-ev-body"></div>
+            </dialog>
+            <dialog class="ac-dialog" id="tc-fm" aria-labelledby="tc-fm-title">
+                <div class="ac-dialog__head"><h2 id="tc-fm-title">Add to calendar</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                <div id="tc-fm-msg"></div>
+                <form class="ac-form" id="tc-form" novalidate>
+                    <label>What is it?<select name="kind"><option value="meeting">Meeting (people reply Yes, No or Maybe)</option><option value="activity">Activity or task</option><option value="deadline">Deadline</option></select></label>
+                    <label>Title<input name="title" maxlength="140" required placeholder="e.g. Weekly team check-in"></label>
+                    <div class="co-two"><label>Date<input name="date" type="date" required></label><label><span id="tc-start-l">Start time</span><input name="start" type="time" required value="19:00"></label></div>
+                    <label id="tc-end-w"><span>End time <em class="ac-muted">(optional)</em></span><input name="end" type="time"></label>
+                    <label><span>Where <em class="ac-muted">(meeting link or place, optional)</em></span><input name="location" maxlength="300" placeholder="https://meet.google.com/..."></label>
+                    <label><span>Details <em class="ac-muted">(optional)</em></span><textarea name="details" rows="3" maxlength="2000" placeholder="Agenda, what to prepare, who leads"></textarea></label>
+                    <fieldset><legend>Who should see it</legend>
+                        <label class="ap-check"><input type="checkbox" name="everyone" checked> Everyone on the team (staff and interns)</label>
+                        <div class="tc-people" id="tc-people" hidden></div></fieldset>
+                    <p class="ac-muted ac-small">Everyone you invite gets an email and sees it on their team calendar. Changing it later emails them again.</p>
+                    <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="tc-save">Save and send invitations</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                </form>
+            </dialog>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261007e"></script>
+    <script src="/assets/js/academy.js?v=20261007e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/team/'); if (!user) return;
+            var TZ = 'Africa/Lagos', KIND = { meeting: 'Meeting', activity: 'Activity', deadline: 'Deadline' }, RESP = { yes: 'Yes', no: 'No', maybe: 'Maybe', pending: 'No reply yet' };
+            var view = new Date(), canManage = false, members = [], cache = {}, editing = null;
+            function lagos(d) { var p = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(d)), o = {}; p.forEach(function (x) { o[x.type] = x.value; }); return o; }
+            function dayKey(d) { var o = lagos(d); return o.year + '-' + o.month + '-' + o.day; }
+            function fmtDay(d) { return new Date(d).toLocaleDateString('en-GB', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }); }
+            function fmtTime(d) { return new Date(d).toLocaleTimeString('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }); }
+            function when(e) { return fmtDay(e.starts_at) + ', ' + (e.kind === 'deadline' ? 'by ' : '') + fmtTime(e.starts_at) + (e.ends_at ? '\u2013' + fmtTime(e.ends_at) : ''); }
+            function cls(e) { return 'tc-k--' + (e.auto ? 'auto' : e.kind) + (e.cancelled_at ? ' is-cancelled' : ''); }
+            document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+
+            async function fetchRange(from, to) {
+                var r = await sb.rpc('team_calendar', { p_from: from.toISOString(), p_to: to.toISOString() });
+                if (r.error) throw r.error;
+                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage;
+                (r.data.events || []).forEach(function (e) { cache[e.id || ('auto-' + e.title)] = e; });
+                return r.data.events || [];
+            }
+            async function drawUpcoming() {
+                var now = new Date(), evs = await fetchRange(new Date(now.getTime() - 6 * 3600e3), new Date(now.getTime() + 60 * 864e5));
+                var ol = document.getElementById('tc-up'); ol.textContent = '';
+                evs = evs.filter(function (e) { return !e.cancelled_at; }).slice(0, 12);
+                if (!evs.length) ol.appendChild(el('li', { class: 'tc-empty', text: 'Nothing in the next 60 days yet.' }));
+                evs.forEach(function (e) {
+                    var needs = e.my_response === 'pending' && e.kind === 'meeting';
+                    ol.appendChild(el('li', {}, el('button', { type: 'button', class: 'tc-item ' + cls(e), onclick: function () { openEvent(e); } },
+                        el('span', { class: 'tc-item__when', text: when(e) }), el('b', { text: e.title }),
+                        el('span', { class: 'tc-item__meta', text: (e.auto ? 'Academy date' : KIND[e.kind]) + (needs ? ' \u00b7 please reply' : e.my_response && e.my_response !== 'pending' ? ' \u00b7 you said ' + RESP[e.my_response] : '') }))));
+                });
+            }
+            async function drawMonth() {
+                var y = view.getFullYear(), m = view.getMonth(), first = new Date(Date.UTC(y, m, 1, -1)), shift = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7;
+                var start = new Date(first.getTime() - shift * 864e5), end = new Date(start.getTime() + 42 * 864e5);
+                document.getElementById('tc-label').textContent = new Date(y, m, 15).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+                var evs = await fetchRange(start, end), byDay = {};
+                evs.forEach(function (e) { (byDay[dayKey(e.starts_at)] = byDay[dayKey(e.starts_at)] || []).push(e); });
+                var g = document.getElementById('tc-grid'); g.textContent = '';
+                ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(function (d) { g.appendChild(el('div', { class: 'tc-dow', text: d })); });
+                var today = dayKey(new Date());
+                for (var i = 0; i < 42; i++) {
+                    var d = new Date(start.getTime() + i * 864e5 + 12 * 3600e3), k = dayKey(d), o = lagos(d);
+                    var cell = el('div', { class: 'tc-day' + (+o.month - 1 !== m ? ' is-out' : '') + (k === today ? ' is-today' : ''), role: 'gridcell' }, el('span', { class: 'tc-day__n', text: String(+o.day) }));
+                    (byDay[k] || []).forEach(function (e) { cell.appendChild(el('button', { type: 'button', class: 'tc-chip ' + cls(e), title: e.title, onclick: function () { openEvent(e); } }, el('span', { class: 'num', text: fmtTime(e.starts_at) }), ' ' + e.title)); });
+                    if (canManage && +o.month - 1 === m) (function (dd) { cell.addEventListener('dblclick', function () { openForm(null, dd); }); })(k);
+                    g.appendChild(cell);
+                }
+            }
+            function gcal(e) {
+                function z(d) { return new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
+                var endT = e.ends_at || new Date(new Date(e.starts_at).getTime() + (e.kind === 'meeting' ? 3600e3 : 0)).toISOString();
+                return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(e.title) + '&dates=' + z(e.starts_at) + '/' + z(endT) +
+                    '&details=' + encodeURIComponent((e.details || '') + '\n\nOpen Fraud Labs team calendar: https://openfraudlabs.com/academy/team/') + (e.location ? '&location=' + encodeURIComponent(e.location) : '');
+            }
+            function ics(e) {
+                function z(d) { return new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
+                function t(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, '\\$&'); }
+                var endT = e.ends_at || new Date(new Date(e.starts_at).getTime() + (e.kind === 'meeting' ? 3600e3 : 0)).toISOString();
+                var body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Open Fraud Labs//Team calendar//EN', 'BEGIN:VEVENT', 'UID:ofl-team-' + (e.id || z(e.starts_at)) + '@openfraudlabs.com', 'DTSTAMP:' + z(new Date()),
+                    'DTSTART:' + z(e.starts_at), 'DTEND:' + z(endT), 'SUMMARY:' + t(e.title), 'DESCRIPTION:' + t(e.details), e.location ? 'LOCATION:' + t(e.location) : null, 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
+                return URL.createObjectURL(new Blob([body], { type: 'text/calendar' }));
+            }
+            var evDlg = document.getElementById('tc-ev');
+            function openEvent(e) {
+                var b = document.getElementById('tc-ev-body'); b.textContent = ''; document.getElementById('tc-ev-msg').textContent = '';
+                document.getElementById('tc-ev-title').textContent = e.title;
+                b.appendChild(el('p', {}, el('span', { class: 'tc-k ' + cls(e), text: e.auto ? 'Academy date' : KIND[e.kind] }), e.cancelled_at ? el('b', { class: 'tc-cancel', text: ' Cancelled' }) : null));
+                b.appendChild(el('p', { class: 'tc-when', text: when(e) + ' (Lagos time)' }));
+                if (e.location) b.appendChild(el('p', {}, el('span', { class: 'ac-muted', text: 'Where: ' }), /^https?:\/\//i.test(e.location) ? el('a', { href: e.location, target: '_blank', rel: 'noopener noreferrer', text: e.location }) : el('span', { text: e.location })));
+                if (e.details) b.appendChild(el('p', { class: 'app-text', text: e.details }));
+                if (!e.auto && e.created_by_name) b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Added by ' + e.created_by_name + (e.everyone ? ' for the whole team' : '') }));
+                if (e.my_response && e.kind === 'meeting' && !e.cancelled_at) {
+                    var rs = el('div', { class: 'ofl-actions tc-rsvp' }, el('span', { text: 'Will you attend?' }));
+                    ['yes', 'maybe', 'no'].forEach(function (x) { rs.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--' + (e.my_response === x ? 'primary' : 'secondary') + ' ac-btn--sm', 'aria-pressed': String(e.my_response === x), text: RESP[x], onclick: async function () {
+                        var r = await sb.rpc('team_event_respond', { p_id: e.id, p_response: x }); if (r.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(r.error), 'error');
+                        e.my_response = x; (e.invitees || []).forEach(function (p) { if (p.user_id === user.id) p.response = x; }); openEvent(e); drawUpcoming(); } })); });
+                    b.appendChild(rs);
+                }
+                if (e.invitees && e.invitees.length) {
+                    var counts = { yes: 0, no: 0, maybe: 0, pending: 0 }; e.invitees.forEach(function (p) { counts[p.response] = (counts[p.response] || 0) + 1; });
+                    var det = el('details', { class: 'tc-who' }, el('summary', { text: e.invitees.length + ' invited' + (e.kind === 'meeting' ? ' \u00b7 ' + counts.yes + ' yes, ' + counts.maybe + ' maybe, ' + counts.no + ' no, ' + counts.pending + ' no reply' : '') }));
+                    var ul = el('ul'); e.invitees.forEach(function (p) { ul.appendChild(el('li', {}, el('span', { text: p.name }), e.kind === 'meeting' ? el('small', { class: 'ac-muted', text: ' \u00b7 ' + RESP[p.response] }) : null)); });
+                    det.appendChild(ul); b.appendChild(det);
+                }
+                if (!e.cancelled_at) b.appendChild(el('div', { class: 'ofl-actions' },
+                    el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: gcal(e), target: '_blank', rel: 'noopener noreferrer', text: 'Add to Google Calendar' }),
+                    el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: ics(e), download: 'open-fraud-labs-' + (e.id || 'date') + '.ics', text: 'Download .ics (Outlook, Apple)' })));
+                if (canManage && !e.auto && !e.cancelled_at) b.appendChild(el('div', { class: 'ofl-actions' },
+                    el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Edit', onclick: function () { evDlg.close(); openForm(e); } }),
+                    el('button', { type: 'button', class: 'ac-btn ac-btn--danger ac-btn--sm', text: 'Cancel it', onclick: async function () {
+                        var why = window.prompt('Cancel "' + e.title + '"? Everyone invited will be emailed. Add a short note (optional):', ''); if (why === null) return;
+                        var r = await sb.rpc('team_event_cancel', { p_id: e.id, p_reason: why || null }); if (r.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(r.error), 'error');
+                        evDlg.close(); OFL.notice(msg, 'Cancelled and everyone invited was told.', 'success'); refresh(); } })));
+                if (!evDlg.open) evDlg.showModal();
+            }
+            var fmDlg = document.getElementById('tc-fm'), form = document.getElementById('tc-form');
+            async function openForm(e, dateKey) {
+                editing = e; document.getElementById('tc-fm-msg').textContent = '';
+                document.getElementById('tc-fm-title').textContent = e ? 'Edit calendar item' : 'Add to calendar';
+                if (!members.length) { var mr = await sb.rpc('team_members'); members = mr.data || []; }
+                var box = document.getElementById('tc-people'); box.textContent = '';
+                var chosen = {}; (e && e.invitees || []).forEach(function (p) { chosen[p.user_id] = true; });
+                members.forEach(function (p) { box.appendChild(el('label', { class: 'ap-check' }, el('input', { type: 'checkbox', name: 'who', value: p.user_id, checked: chosen[p.user_id] ? 'checked' : null }),
+                    ' ' + p.full_name + ' ', el('small', { class: 'ac-muted', text: p.role_title || p.team_role }))); });
+                form.kind.value = e ? e.kind : 'meeting'; form.title.value = e ? e.title : '';
+                var o = lagos(e ? e.starts_at : new Date(Date.now() + 864e5));
+                form.date.value = dateKey || (o.year + '-' + o.month + '-' + o.day); form.start.value = e ? o.hour + ':' + o.minute : '19:00';
+                if (e && e.ends_at) { var oe = lagos(e.ends_at); form.end.value = oe.hour + ':' + oe.minute; } else form.end.value = e ? '' : '20:00';
+                form.location.value = e && e.location || ''; form.details.value = e && e.details || '';
+                form.everyone.checked = e ? !!e.everyone : true; syncForm();
+                fmDlg.showModal();
+            }
+            function syncForm() {
+                document.getElementById('tc-people').hidden = form.everyone.checked;
+                var dl = form.kind.value === 'deadline'; document.getElementById('tc-end-w').hidden = dl; document.getElementById('tc-start-l').textContent = dl ? 'Due by' : 'Start time';
+            }
+            form.everyone.addEventListener('change', syncForm); form.kind.addEventListener('change', syncForm);
+            document.getElementById('tc-add').addEventListener('click', function () { openForm(null); });
+            form.addEventListener('submit', async function (ev) {
+                ev.preventDefault(); var m = document.getElementById('tc-fm-msg');
+                if (form.title.value.trim().length < 3) return OFL.notice(m, 'Give it a title.', 'error');
+                if (!form.date.value || !form.start.value) return OFL.notice(m, 'Choose a date and time.', 'error');
+                var who = Array.prototype.map.call(form.querySelectorAll('input[name=who]:checked'), function (x) { return x.value; });
+                if (!form.everyone.checked && !who.length) return OFL.notice(m, 'Choose who should see it, or tick Everyone.', 'error');
+                var dl = form.kind.value === 'deadline', s = form.date.value + 'T' + form.start.value + ':00+01:00', en = !dl && form.end.value ? form.date.value + 'T' + form.end.value + ':00+01:00' : null;
+                if (en && new Date(en) < new Date(s)) return OFL.notice(m, 'The end time is before the start time.', 'error');
+                var btn = document.getElementById('tc-save'); if (btn.disabled) return; btn.disabled = true; btn.textContent = 'Saving\u2026';
+                var r = await sb.rpc('team_event_save', { p_id: editing ? editing.id : null, p_title: form.title.value, p_kind: form.kind.value, p_starts_at: s, p_ends_at: en,
+                    p_location: form.location.value, p_details: form.details.value, p_everyone: form.everyone.checked, p_invitees: form.everyone.checked ? [] : who });
+                btn.disabled = false; btn.textContent = 'Save and send invitations';
+                if (r.error) return OFL.notice(m, OFL.friendlyError(r.error), 'error');
+                fmDlg.close(); OFL.notice(msg, 'Saved. ' + r.data.invited + (r.data.invited === 1 ? ' person' : ' people') + ' can see it' + (r.data.invited > 1 ? ' and were emailed.' : '.'), 'success');
+                var sd = new Date(s); view = new Date(sd.getFullYear(), sd.getMonth(), 1); refresh();
+            });
+            document.getElementById('tc-prev').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); drawMonth(); });
+            document.getElementById('tc-next').addEventListener('click', function () { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); drawMonth(); });
+            document.getElementById('tc-today').addEventListener('click', function () { view = new Date(); drawMonth(); });
+            async function refresh() { await drawUpcoming(); await drawMonth(); }
+            try { await refresh(); } catch (err) {
+                if (/team calendar is for/i.test(err.message || '')) { msg.appendChild(el('div', { class: 'ac-panel ac-locked' }, el('h2', { text: 'For the Open Fraud Labs team' }), el('p', { text: 'The team calendar is for staff and interns. If you\u2019ve just joined, it appears once the founder approves your staff profile.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to My learning' }))); return; }
+                return OFL.notice(msg, OFL.friendlyError(err), 'error');
+            }
+            document.getElementById('tc-body').hidden = false;
+            var want = OFL.qs('e');
+            if (want) {
+                if (!cache[want]) { try { await fetchRange(new Date(Date.now() - 120 * 864e5), new Date(Date.now() + 365 * 864e5)); } catch (x) {} }
+                if (cache[want]) openEvent(cache[want]);
+            }
+        })();
+    </script>
+</body>
+</html>
