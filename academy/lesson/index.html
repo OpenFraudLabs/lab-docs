@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007a">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007b">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -124,10 +124,10 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007a"></script>
-    <script src="/assets/js/academy.js?v=20261007a"></script>
+    <script src="/assets/js/learn.js?v=20261007b"></script>
+    <script src="/assets/js/academy.js?v=20261007b"></script>
     <script src="/assets/js/vendor/marked-18.0.14.js"></script>
-    <script src="/assets/js/codelab.js?v=20261007a"></script>
+    <script src="/assets/js/codelab.js?v=20261007b"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY;
@@ -190,6 +190,12 @@
                 return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
             }
             long = lc.data;
+            function showEnrolNo(d) {
+                if (!d || !d.new || !d.enrollment_no) return;
+                msg.prepend(el('div', { class: 'ofl-notice ofl-notice--success ac-enrolno-new' }, 'Welcome to the Academy. Your enrollment number is ', el('b', { text: d.enrollment_no }),
+                    '. Use it whenever you contact us, in the WhatsApp group and on your capstone. It\u2019s always on your dashboard and Account page, and we\u2019ve emailed it to you.'));
+            }
+            sb.rpc('lesson_start', { p_course: course, p_lesson: n }).then(function (r) { if (!r.error) showEnrolNo(r.data); });
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
 
@@ -267,6 +273,7 @@
                 started = true;
                 var r = await sb.rpc('start_video', { p_course: course, p_lesson: n });
                 if (r.error) { started = false; video.pause(); OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                else showEnrolNo(r.data);
             });
             video.addEventListener('ended', async function () {
                 if (done) return;

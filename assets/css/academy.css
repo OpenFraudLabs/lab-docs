@@ -1260,3 +1260,9 @@ body:has(.au) .ac-footer { margin-top: 0; }
 .sp-head h2 { margin: .4rem 0 .3rem; }
 .ac-manage__group .ofl-actions input { min-width: 0; flex: 1 1 14rem; padding: .45rem .6rem; border: 1px solid var(--line, #ccd); border-radius: 6px; font: inherit; }
 .app-card details summary { cursor: pointer; font-weight: 600; margin: .3rem 0; }
+
+/* Enrollment number */
+.ac-enrolno { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; margin: .35rem 0 .75rem; padding: .35rem .75rem; border: 1px solid var(--ac-line, #d7dce6); border-radius: 999px; background: var(--ac-surface, #fff); font-size: .9rem; }
+.ac-enrolno span { color: var(--ac-muted, #5b6475); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.ac-enrolno b { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .02em; }
+.ac-enrolno em { font-style: normal; color: var(--ac-muted, #5b6475); font-size: .85rem; }

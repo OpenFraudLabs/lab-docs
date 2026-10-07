@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261007a"
+V = "20261007b"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -742,6 +742,12 @@ lesson_script = r"""        (async function () {
                 return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
             }
             long = lc.data;
+            function showEnrolNo(d) {
+                if (!d || !d.new || !d.enrollment_no) return;
+                msg.prepend(el('div', { class: 'ofl-notice ofl-notice--success ac-enrolno-new' }, 'Welcome to the Academy. Your enrollment number is ', el('b', { text: d.enrollment_no }),
+                    '. Use it whenever you contact us, in the WhatsApp group and on your capstone. It\u2019s always on your dashboard and Account page, and we\u2019ve emailed it to you.'));
+            }
+            sb.rpc('lesson_start', { p_course: course, p_lesson: n }).then(function (r) { if (!r.error) showEnrolNo(r.data); });
             var tabEls = {}; tabs.querySelectorAll('.ac-tab').forEach(function (t) { tabEls[t.getAttribute('data-step')] = t; });
             var panels = {}; document.querySelectorAll('[data-panel]').forEach(function (p) { panels[p.getAttribute('data-panel')] = p; });
 
@@ -819,6 +825,7 @@ lesson_script = r"""        (async function () {
                 started = true;
                 var r = await sb.rpc('start_video', { p_course: course, p_lesson: n });
                 if (r.error) { started = false; video.pause(); OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                else showEnrolNo(r.data);
             });
             video.addEventListener('ended', async function () {
                 if (done) return;
@@ -1176,6 +1183,10 @@ dash_script = r"""        (async function () {
             var prof = (await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
+            var eno = (await sb.rpc('my_enrollment_no')).data;
+            document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
+                ? el('b', { class: 'num', text: eno.enrollment_no })
+                : el('em', { text: 'Issued when you start your first lesson' })));
             var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
             if (!bg) { location.replace('/academy/welcome/?next=/academy/dashboard/'); return; }
             if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
@@ -1448,6 +1459,7 @@ account_script = r"""        (async function () {
             async function renderProfile(user) {
                 authBox.hidden = true; profileBox.hidden = false;
                 document.getElementById('me-email').textContent = user.email;
+                sb.rpc('my_enrollment_no').then(function (r) { var d = r.data; if (d && d.enrollment_no) document.getElementById('me-email').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), el('b', { class: 'num', text: d.enrollment_no }))); });
                 var res = await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle();
                 registeredName = (res.data && res.data.full_name) || '';
                 document.querySelector('#profile-form [name=full_name]').value = registeredName;
@@ -1633,7 +1645,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     </form>
                 </dialog>
                 <section class="ac-admin__sec" data-cap="view_people">
-                    <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name or email" aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
+                    <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name, email or enrollment no." aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
                 </section>
                 <dialog class="ac-dialog" id="manage" aria-labelledby="manage-title">
@@ -2504,7 +2516,9 @@ admin_script = r"""        (async function () {
             var fl = await sb.rpc('admin_learner_flags'), flags = {};
             (fl.data || []).forEach(function (x) { flags[x.user_id] = x; });
             rows.forEach(function (r) { var x = flags[r.user_id] || {}; r.is_admin = x.is_admin; r.suspended_at = x.suspended_at; r.unlock_all = x.unlock_all; r.access_until = x.access_until; });
-            var cols = [['full_name', 'Name'], ['email', 'Email'], ['registered_at', 'Registered'], ['last_sign_in_at', 'Last log-in'], ['enrolled_courses', 'Enrolled'],
+            var enos = {}; ((await sb.from('enrollment_numbers').select('user_id, enrollment_no')).data || []).forEach(function (x) { enos[x.user_id] = x.enrollment_no; });
+            rows.forEach(function (r) { r.enrollment_no = enos[r.user_id] || null; });
+            var cols = [['full_name', 'Name'], ['enrollment_no', 'Enrollment no.'], ['email', 'Email'], ['registered_at', 'Registered'], ['last_sign_in_at', 'Last log-in'], ['enrolled_courses', 'Enrolled'],
                         ['lessons_passed', 'Lessons passed'], ['avg_best_score', 'Avg quiz score'], ['quiz_attempts', 'Quiz attempts'], ['practice_solved', 'Practice solved'],
                         ['last_activity_at', 'Last activity'], ['certificates', 'Certificates'], ['status', 'Status']];
             function cell(r, c) {
@@ -2524,7 +2538,7 @@ admin_script = r"""        (async function () {
                 var q = document.getElementById('q').value.trim().toLowerCase(), t = document.getElementById('learners'); t.textContent = '';
                 var hr = el('tr', {}, el('th', { text: '' })); cols.forEach(function (c) { hr.appendChild(el('th', { text: c[1] })); }); t.appendChild(el('thead', {}, hr));
                 var tb = el('tbody');
-                rows.filter(function (r) { return !q || ((r.full_name || '') + ' ' + (r.email || '')).toLowerCase().indexOf(q) >= 0; })
+                rows.filter(function (r) { return !q || ((r.full_name || '') + ' ' + (r.email || '') + ' ' + (r.enrollment_no || '')).toLowerCase().indexOf(q) >= 0; })
                     .forEach(function (r) {
                         var tr = el('tr', { class: r.suspended_at ? 'is-suspended' : '' });
                         tr.appendChild(el('td', {}, can('manage_learners') ? el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Manage', onclick: function () { manage(r); } }) : null));
@@ -2608,7 +2622,7 @@ admin_script = r"""        (async function () {
             document.getElementById('manage-close').addEventListener('click', function () { dlg.close(); });
             document.getElementById('csv').addEventListener('click', function () {
                 function esc(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
-                var keys = ['full_name', 'email', 'registered_at', 'email_confirmed', 'terms_signed', 'last_sign_in_at', 'enrolled_courses', 'lessons_passed', 'avg_best_score', 'quiz_attempts', 'practice_solved', 'last_activity_at', 'certificates'];
+                var keys = ['full_name', 'enrollment_no', 'email', 'registered_at', 'email_confirmed', 'terms_signed', 'last_sign_in_at', 'enrolled_courses', 'lessons_passed', 'avg_best_score', 'quiz_attempts', 'practice_solved', 'last_activity_at', 'certificates'];
                 var csv = [keys.join(',')].concat(rows.map(function (r) { return keys.map(function (c) { return esc(r[c]); }).join(','); })).join('\n');
                 var a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'academy-learners-' + new Date().toISOString().slice(0, 10) + '.csv' });
                 document.body.appendChild(a); a.click(); a.remove();
