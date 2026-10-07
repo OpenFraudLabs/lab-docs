@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -186,8 +186,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007b"></script>
-    <script src="/assets/js/academy.js?v=20261007b"></script>
+    <script src="/assets/js/learn.js?v=20261007c"></script>
+    <script src="/assets/js/academy.js?v=20261007c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -231,7 +231,9 @@
                 if (info.require_whatsapp) steps.push('join the cohort WhatsApp group');
                 steps.push('complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz)');
                 document.getElementById('ap-step3').textContent = 'You’ll get the offer by email and on this page. Within ' + info.trial_days + ' days: ' + steps.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.';
-                document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days.';
+                var oh = info.office_hours_every_days === 7 ? 'every week' : info.office_hours_every_days === 14 ? 'every two weeks' : 'every ' + (info.office_hours_every_days || 14) + ' days';
+                document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days of lessons opening. I’ll attend the onboarding meeting and office hours at least once ' + oh + '.';
+                document.getElementById('ap-step3').textContent += ' Lessons open straight after the onboarding meeting, and everyone attends office hours at least once ' + oh + '.';
                 document.querySelectorAll('#ap-reqs [data-req]').forEach(function (li) { li.hidden = !info['require_' + li.getAttribute('data-req')]; });
                 if (info.founder_linkedin_url) document.querySelectorAll('.ap-founder-link').forEach(function (a) { a.href = info.founder_linkedin_url; });
                 (function dates() {
@@ -240,8 +242,10 @@
                     var rows = [];
                     if (info.closes_at) rows.push([dd(info.closes_at, true), 'Applications close']);
                     if (info.offers_at) rows.push([dd(info.offers_at), 'Offers sent to eligible applicants, by email and on this page']);
-                    if (info.orientation_at) rows.push([dd(info.orientation_at, true), 'Online orientation (link shared in the cohort WhatsApp group)']);
-                    if (info.offers_at) rows.push([dd(new Date(new Date(info.offers_at).getTime() + info.trial_days * 864e5).toISOString()), 'Accept your offer by this date (' + info.trial_days + ' days after it arrives)']);
+                    if (info.orientation_at) rows.push([dd(info.orientation_at, true), 'Onboarding meeting online (required; the link is shared in the cohort WhatsApp group). Lessons open straight after it']);
+                    var openAt = info.lessons_open_at || info.offers_at;
+                    if (openAt) rows.push([dd(new Date(Math.max(new Date(openAt).getTime(), info.offers_at ? new Date(info.offers_at).getTime() : 0) + info.trial_days * 864e5).toISOString()), 'Accept your offer by this date: sign, finish the steps and complete Lesson ' + info.trial_lesson]);
+                    rows.push(['Every 2 weeks', 'Attend office hours at least once (times posted in the WhatsApp group)']);
                     if (info.starts_on) rows.splice(info.offers_at ? 2 : rows.length, 0, [dd(info.starts_on), 'Learning starts: a weekly plan of lessons, then three portfolio projects and a capstone']);
                     if (info.ends_on) rows.push([dd(info.ends_on), 'Final deadline: lessons, projects and capstone all complete']);
                     if (!rows.length) return;
@@ -394,16 +398,17 @@
                             m.whatsapp_url ? el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open WhatsApp group' }),
                                 m.whatsapp_joined ? null : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'I’ve joined', onclick: function () { step('whatsapp'); } })) : null));
                     }
+                    var notYet = info.lessons_open_at && new Date(info.lessons_open_at) > new Date();
                     item(!!m.trial_done, 'Complete Lesson ' + info.trial_lesson, el('div', { class: 'ap-offer__body' },
-                        el('p', { text: 'Watch the video, read the notes, try the practice and pass the quiz.' }),
-                        m.trial_done ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
+                        el('p', { text: notYet ? 'Lessons open straight after the onboarding meeting, on ' + when(info.lessons_open_at) + '. Attend the meeting (the link is shared in the WhatsApp group), then watch the video, read the notes, try the practice and pass the quiz.' : 'Watch the video, read the notes, try the practice and pass the quiz.' }),
+                        m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
                     box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Offer' }),
                         el('h2', { text: 'You’ve been offered a place' }),
                         el('p', { text: 'Finish every step below by ' + when(m.deadline_at) + ' to accept it. If they aren’t all done in time, the place goes to the next person on the waitlist.' }),
                         el('div', { class: 'ap-countdown' }, el('b', { class: 'num', text: d + 'd ' + h + 'h' }), el('span', { text: 'left' })), list);
                 } else if (m.status === 'completed') {
                     box = el('div', { class: 'ap-state ap-state--done' }, el('span', { class: 'ap-state__tag', text: 'Place confirmed' }),
-                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed every step in time. Carry on with the course whenever you’re ready.' }),
+                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed every step in time. Carry on with the course whenever you’re ready, and remember to attend office hours at least once every two weeks (times are posted in the WhatsApp group).' }),
                         el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to my learning' }),
                             m.whatsapp_url ? el('a', { class: 'ac-btn ac-btn--secondary', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Cohort WhatsApp group' }) : null));
                 } else if (m.status === 'waitlisted' && m.proof_status === 'fix') {

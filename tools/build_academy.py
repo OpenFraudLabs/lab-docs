@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261007b"
+V = "20261007c"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -738,6 +738,7 @@ lesson_script = r"""        (async function () {
             var lc = await sb.rpc('get_lesson_content', { p_course: course, p_lesson: n });
             if (lc.error) {
                 tabs.hidden = true;
+                if (/ORIENTATION:/.test(lc.error.message || '')) return lockedPanel('Lessons open after onboarding', lc.error.message.replace(/^ORIENTATION:\s*/, '') + ' Please attend the onboarding meeting; the link is shared in the cohort WhatsApp group.', '/academy/apply/', 'See your offer steps');
                 if (/PAID:/.test(lc.error.message || '')) return lockedPanel(fullTitle, 'This lesson is part of the full course. A pass unlocks every lesson, practice exercise, project and certificate.', '/academy/pricing/', 'See plans');
                 return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
             }
@@ -1631,6 +1632,9 @@ admin_main = """        <div class="ac-wrap ac-admin">
                             <label><input type="radio" name="co-mode" value="batch"> <b>Once, when applications close</b><span>Everyone waits until the closing date, then the top applicants are shortlisted.</span></label>
                         </fieldset>
                         <label>Applications close <em class="ac-muted">(optional, Lagos time)</em><input id="co-closes" type="datetime-local"></label>
+                        <div class="co-two"><label>Onboarding meeting <em class="ac-muted">(Lagos time)</em><input id="co-orient" type="datetime-local"></label>
+                        <label>Lessons open <em class="ac-muted">(Lagos time)</em><input id="co-open" type="datetime-local"><small class="ac-muted">Cohort learners can't open any lesson before this. Offer deadlines count from this time.</small></label></div>
+                        <label>Office hours: each learner attends at least once every<select id="co-oh"><option value="7">week</option><option value="14">two weeks</option><option value="21">three weeks</option><option value="28">four weeks</option></select></label>
                         <fieldset class="co-cond"><legend>Conditions</legend>
                             <label class="ap-check"><input type="checkbox" id="co-c-laptop"> Applicants must have their own laptop or desktop</label>
                             <label class="ap-check"><input type="checkbox" id="co-c-proofs"> Applicants must give a LinkedIn profile and upload screenshots showing they follow @_drhola on TikTok, the founder and the Open Fraud Labs page on LinkedIn. Staff check them before anyone is offered a place.</label>
@@ -2248,6 +2252,8 @@ admin_script = r"""        (async function () {
                 document.getElementById('co-capacity').value = c ? c.capacity : 40; document.getElementById('co-min').value = c ? c.min_score : 40;
                 document.getElementById('co-lesson').value = c ? c.trial_lesson : 1; document.getElementById('co-days').value = c ? c.trial_days : 7;
                 document.getElementById('co-closes').value = c ? localInput(c.closes_at) : '';
+                document.getElementById('co-orient').value = c ? localInput(c.orientation_at) : ''; document.getElementById('co-open').value = c ? localInput(c.lessons_open_at) : '';
+                document.getElementById('co-oh').value = String(c && c.office_hours_every_days || 14);
                 document.getElementById('co-require').checked = c ? !!c._require : true;
                 document.getElementById('co-c-laptop').checked = c ? c.require_laptop !== false : true; document.getElementById('co-c-proofs').checked = c ? c.require_proofs !== false : true;
                 document.getElementById('co-c-post').checked = c ? c.require_post !== false : true; document.getElementById('co-c-wa').checked = c ? c.require_whatsapp !== false : true;
@@ -2279,6 +2285,9 @@ admin_script = r"""        (async function () {
                 var r2 = await sb.rpc('cohort_save_conditions', { p_cohort: res.data.id, p_founder_linkedin: document.getElementById('co-founder').value, p_whatsapp: document.getElementById('co-wa').value,
                     p_laptop: document.getElementById('co-c-laptop').checked, p_proofs: document.getElementById('co-c-proofs').checked, p_post: document.getElementById('co-c-post').checked, p_whatsapp_required: document.getElementById('co-c-wa').checked });
                 if (r2.error) return OFL.notice(m, OFL.friendlyError(r2.error), 'error');
+                var ov = document.getElementById('co-orient').value, op = document.getElementById('co-open').value;
+                var r3 = await sb.rpc('cohort_save_schedule', { p_cohort: res.data.id, p_orientation_at: ov ? ov + ':00+01:00' : null, p_lessons_open_at: op ? op + ':00+01:00' : null, p_office_hours_every_days: +document.getElementById('co-oh').value });
+                if (r3.error) return OFL.notice(m, OFL.friendlyError(r3.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
 
@@ -3105,7 +3114,9 @@ apply_script = r"""        (async function () {
                 if (info.require_whatsapp) steps.push('join the cohort WhatsApp group');
                 steps.push('complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz)');
                 document.getElementById('ap-step3').textContent = 'You’ll get the offer by email and on this page. Within ' + info.trial_days + ' days: ' + steps.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.';
-                document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days.';
+                var oh = info.office_hours_every_days === 7 ? 'every week' : info.office_hours_every_days === 14 ? 'every two weeks' : 'every ' + (info.office_hours_every_days || 14) + ' days';
+                document.getElementById('ap-commit').textContent = 'If I’m offered a place, I’ll ' + steps.join(', ').replace(/, ([^,]*)$/, ' and $1') + ' within ' + info.trial_days + ' days of lessons opening. I’ll attend the onboarding meeting and office hours at least once ' + oh + '.';
+                document.getElementById('ap-step3').textContent += ' Lessons open straight after the onboarding meeting, and everyone attends office hours at least once ' + oh + '.';
                 document.querySelectorAll('#ap-reqs [data-req]').forEach(function (li) { li.hidden = !info['require_' + li.getAttribute('data-req')]; });
                 if (info.founder_linkedin_url) document.querySelectorAll('.ap-founder-link').forEach(function (a) { a.href = info.founder_linkedin_url; });
                 (function dates() {
@@ -3114,8 +3125,10 @@ apply_script = r"""        (async function () {
                     var rows = [];
                     if (info.closes_at) rows.push([dd(info.closes_at, true), 'Applications close']);
                     if (info.offers_at) rows.push([dd(info.offers_at), 'Offers sent to eligible applicants, by email and on this page']);
-                    if (info.orientation_at) rows.push([dd(info.orientation_at, true), 'Online orientation (link shared in the cohort WhatsApp group)']);
-                    if (info.offers_at) rows.push([dd(new Date(new Date(info.offers_at).getTime() + info.trial_days * 864e5).toISOString()), 'Accept your offer by this date (' + info.trial_days + ' days after it arrives)']);
+                    if (info.orientation_at) rows.push([dd(info.orientation_at, true), 'Onboarding meeting online (required; the link is shared in the cohort WhatsApp group). Lessons open straight after it']);
+                    var openAt = info.lessons_open_at || info.offers_at;
+                    if (openAt) rows.push([dd(new Date(Math.max(new Date(openAt).getTime(), info.offers_at ? new Date(info.offers_at).getTime() : 0) + info.trial_days * 864e5).toISOString()), 'Accept your offer by this date: sign, finish the steps and complete Lesson ' + info.trial_lesson]);
+                    rows.push(['Every 2 weeks', 'Attend office hours at least once (times posted in the WhatsApp group)']);
                     if (info.starts_on) rows.splice(info.offers_at ? 2 : rows.length, 0, [dd(info.starts_on), 'Learning starts: a weekly plan of lessons, then three portfolio projects and a capstone']);
                     if (info.ends_on) rows.push([dd(info.ends_on), 'Final deadline: lessons, projects and capstone all complete']);
                     if (!rows.length) return;
@@ -3268,16 +3281,17 @@ apply_script = r"""        (async function () {
                             m.whatsapp_url ? el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open WhatsApp group' }),
                                 m.whatsapp_joined ? null : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'I’ve joined', onclick: function () { step('whatsapp'); } })) : null));
                     }
+                    var notYet = info.lessons_open_at && new Date(info.lessons_open_at) > new Date();
                     item(!!m.trial_done, 'Complete Lesson ' + info.trial_lesson, el('div', { class: 'ap-offer__body' },
-                        el('p', { text: 'Watch the video, read the notes, try the practice and pass the quiz.' }),
-                        m.trial_done ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
+                        el('p', { text: notYet ? 'Lessons open straight after the onboarding meeting, on ' + when(info.lessons_open_at) + '. Attend the meeting (the link is shared in the WhatsApp group), then watch the video, read the notes, try the practice and pass the quiz.' : 'Watch the video, read the notes, try the practice and pass the quiz.' }),
+                        m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
                     box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Offer' }),
                         el('h2', { text: 'You’ve been offered a place' }),
                         el('p', { text: 'Finish every step below by ' + when(m.deadline_at) + ' to accept it. If they aren’t all done in time, the place goes to the next person on the waitlist.' }),
                         el('div', { class: 'ap-countdown' }, el('b', { class: 'num', text: d + 'd ' + h + 'h' }), el('span', { text: 'left' })), list);
                 } else if (m.status === 'completed') {
                     box = el('div', { class: 'ap-state ap-state--done' }, el('span', { class: 'ap-state__tag', text: 'Place confirmed' }),
-                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed every step in time. Carry on with the course whenever you’re ready.' }),
+                        el('h2', { text: 'Welcome to the ' + info.title }), el('p', { text: 'You completed every step in time. Carry on with the course whenever you’re ready, and remember to attend office hours at least once every two weeks (times are posted in the WhatsApp group).' }),
                         el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to my learning' }),
                             m.whatsapp_url ? el('a', { class: 'ac-btn ac-btn--secondary', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Cohort WhatsApp group' }) : null));
                 } else if (m.status === 'waitlisted' && m.proof_status === 'fix') {

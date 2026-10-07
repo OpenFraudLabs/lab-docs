@@ -48,6 +48,7 @@
         if (/^PRACTICE:/.test(m)) return m.replace(/^PRACTICE:\s*/, '') + '. Open the Practice tab.';
         if (/^APPLY:/.test(m)) return 'During pre-launch this course is open to shortlisted applicants. Apply for the Founding Cohort at openfraudlabs.com/academy/apply/.';
         if (/^ENROL:/.test(m)) return 'Enrol in this course first: open the course page and choose "Enrol for free".';
+        if (/^ORIENTATION:/.test(m)) return m.replace(/^ORIENTATION:\s*/, '') + ' The meeting link is shared in the cohort WhatsApp group.';
         if (/^PAID:/.test(m)) return 'This lesson is part of the full course. See the plans at openfraudlabs.com/academy/pricing/ to unlock it.';
         if (/already registered/i.test(m)) return 'An account with this email already exists. Try logging in instead.';
         return m;

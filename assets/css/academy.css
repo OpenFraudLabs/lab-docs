@@ -1266,3 +1266,5 @@ body:has(.au) .ac-footer { margin-top: 0; }
 .ac-enrolno span { color: var(--ac-muted, #5b6475); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
 .ac-enrolno b { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .02em; }
 .ac-enrolno em { font-style: normal; color: var(--ac-muted, #5b6475); font-size: .85rem; }
+.co-two { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+@media (max-width: 560px) { .co-two { grid-template-columns: 1fr; } }

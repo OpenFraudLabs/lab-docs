@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -106,6 +106,9 @@
                             <label><input type="radio" name="co-mode" value="batch"> <b>Once, when applications close</b><span>Everyone waits until the closing date, then the top applicants are shortlisted.</span></label>
                         </fieldset>
                         <label>Applications close <em class="ac-muted">(optional, Lagos time)</em><input id="co-closes" type="datetime-local"></label>
+                        <div class="co-two"><label>Onboarding meeting <em class="ac-muted">(Lagos time)</em><input id="co-orient" type="datetime-local"></label>
+                        <label>Lessons open <em class="ac-muted">(Lagos time)</em><input id="co-open" type="datetime-local"><small class="ac-muted">Cohort learners can't open any lesson before this. Offer deadlines count from this time.</small></label></div>
+                        <label>Office hours: each learner attends at least once every<select id="co-oh"><option value="7">week</option><option value="14">two weeks</option><option value="21">three weeks</option><option value="28">four weeks</option></select></label>
                         <fieldset class="co-cond"><legend>Conditions</legend>
                             <label class="ap-check"><input type="checkbox" id="co-c-laptop"> Applicants must have their own laptop or desktop</label>
                             <label class="ap-check"><input type="checkbox" id="co-c-proofs"> Applicants must give a LinkedIn profile and upload screenshots showing they follow @_drhola on TikTok, the founder and the Open Fraud Labs page on LinkedIn. Staff check them before anyone is offered a place.</label>
@@ -295,8 +298,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007b"></script>
-    <script src="/assets/js/academy.js?v=20261007b"></script>
+    <script src="/assets/js/learn.js?v=20261007c"></script>
+    <script src="/assets/js/academy.js?v=20261007c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -755,6 +758,8 @@
                 document.getElementById('co-capacity').value = c ? c.capacity : 40; document.getElementById('co-min').value = c ? c.min_score : 40;
                 document.getElementById('co-lesson').value = c ? c.trial_lesson : 1; document.getElementById('co-days').value = c ? c.trial_days : 7;
                 document.getElementById('co-closes').value = c ? localInput(c.closes_at) : '';
+                document.getElementById('co-orient').value = c ? localInput(c.orientation_at) : ''; document.getElementById('co-open').value = c ? localInput(c.lessons_open_at) : '';
+                document.getElementById('co-oh').value = String(c && c.office_hours_every_days || 14);
                 document.getElementById('co-require').checked = c ? !!c._require : true;
                 document.getElementById('co-c-laptop').checked = c ? c.require_laptop !== false : true; document.getElementById('co-c-proofs').checked = c ? c.require_proofs !== false : true;
                 document.getElementById('co-c-post').checked = c ? c.require_post !== false : true; document.getElementById('co-c-wa').checked = c ? c.require_whatsapp !== false : true;
@@ -786,6 +791,9 @@
                 var r2 = await sb.rpc('cohort_save_conditions', { p_cohort: res.data.id, p_founder_linkedin: document.getElementById('co-founder').value, p_whatsapp: document.getElementById('co-wa').value,
                     p_laptop: document.getElementById('co-c-laptop').checked, p_proofs: document.getElementById('co-c-proofs').checked, p_post: document.getElementById('co-c-post').checked, p_whatsapp_required: document.getElementById('co-c-wa').checked });
                 if (r2.error) return OFL.notice(m, OFL.friendlyError(r2.error), 'error');
+                var ov = document.getElementById('co-orient').value, op = document.getElementById('co-open').value;
+                var r3 = await sb.rpc('cohort_save_schedule', { p_cohort: res.data.id, p_orientation_at: ov ? ov + ':00+01:00' : null, p_lessons_open_at: op ? op + ':00+01:00' : null, p_office_hours_every_days: +document.getElementById('co-oh').value });
+                if (r3.error) return OFL.notice(m, OFL.friendlyError(r3.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
 
