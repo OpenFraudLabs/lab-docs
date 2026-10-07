@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -134,6 +134,12 @@
                             <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="role-csv">Download CSV</button></div></div>
                     <p class="app-line" id="role-line"></p>
                     <div class="ac-table-wrap"><table class="ac-table" id="role-table"></table></div>
+                </section>
+                <section class="ac-admin__sec" data-cap="manage_applications" id="inc-sec">
+                    <div class="ac-admin__head"><h2>Signed up but didn’t apply</h2><p class="ac-muted">People who created an account after applications opened but haven’t submitted a Founding Cohort or internship application. Email them a reminder with the careers link; once they submit, they move into the lists above.</p>
+                        <div class="ac-admin__tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="inc-send" disabled>Email selected</button></div></div>
+                    <p class="app-line" id="inc-line"></p>
+                    <div class="ac-table-wrap"><table class="ac-table" id="inc-table"></table></div>
                 </section>
                 <dialog class="ac-dialog ac-dialog--wide" id="role-dlg" aria-labelledby="role-dlg-title">
                     <div class="ac-dialog__head"><h2 id="role-dlg-title">Applicant</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
@@ -289,8 +295,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003f"></script>
-    <script src="/assets/js/academy.js?v=20261003f"></script>
+    <script src="/assets/js/learn.js?v=20261007a"></script>
+    <script src="/assets/js/academy.js?v=20261007a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -785,7 +791,7 @@
 
             // ---- Internship / job applications
             var roles = [], roleId = null, roleApps = [];
-            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offered', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'] };
             var RL = { stage: { student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
             async function loadRoles(keep) {
                 if (!can('manage_applications')) return;
@@ -813,7 +819,7 @@
                 roleApps = res.data || [];
                 var n = function (st) { return roleApps.filter(function (a) { return a.status === st; }).length; };
                 var line = document.getElementById('role-line'); line.textContent = '';
-                line.append(roleApps.length + ' applications · ' + n('new') + ' new · ' + (n('shortlisted') + n('interview')) + ' in progress · ' + n('hired') + ' hired · ', el('a', { href: '/careers/role/?r=' + r.slug, target: '_blank', rel: 'noopener', text: 'Role page' }));
+                line.append(roleApps.length + ' applications · ' + n('new') + ' new · ' + (n('shortlisted') + n('interview')) + ' in progress · ' + n('offered') + ' offer sent · ' + n('accepted') + ' signed · ' + n('hired') + ' hired · ', el('a', { href: '/careers/role/?r=' + r.slug, target: '_blank', rel: 'noopener', text: 'Role page' }));
                 var t = document.getElementById('role-table'); t.textContent = '';
                 var hr = el('tr'); ['Applicant', 'Now', 'Location', 'Hours', 'Stage', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
                 t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
@@ -848,18 +854,54 @@
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
                 var msgBox = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Optional personal message to the applicant (replaces the standard text in their email)', class: 'app-note' });
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Message with the next step (optional)' }), msgBox));
+                if (a.offer_letter) {
+                    var oc = el('div', { class: 'app-card' }, el('h3', { text: 'Offer letter' }));
+                    oc.appendChild(el('p', { class: 'ac-muted ac-small', text: a.offer_signed_at ? 'Signed by typing “' + a.offer_signed_name + '” on ' + dt(a.offer_signed_at) + '.' : 'Sent. Not signed yet' + (a.offer_deadline ? ' (reply by ' + dOnly(a.offer_deadline) + ')' : '') + '.' }));
+                    var det = el('details', {}, el('summary', { text: 'Read the letter' })); det.appendChild(el('p', { class: 'app-text', text: a.offer_letter })); oc.appendChild(det);
+                    b.appendChild(oc);
+                }
+                if (a.staff_profile) {
+                    var sp = a.staff_profile, pc = el('div', { class: 'app-card' }, el('h3', { text: 'Staff profile · ' + ({ submitted: 'waiting for approval', approved: 'approved', returned: 'sent back for changes' }[a.staff_profile_status] || a.staff_profile_status) }));
+                    function prow(label, v) { if (v) pc.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
+                    prow('Full name', sp.full_name); prow('Preferred name', sp.preferred_name);
+                    prow('WhatsApp', sp.phone ? el('a', { href: 'https://wa.me/' + String(sp.phone).replace(/\D/g, ''), target: '_blank', rel: 'noopener noreferrer', text: sp.phone }) : null);
+                    prow('LinkedIn', sp.linkedin_url ? el('a', { href: sp.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);
+                    prow('Location', [sp.city, sp.country].filter(Boolean).join(', ')); prow('Time zone', sp.timezone); prow('Start date', sp.start_date); prow('Hours a week', RL.hours[sp.hours] || sp.hours);
+                    prow('Availability', sp.availability); prow('Skills', sp.skills); prow('Short bio', sp.bio);
+                    prow('Emergency contact', [sp.emergency_name, sp.emergency_relation, sp.emergency_phone].filter(Boolean).join(' · '));
+                    prow('Agreements', (sp.agree_confidential ? 'Confidentiality ✓ ' : '') + (sp.agree_conduct ? 'Code of conduct ✓' : ''));
+                    prow('Submitted', a.staff_profile_at ? dt(a.staff_profile_at) : null);
+                    b.appendChild(pc);
+                    if (can('manage_roles') && a.staff_profile_status !== 'approved') {
+                        var rsel = el('select', { 'aria-label': 'Staff role to assign' });
+                        [['hr', 'HR (manages applications)'], ['none', 'No dashboard access'], ['instructor', 'Instructor'], ['reviewer', 'Reviewer'], ['scholarship', 'Scholarship officer'], ['analyst', 'Analyst']].forEach(function (o) { rsel.appendChild(el('option', { value: o[0], text: o[1] })); });
+                        var pnote = el('textarea', { rows: '2', maxlength: '1000', class: 'app-note', placeholder: 'Note to them (required if you ask for changes)' });
+                        var ap = el('div', { class: 'app-card' }, el('h3', { text: 'Approve and assign a role' }), el('label', { class: 'app-note-wrap' }, el('span', { text: 'Role' }), rsel), el('label', { class: 'app-note-wrap' }, el('span', { text: 'Note' }), pnote));
+                        var pa = el('div', { class: 'ofl-actions' });
+                        pa.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Approve and assign', onclick: function () { profileReview(a, true, rsel.value, pnote.value); } }));
+                        pa.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Ask for changes', onclick: function () { profileReview(a, false, null, pnote.value); } }));
+                        ap.appendChild(pa); b.appendChild(ap);
+                    }
+                } else if (a.status === 'accepted') b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Offer signed. Waiting for their staff profile; they were emailed the link.' }));
                 var acts = el('div', { class: 'ofl-actions' });
-                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', 'Make offer', 'secondary'], ['hired', 'Mark hired', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
-                    if (a.status === x[0]) return;
+                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', a.offer_letter ? 'Resend offer letter' : 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
+                    if (a.status === x[0] && x[0] !== 'offered') return;
+                    if ((a.status === 'accepted' || a.status === 'hired') && x[0] !== 'not_progressed') return;
                     acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
                 });
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { roleDecide(a, 'note', note.value, null); } }));
                 b.appendChild(acts);
-                if (a.status === 'hired') b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'To give them dashboard access, the owner sets their staff role in Staff and roles (HR for the coordinator; the communications intern usually needs no dashboard access).' }));
                 roleDlg.showModal();
             }
+            async function profileReview(a, approve, role, note) {
+                var who = a.full_name || a.email;
+                if (!window.confirm(approve ? 'Approve ' + who + '’s staff profile' + (role && role !== 'none' ? ' and give them the ' + (ROLE_NAME[role] || role) + ' role' : '') + '? They’ll be emailed.' : 'Send the profile back to ' + who + ' with your note?')) return;
+                var res = await sb.rpc('staff_profile_review', { p_app: a.id, p_approve: approve, p_role: role, p_note: note || null });
+                if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
+                roleDlg.close(); OFL.notice(msg, approve ? who + ' is approved and on the team.' : 'Sent back to ' + who + '.', 'success'); loadRoleApps();
+            }
             async function roleDecide(a, status, note, message) {
-                var names = { shortlisted: 'shortlist', interview: 'invite to interview', offered: 'make an offer to', hired: 'mark as hired', not_progressed: 'tell they are not progressing' };
+                var names = { shortlisted: 'shortlist', interview: 'invite to interview', offered: 'send an offer letter to', hired: 'mark as hired', not_progressed: 'tell they are not progressing' };
                 if (status !== 'note' && !window.confirm('This will ' + names[status] + ' ' + (a.full_name || a.email) + ' and email them. Continue?')) return;
                 var res = await sb.rpc('role_application_decide', { p_id: a.id, p_status: status, p_note: note, p_message: message });
                 if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
@@ -874,7 +916,32 @@
                 var x = el('a', { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })), download: r.slug + '-applications-' + new Date().toISOString().slice(0, 10) + '.csv' });
                 document.body.appendChild(x); x.click(); x.remove();
             });
-            await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles();
+            // ---- Signed up but no application
+            async function loadIncomplete() {
+                if (!can('manage_applications')) return;
+                var res = await sb.rpc('applications_incomplete'); if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                var rows = res.data || [], t = document.getElementById('inc-table'), send = document.getElementById('inc-send'); t.textContent = '';
+                document.getElementById('inc-line').textContent = rows.length + (rows.length === 1 ? ' person' : ' people') + ' · ' + rows.filter(function (x) { return x.reminded_at; }).length + ' already reminded';
+                var all = el('input', { type: 'checkbox', 'aria-label': 'Select all' });
+                var hr = el('tr', {}, el('th', {}, all)); ['Name', 'Email', 'Signed up', 'Email confirmed', 'Started uploading', 'Last reminder'].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb); var boxes = [];
+                function upd() { var n = boxes.filter(function (b) { return b.checked; }).length; send.disabled = !n; send.textContent = n ? 'Email ' + n + ' selected' : 'Email selected'; }
+                if (!rows.length) tb.appendChild(el('tr', {}, el('td', { colspan: '7', class: 'ac-muted', text: 'Everyone who signed up has applied.' })));
+                rows.forEach(function (x) {
+                    var cb = el('input', { type: 'checkbox', 'aria-label': 'Select ' + (x.full_name || x.email) }); cb.dataset.id = x.user_id; cb.checked = !x.reminded_at; cb.addEventListener('change', upd); boxes.push(cb);
+                    tb.appendChild(el('tr', {}, el('td', {}, cb), el('td', { text: x.full_name || '—' }), el('td', { text: x.email }), el('td', { text: dOnly(x.created_at) }),
+                        el('td', { text: x.confirmed ? 'Yes' : 'No' }), el('td', { text: x.started_upload ? 'Yes' : 'No' }), el('td', { text: x.reminded_at ? dt(x.reminded_at) : '—' })));
+                });
+                all.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = all.checked; }); upd(); }); upd();
+                send.onclick = async function () {
+                    var ids = boxes.filter(function (b) { return b.checked; }).map(function (b) { return b.dataset.id; });
+                    if (!ids.length || !window.confirm('Email ' + ids.length + ' ' + (ids.length === 1 ? 'person' : 'people') + ' a reminder to finish their application?')) return;
+                    send.disabled = true; var r = await sb.rpc('applications_remind', { p_users: ids });
+                    if (r.error) { send.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                    OFL.notice(msg, 'Reminder sent to ' + r.data.sent + '.', 'success'); loadIncomplete();
+                };
+            }
+            await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles(); loadIncomplete();
             var staffRoles = {};
             if (can('view_staff')) (async function staff() {
                 var r = await sb.rpc('admin_staff'), t = document.getElementById('staff-table');
@@ -1035,7 +1102,25 @@
                     cert ? [el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/verify/?id=' + cert.id, target: '_blank', rel: 'noopener', text: 'View certificate' }),
                             btn('Revoke certificate', 'danger', function () { var why = window.prompt('Reason for revoking (kept in the admin log):', ''); if (!why) return; act('revoke_certificate', why)(); })]
                          : [btn('Award certificate', 'primary', function () { var why = window.prompt('Reason for awarding this certificate (kept in the admin log), e.g. "Completed the live cohort":', ''); if (!why) return; act('issue_certificate', why)(); })]);
-                group('Delete account', 'Not switched on yet. Permanent deletion would also remove their progress, quiz history and any certificates, so for now suspend the account instead. It can be enabled later.', []);
+                if (can('manage_roles') && !self) {
+                    var delEmail = el('input', { type: 'email', placeholder: 'Type ' + r.email + ' to confirm', 'aria-label': 'Type their email to confirm', autocomplete: 'off' });
+                    var delWhy = el('input', { type: 'text', maxlength: '300', placeholder: 'Reason (kept in the admin log)', 'aria-label': 'Reason for deleting' });
+                    group('Delete account permanently', 'Removes the account and everything linked to it: progress, quiz history, certificates, applications, CV and screenshots, and staff profile. This can’t be undone. Only the owner can do this. To pause someone instead, suspend them.',
+                        [delEmail, delWhy, btn('Delete permanently', 'danger', async function () {
+                            var m2 = document.getElementById('manage-msg');
+                            if (delEmail.value.trim().toLowerCase() !== String(r.email).toLowerCase()) return OFL.notice(m2, 'Type their email exactly to confirm.', 'error');
+                            if (delWhy.value.trim().length < 5) return OFL.notice(m2, 'Give a reason for the admin log.', 'error');
+                            if (!window.confirm('Permanently delete ' + r.email + ' and all their data? This can’t be undone.')) return;
+                            var fl = await sb.rpc('admin_user_files', { p_user: r.user_id });
+                            if (fl.error) return OFL.notice(m2, /function|schema cache/i.test(fl.error.message || '') ? 'Permanent deletion isn’t switched on in the database yet.' : OFL.friendlyError(fl.error), 'error');
+                            var byB = {}; (fl.data || []).forEach(function (f) { (byB[f.bucket] = byB[f.bucket] || []).push(f.name); });
+                            for (var bk in byB) { var rm = await sb.storage.from(bk).remove(byB[bk]); if (rm.error) return OFL.notice(m2, 'Couldn’t remove their files: ' + rm.error.message, 'error'); }
+                            var res = await sb.rpc('admin_delete_account', { p_user: r.user_id, p_email: delEmail.value.trim(), p_reason: delWhy.value.trim() });
+                            if (res.error) return OFL.notice(m2, OFL.friendlyError(res.error), 'error');
+                            dlg.close(); OFL.notice(msg, r.email + ' was deleted permanently.', 'success');
+                            rows = rows.filter(function (q) { return q.user_id !== r.user_id; }); drawLearners(); loadIncomplete();
+                        })]);
+                }
                 document.getElementById('manage-msg').textContent = '';
                 dlg.showModal();
             }

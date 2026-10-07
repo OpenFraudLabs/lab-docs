@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261003f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -139,8 +139,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261003f"></script>
-    <script src="/assets/js/academy.js?v=20261003f"></script>
+    <script src="/assets/js/learn.js?v=20261007a"></script>
+    <script src="/assets/js/academy.js?v=20261007a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), slug = OFL.qs('r');
@@ -227,13 +227,16 @@
                 var T = { new: ['Application received', fresh ? 'Thank you for applying' : 'We’re reviewing your application', 'We review applications as they arrive. You’ll hear from us here, by email and possibly on WhatsApp.'],
                     shortlisted: ['Shortlisted', 'You’re shortlisted', 'We’ll be in touch soon about the next step.'],
                     interview: ['Interview', 'We’d like to talk with you', 'We’ll contact you on WhatsApp or by email to agree a time.'],
-                    offered: ['Offer', 'We’d like to offer you this role', 'Check your email for the details.'],
+                    offered: ['Offer', 'We’d like to offer you this role', 'Your offer letter is ready. Read it and sign it by typing your full name.'],
+                    accepted: ['Offer accepted', 'Thank you for accepting', 'Next, complete your staff profile so the founder can approve it and set up your access.'],
                     hired: ['Welcome', 'You’re on the team', 'We’ll share onboarding details with you directly.'],
                     not_progressed: ['Application closed', 'Thank you for applying', 'We won’t be taking your application further for this role, but we’d be glad to see you apply again.'],
                     withdrawn: ['Withdrawn', 'Application withdrawn', ''] }[m.status] || ['Application', 'Your application', ''];
                 var box = document.getElementById('rl-status'); box.textContent = '';
                 box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : m.status === 'not_progressed' ? ' ap-state--end' : '') },
-                    el('span', { class: 'ap-state__tag', text: T[0] }), el('h2', { text: T[1] }), el('p', { text: T[2] })));
+                    el('span', { class: 'ap-state__tag', text: T[0] }), el('h2', { text: T[1] }), el('p', { text: T[2] }),
+                    ['offered', 'accepted', 'hired'].indexOf(m.status) >= 0 ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: '/careers/offer/?r=' + encodeURIComponent(slug),
+                        text: m.status === 'offered' ? 'Read and sign your offer letter' : m.profile_status === 'approved' ? 'View your offer and profile' : 'Complete your staff profile' })) : null));
             }
         })();
     </script>

@@ -1253,3 +1253,10 @@ body:has(.au) .ac-footer { margin-top: 0; }
   .of-wrap { padding: 0; max-width: none; }
   .of-letter { border: 0; box-shadow: none; padding: 0; }
 }
+
+/* Intern offer: staff profile step */
+#sp-wrap { margin-top: 2.5rem; }
+.sp-head { margin-bottom: 1rem; }
+.sp-head h2 { margin: .4rem 0 .3rem; }
+.ac-manage__group .ofl-actions input { min-width: 0; flex: 1 1 14rem; padding: .45rem .6rem; border: 1px solid var(--line, #ccd); border-radius: 6px; font: inherit; }
+.app-card details summary { cursor: pointer; font-weight: 600; margin: .3rem 0; }
