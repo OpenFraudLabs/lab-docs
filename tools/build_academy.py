@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261007e"
+V = "20261007f"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1185,7 +1185,7 @@ dash_script = r"""        (async function () {
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
-            sb.rpc('is_team_member').then(function (r) { if (r.data === true) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/team/', text: 'Open the team calendar' }))); });
+            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
             document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
                 : el('em', { text: 'Issued when you start your first lesson' })));
@@ -1643,6 +1643,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                             <label class="ap-check"><input type="checkbox" id="co-c-wa"> To accept an offer, join the cohort WhatsApp group</label>
                         </fieldset>
                         <label>Founder's LinkedIn profile<input id="co-founder" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/..."><small class="ac-muted">Linked from the apply page so applicants follow the right person.</small></label>
+                        <label>Orientation document (Google Doc link)<input id="co-doc" type="url" maxlength="400" placeholder="https://docs.google.com/document/d/..."><small class="ac-muted">Shown on the calendar for learners with an offer and for the team. In Google Docs, set sharing to “Anyone with the link can view”.</small></label>
                         <label>WhatsApp group invite link<input id="co-wa" type="url" maxlength="300" placeholder="https://chat.whatsapp.com/..."><small class="ac-muted">Shown only to applicants with an offer or a confirmed place.</small></label>
                         <label class="ap-check"><input type="checkbox" id="co-require"> Only shortlisted applicants (plus staff and scholarship holders) can enrol in this course. Learners already enrolled keep their place.</label>
                         <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save settings</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
@@ -2085,6 +2086,8 @@ admin_script = r"""        (async function () {
                 cohortId = keep && cohorts.some(function (c) { return c.id == keep; }) ? keep : (cohorts[0] || {}).id;
                 if (cohortId) sel.value = cohortId;
                 loadApps();
+                var c0 = cur(), sub = document.getElementById('admin-sub'), old = document.getElementById('admin-doc'); if (old) old.remove();
+                if (c0 && c0.orientation_doc_url) sub.append(el('span', { id: 'admin-doc' }, ' · ', el('a', { href: c0.orientation_doc_url, target: '_blank', rel: 'noopener noreferrer', text: 'Orientation document' })));
             }
             function cur() { return cohorts.filter(function (c) { return c.id == cohortId; })[0]; }
             document.getElementById('app-cohort').addEventListener('change', function (e) {
@@ -2263,7 +2266,7 @@ admin_script = r"""        (async function () {
                 document.getElementById('co-require').checked = c ? !!c._require : true;
                 document.getElementById('co-c-laptop').checked = c ? c.require_laptop !== false : true; document.getElementById('co-c-proofs').checked = c ? c.require_proofs !== false : true;
                 document.getElementById('co-c-post').checked = c ? c.require_post !== false : true; document.getElementById('co-c-wa').checked = c ? c.require_whatsapp !== false : true;
-                document.getElementById('co-founder').value = c && c.founder_linkedin_url || ''; document.getElementById('co-wa').value = c && c.whatsapp_url || '';
+                document.getElementById('co-founder').value = c && c.founder_linkedin_url || ''; document.getElementById('co-wa').value = c && c.whatsapp_url || ''; document.getElementById('co-doc').value = c && c.orientation_doc_url || '';
                 document.getElementById('co-del-proofs').hidden = !c;
                 cohortDlg.showModal();
             }
@@ -2294,6 +2297,8 @@ admin_script = r"""        (async function () {
                 var ov = document.getElementById('co-orient').value, op = document.getElementById('co-open').value;
                 var r3 = await sb.rpc('cohort_save_schedule', { p_cohort: res.data.id, p_orientation_at: ov ? ov + ':00+01:00' : null, p_lessons_open_at: op ? op + ':00+01:00' : null, p_office_hours_every_days: +document.getElementById('co-oh').value });
                 if (r3.error) return OFL.notice(m, OFL.friendlyError(r3.error), 'error');
+                var r4 = await sb.rpc('cohort_set_doc', { p_cohort: res.data.id, p_url: document.getElementById('co-doc').value });
+                if (r4.error) return OFL.notice(m, OFL.friendlyError(r4.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
 
@@ -3803,8 +3808,8 @@ page("academy/admin", "Admin | Open Fraud Labs Academy", "Academy admin.", admin
 # ============================================================== Team calendar (staff + hired interns)
 team_main = """        <div class="ac-wrap tc">
             <div class="ac-dash-head tc-head">
-                <div><h1>Team calendar</h1><p class="ac-muted">Meetings you're invited to, team activities and deadlines. All times are Lagos time (WAT).</p></div>
-                <div class="tc-tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
+                <div><h1 id="tc-h1">Calendar</h1><p class="ac-muted" id="tc-sub">Meetings, activities and deadlines. All times are Lagos time (WAT).</p></div>
+                <div class="tc-tools" id="tc-tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
             </div>
             <div id="msg"></div>
             <div id="tc-body" hidden>
@@ -3826,16 +3831,17 @@ team_main = """        <div class="ac-wrap tc">
                 <div class="ac-dialog__head"><h2 id="tc-fm-title">Add to calendar</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
                 <div id="tc-fm-msg"></div>
                 <form class="ac-form" id="tc-form" novalidate>
+                    <label>Who is it for?<select name="audience" id="tc-aud"><option value="team">The team (staff and interns)</option></select></label>
                     <label>What is it?<select name="kind"><option value="meeting">Meeting (people reply Yes, No or Maybe)</option><option value="activity">Activity or task</option><option value="deadline">Deadline</option></select></label>
                     <label>Title<input name="title" maxlength="140" required placeholder="e.g. Weekly team check-in"></label>
                     <div class="co-two"><label>Date<input name="date" type="date" required></label><label><span id="tc-start-l">Start time</span><input name="start" type="time" required value="19:00"></label></div>
                     <label id="tc-end-w"><span>End time <em class="ac-muted">(optional)</em></span><input name="end" type="time"></label>
                     <label><span>Where <em class="ac-muted">(meeting link or place, optional)</em></span><input name="location" maxlength="300" placeholder="https://meet.google.com/..."></label>
                     <label><span>Details <em class="ac-muted">(optional)</em></span><textarea name="details" rows="3" maxlength="2000" placeholder="Agenda, what to prepare, who leads"></textarea></label>
-                    <fieldset><legend>Who should see it</legend>
+                    <fieldset id="tc-who-f"><legend>Who on the team</legend>
                         <label class="ap-check"><input type="checkbox" name="everyone" checked> Everyone on the team (staff and interns)</label>
                         <div class="tc-people" id="tc-people" hidden></div></fieldset>
-                    <p class="ac-muted ac-small">Everyone you invite gets an email and sees it on their team calendar. Changing it later emails them again.</p>
+                    <p class="ac-muted ac-small" id="tc-aud-note">Everyone invited gets an email with a calendar invitation attached, and sees it on their Academy calendar. Changing or cancelling it emails them again.</p>
                     <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="tc-save">Save and send invitations</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
                 </form>
             </dialog>
@@ -3845,19 +3851,19 @@ team_script = r"""        (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
             var user = await OFL.requireUser('/academy/team/'); if (!user) return;
             var TZ = 'Africa/Lagos', KIND = { meeting: 'Meeting', activity: 'Activity', deadline: 'Deadline' }, RESP = { yes: 'Yes', no: 'No', maybe: 'Maybe', pending: 'No reply yet' };
-            var view = new Date(), canManage = false, members = [], cache = {}, editing = null;
+            var view = new Date(), canManage = false, members = [], cache = {}, editing = null, info = {};
             function lagos(d) { var p = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(d)), o = {}; p.forEach(function (x) { o[x.type] = x.value; }); return o; }
             function dayKey(d) { var o = lagos(d); return o.year + '-' + o.month + '-' + o.day; }
             function fmtDay(d) { return new Date(d).toLocaleDateString('en-GB', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }); }
             function fmtTime(d) { return new Date(d).toLocaleTimeString('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }); }
-            function when(e) { return fmtDay(e.starts_at) + ', ' + (e.kind === 'deadline' ? 'by ' : '') + fmtTime(e.starts_at) + (e.ends_at ? '\u2013' + fmtTime(e.ends_at) : ''); }
+            function when(e) { return fmtDay(e.starts_at) + ', ' + (e.kind === 'deadline' && !/meeting|lessons open|offers go out/i.test(e.title) ? 'by ' : '') + fmtTime(e.starts_at) + (e.ends_at ? '\u2013' + fmtTime(e.ends_at) : ''); }
             function cls(e) { return 'tc-k--' + (e.auto ? 'auto' : e.kind) + (e.cancelled_at ? ' is-cancelled' : ''); }
             document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
 
             async function fetchRange(from, to) {
                 var r = await sb.rpc('team_calendar', { p_from: from.toISOString(), p_to: to.toISOString() });
                 if (r.error) throw r.error;
-                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage;
+                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage; info = r.data;
                 (r.data.events || []).forEach(function (e) { cache[e.id || ('auto-' + e.title)] = e; });
                 return r.data.events || [];
             }
@@ -3870,7 +3876,7 @@ team_script = r"""        (async function () {
                     var needs = e.my_response === 'pending' && e.kind === 'meeting';
                     ol.appendChild(el('li', {}, el('button', { type: 'button', class: 'tc-item ' + cls(e), onclick: function () { openEvent(e); } },
                         el('span', { class: 'tc-item__when', text: when(e) }), el('b', { text: e.title }),
-                        el('span', { class: 'tc-item__meta', text: (e.auto ? 'Academy date' : KIND[e.kind]) + (needs ? ' \u00b7 please reply' : e.my_response && e.my_response !== 'pending' ? ' \u00b7 you said ' + RESP[e.my_response] : '') }))));
+                        el('span', { class: 'tc-item__meta', text: (e.auto ? 'Academy date' : KIND[e.kind] + (info.is_team && e.audience === 'cohort' ? ' \u00b7 learners' : '')) + (needs ? ' \u00b7 please reply' : e.my_response && e.my_response !== 'pending' ? ' \u00b7 you said ' + RESP[e.my_response] : '') }))));
                 });
             }
             async function drawMonth() {
@@ -3951,26 +3957,32 @@ team_script = r"""        (async function () {
                 form.date.value = dateKey || (o.year + '-' + o.month + '-' + o.day); form.start.value = e ? o.hour + ':' + o.minute : '19:00';
                 if (e && e.ends_at) { var oe = lagos(e.ends_at); form.end.value = oe.hour + ':' + oe.minute; } else form.end.value = e ? '' : '20:00';
                 form.location.value = e && e.location || ''; form.details.value = e && e.details || '';
-                form.everyone.checked = e ? !!e.everyone : true; syncForm();
+                form.everyone.checked = e ? !!e.everyone : true;
+                var aud = document.getElementById('tc-aud'); aud.textContent = ''; aud.appendChild(el('option', { value: 'team', text: 'The team (staff and interns)' }));
+                (info.cohorts || []).forEach(function (c) { aud.appendChild(el('option', { value: 'cohort:' + c.id, text: 'Learners: ' + c.title + ' (everyone with an offer or a confirmed place)' })); });
+                aud.value = e && e.audience === 'cohort' ? 'cohort:' + e.cohort_id : 'team'; syncForm();
                 fmDlg.showModal();
             }
             function syncForm() {
+                var isCohort = form.audience.value !== 'team'; document.getElementById('tc-who-f').hidden = isCohort;
                 document.getElementById('tc-people').hidden = form.everyone.checked;
                 var dl = form.kind.value === 'deadline'; document.getElementById('tc-end-w').hidden = dl; document.getElementById('tc-start-l').textContent = dl ? 'Due by' : 'Start time';
             }
-            form.everyone.addEventListener('change', syncForm); form.kind.addEventListener('change', syncForm);
+            form.everyone.addEventListener('change', syncForm); form.kind.addEventListener('change', syncForm); form.audience.addEventListener('change', syncForm);
             document.getElementById('tc-add').addEventListener('click', function () { openForm(null); });
             form.addEventListener('submit', async function (ev) {
                 ev.preventDefault(); var m = document.getElementById('tc-fm-msg');
                 if (form.title.value.trim().length < 3) return OFL.notice(m, 'Give it a title.', 'error');
                 if (!form.date.value || !form.start.value) return OFL.notice(m, 'Choose a date and time.', 'error');
                 var who = Array.prototype.map.call(form.querySelectorAll('input[name=who]:checked'), function (x) { return x.value; });
-                if (!form.everyone.checked && !who.length) return OFL.notice(m, 'Choose who should see it, or tick Everyone.', 'error');
+                var cohortSel = form.audience.value !== 'team' ? +form.audience.value.split(':')[1] : null;
+                if (!cohortSel && !form.everyone.checked && !who.length) return OFL.notice(m, 'Choose who should see it, or tick Everyone.', 'error');
                 var dl = form.kind.value === 'deadline', s = form.date.value + 'T' + form.start.value + ':00+01:00', en = !dl && form.end.value ? form.date.value + 'T' + form.end.value + ':00+01:00' : null;
                 if (en && new Date(en) < new Date(s)) return OFL.notice(m, 'The end time is before the start time.', 'error');
                 var btn = document.getElementById('tc-save'); if (btn.disabled) return; btn.disabled = true; btn.textContent = 'Saving\u2026';
-                var r = await sb.rpc('team_event_save', { p_id: editing ? editing.id : null, p_title: form.title.value, p_kind: form.kind.value, p_starts_at: s, p_ends_at: en,
-                    p_location: form.location.value, p_details: form.details.value, p_everyone: form.everyone.checked, p_invitees: form.everyone.checked ? [] : who });
+                var r = await sb.rpc('event_save', { p_id: editing ? editing.id : null, p_title: form.title.value, p_kind: form.kind.value, p_starts_at: s, p_ends_at: en,
+                    p_location: form.location.value, p_details: form.details.value, p_audience: cohortSel ? 'cohort' : 'team', p_cohort: cohortSel,
+                    p_everyone: form.everyone.checked, p_invitees: form.everyone.checked || cohortSel ? [] : who });
                 btn.disabled = false; btn.textContent = 'Save and send invitations';
                 if (r.error) return OFL.notice(m, OFL.friendlyError(r.error), 'error');
                 fmDlg.close(); OFL.notice(msg, 'Saved. ' + r.data.invited + (r.data.invited === 1 ? ' person' : ' people') + ' can see it' + (r.data.invited > 1 ? ' and were emailed.' : '.'), 'success');
@@ -3981,10 +3993,14 @@ team_script = r"""        (async function () {
             document.getElementById('tc-today').addEventListener('click', function () { view = new Date(); drawMonth(); });
             async function refresh() { await drawUpcoming(); await drawMonth(); }
             try { await refresh(); } catch (err) {
-                if (/team calendar is for/i.test(err.message || '')) { msg.appendChild(el('div', { class: 'ac-panel ac-locked' }, el('h2', { text: 'For the Open Fraud Labs team' }), el('p', { text: 'The team calendar is for staff and interns. If you\u2019ve just joined, it appears once the founder approves your staff profile.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/dashboard/', text: 'Go to My learning' }))); return; }
+                if (/calendar is for/i.test(err.message || '')) { document.getElementById('tc-h1').textContent = 'Your calendar'; msg.appendChild(el('div', { class: 'ac-panel ac-locked' }, el('h2', { text: 'Your calendar opens with your offer' }), el('p', { text: 'The calendar is for cohort learners with an offer or a confirmed place, and for Open Fraud Labs staff and interns. Once you have an offer, your onboarding meeting, weekly deadlines and office hours appear here.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/academy/apply/', text: 'See your application' }))); return; }
                 return OFL.notice(msg, OFL.friendlyError(err), 'error');
             }
             document.getElementById('tc-body').hidden = false;
+            document.getElementById('tc-h1').textContent = info.is_team ? 'Team calendar' : 'Your calendar';
+            document.getElementById('tc-sub').textContent = info.is_team ? 'Team meetings, activities, cohort sessions and Academy deadlines. All times are Lagos time (WAT).' : 'Your onboarding meeting, weekly deadlines, office hours and meetings. All times are Lagos time (WAT). Invitations also arrive by email.';
+            document.title = (info.is_team ? 'Team calendar' : 'Your calendar') + ' | Open Fraud Labs Academy';
+            (info.cohorts || []).forEach(function (c) { if (c.orientation_doc_url) document.getElementById('tc-tools').prepend(el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: c.orientation_doc_url, target: '_blank', rel: 'noopener noreferrer', text: 'Orientation document' + ((info.cohorts || []).length > 1 ? ' (' + c.title + ')' : '') })); });
             var want = OFL.qs('e');
             if (want) {
                 if (!cache[want]) { try { await fetchRange(new Date(Date.now() - 120 * 864e5), new Date(Date.now() + 365 * 864e5)); } catch (x) {} }
@@ -3993,6 +4009,7 @@ team_script = r"""        (async function () {
         })();"""
 
 page("academy/team", "Team calendar | Open Fraud Labs Academy", "Meetings, activities and deadlines for the Open Fraud Labs team.", team_main, team_script, noindex=True)
+page("academy/calendar", "Your calendar | Open Fraud Labs Academy", "Your onboarding meeting, weekly deadlines, office hours and meetings.", team_main, team_script, noindex=True)
 
 
 # ============================================================== Redirects from old URLs

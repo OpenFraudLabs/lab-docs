@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -104,8 +104,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007e"></script>
-    <script src="/assets/js/academy.js?v=20261007e"></script>
+    <script src="/assets/js/learn.js?v=20261007f"></script>
+    <script src="/assets/js/academy.js?v=20261007f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY, msg = document.getElementById('msg');
@@ -114,7 +114,7 @@
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
-            sb.rpc('is_team_member').then(function (r) { if (r.data === true) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/team/', text: 'Open the team calendar' }))); });
+            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
             document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
                 : el('em', { text: 'Issued when you start your first lesson' })));

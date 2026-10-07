@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -116,6 +116,7 @@
                             <label class="ap-check"><input type="checkbox" id="co-c-wa"> To accept an offer, join the cohort WhatsApp group</label>
                         </fieldset>
                         <label>Founder's LinkedIn profile<input id="co-founder" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/..."><small class="ac-muted">Linked from the apply page so applicants follow the right person.</small></label>
+                        <label>Orientation document (Google Doc link)<input id="co-doc" type="url" maxlength="400" placeholder="https://docs.google.com/document/d/..."><small class="ac-muted">Shown on the calendar for learners with an offer and for the team. In Google Docs, set sharing to “Anyone with the link can view”.</small></label>
                         <label>WhatsApp group invite link<input id="co-wa" type="url" maxlength="300" placeholder="https://chat.whatsapp.com/..."><small class="ac-muted">Shown only to applicants with an offer or a confirmed place.</small></label>
                         <label class="ap-check"><input type="checkbox" id="co-require"> Only shortlisted applicants (plus staff and scholarship holders) can enrol in this course. Learners already enrolled keep their place.</label>
                         <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save settings</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
@@ -298,8 +299,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007e"></script>
-    <script src="/assets/js/academy.js?v=20261007e"></script>
+    <script src="/assets/js/learn.js?v=20261007f"></script>
+    <script src="/assets/js/academy.js?v=20261007f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -590,6 +591,8 @@
                 cohortId = keep && cohorts.some(function (c) { return c.id == keep; }) ? keep : (cohorts[0] || {}).id;
                 if (cohortId) sel.value = cohortId;
                 loadApps();
+                var c0 = cur(), sub = document.getElementById('admin-sub'), old = document.getElementById('admin-doc'); if (old) old.remove();
+                if (c0 && c0.orientation_doc_url) sub.append(el('span', { id: 'admin-doc' }, ' · ', el('a', { href: c0.orientation_doc_url, target: '_blank', rel: 'noopener noreferrer', text: 'Orientation document' })));
             }
             function cur() { return cohorts.filter(function (c) { return c.id == cohortId; })[0]; }
             document.getElementById('app-cohort').addEventListener('change', function (e) {
@@ -768,7 +771,7 @@
                 document.getElementById('co-require').checked = c ? !!c._require : true;
                 document.getElementById('co-c-laptop').checked = c ? c.require_laptop !== false : true; document.getElementById('co-c-proofs').checked = c ? c.require_proofs !== false : true;
                 document.getElementById('co-c-post').checked = c ? c.require_post !== false : true; document.getElementById('co-c-wa').checked = c ? c.require_whatsapp !== false : true;
-                document.getElementById('co-founder').value = c && c.founder_linkedin_url || ''; document.getElementById('co-wa').value = c && c.whatsapp_url || '';
+                document.getElementById('co-founder').value = c && c.founder_linkedin_url || ''; document.getElementById('co-wa').value = c && c.whatsapp_url || ''; document.getElementById('co-doc').value = c && c.orientation_doc_url || '';
                 document.getElementById('co-del-proofs').hidden = !c;
                 cohortDlg.showModal();
             }
@@ -799,6 +802,8 @@
                 var ov = document.getElementById('co-orient').value, op = document.getElementById('co-open').value;
                 var r3 = await sb.rpc('cohort_save_schedule', { p_cohort: res.data.id, p_orientation_at: ov ? ov + ':00+01:00' : null, p_lessons_open_at: op ? op + ':00+01:00' : null, p_office_hours_every_days: +document.getElementById('co-oh').value });
                 if (r3.error) return OFL.notice(m, OFL.friendlyError(r3.error), 'error');
+                var r4 = await sb.rpc('cohort_set_doc', { p_cohort: res.data.id, p_url: document.getElementById('co-doc').value });
+                if (r4.error) return OFL.notice(m, OFL.friendlyError(r4.error), 'error');
                 cohortDlg.close(); OFL.notice(msg, 'Cohort settings saved.', 'success'); loadCohorts(res.data.id);
             });
 
