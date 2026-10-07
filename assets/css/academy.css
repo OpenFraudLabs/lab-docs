@@ -1309,3 +1309,14 @@ body:has(.au) .ac-footer { margin-top: 0; }
 }
 .ac-dialog .ac-form label.ap-check { display: flex; align-items: flex-start; gap: .5rem; font-weight: 500; }
 .ac-dialog .ac-form label em { font-weight: 400; }
+
+/* Offer progress */
+.app-pipe { border: 1px solid var(--line); border-radius: var(--radius-m); padding: .9rem 1rem; margin: .75rem 0 1rem; background: var(--surface, #fff); }
+.app-pipe h3 { font-size: .95rem; margin: 0 0 .6rem; }
+.app-pipe__row { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.app-pipe__k b { display: block; font-size: 1.35rem; }
+.app-pipe__k span { font-size: .82rem; color: var(--ink-3); }
+.app-pipe__foot { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-top: .8rem; }
+.app-pipe__foot .ac-small { flex: 1 1 18rem; }
+.app-nudge { display: grid; gap: .5rem; margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed var(--line); }
+.app-nudge .ac-btn { justify-self: start; }

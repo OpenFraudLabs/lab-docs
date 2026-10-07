@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007g">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -65,6 +65,7 @@
                             <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-csv">Download CSV</button></div></div>
                     <p class="app-line" id="app-line"></p>
                     <div class="ac-kpis ac-kpis--sm" id="app-kpis"></div>
+                    <div class="app-pipe" id="app-pipe" hidden></div>
                     <div class="app-filter"><div class="ofl-tabs" id="app-tabs">
                         <button type="button" class="ofl-tab is-active" data-f="all">All</button>
                         <button type="button" class="ofl-tab" data-f="check">To check</button>
@@ -299,8 +300,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007f"></script>
-    <script src="/assets/js/academy.js?v=20261007f"></script>
+    <script src="/assets/js/learn.js?v=20261007g"></script>
+    <script src="/assets/js/academy.js?v=20261007g"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -574,7 +575,7 @@
 
             // ---- Cohort applications
             var cohorts = [], cohortId = null, apps = [], appFilter = 'all';
-            var APP_STATUS = { shortlisted: ['In trial', 'go'], completed: ['Confirmed', 'done'], waitlisted: ['Waitlist', 'wait'], missed: ['Missed deadline', 'end'], rejected: ['Rejected', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var APP_STATUS = { shortlisted: ['Offer sent', 'go'], completed: ['Confirmed', 'done'], waitlisted: ['Waitlist', 'wait'], missed: ['Missed deadline', 'end'], rejected: ['Rejected', 'end'], withdrawn: ['Withdrawn', 'end'] };
             var A_LABEL = { hours: { '1-2': '1–2 h', '3-5': '3–5 h', '6-10': '6–10 h', '10+': '10+ h' },
                 device: { laptop: 'Own laptop/desktop', shared: 'Shared computer', phone: 'Phone only' }, internet: { reliable: 'Reliable', sometimes: 'Sometimes unreliable', poor: 'Often poor' },
                 career_goal: { first_job: 'First data job', switch: 'Switch careers', upskill: 'Upskill in current job', freelance: 'Freelance', business: 'Own business', study: 'Further study' },
@@ -622,6 +623,7 @@
                 drawApps();
             }
             function drawApps() {
+                drawPipe();
                 var q = document.getElementById('app-q').value.trim().toLowerCase(), t = document.getElementById('app-table'); t.textContent = '';
                 var hr = el('tr'); ['', 'Applicant', 'Score', 'Study time', 'Eligibility', 'Status', 'Lessons passed', 'Applied', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
                 t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
@@ -635,6 +637,7 @@
                     var ans = a.answers || {}, pr = PROOF[a.proof_status] || ['—', 'end'], follows = el('td', { class: 'app-follows' }, el('span', { class: 'app-st app-st--' + pr[1], text: pr[0] }));
                     if (ans.tiktok_handle) follows.appendChild(el('a', { href: 'https://www.tiktok.com/' + encodeURIComponent(ans.tiktok_handle), target: '_blank', rel: 'noopener noreferrer', text: ans.tiktok_handle }));
                     if (a.status === 'shortlisted') stCell.appendChild(el('small', { class: 'app-steps', text: (a.offer_signed_at ? 'Signed \u2713 ' : 'Signed \u2717 ') + (c.require_post ? (a.post_url ? 'Post \u2713 ' : 'Post \u2717 ') : '') + (c.require_whatsapp ? (a.whatsapp_joined_at ? 'WhatsApp \u2713 ' : 'WhatsApp \u2717 ') : '') + (a.trial_done ? 'Lesson \u2713' : 'Lesson \u2717') }));
+                    if (a.status === 'shortlisted' && a.last_reminder_at) stCell.appendChild(el('small', { class: 'ac-muted', text: 'Reminded ' + dOnly(a.last_reminder_at) }));
                     var actions = el('td', { class: 'app-actions' }, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'View', onclick: function () { openApp(a); } }));
                     if (a.status === 'waitlisted' && a.proof_status === 'pending') actions.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Check', onclick: function () { openApp(a); } }));
                     tb.appendChild(el('tr', {}, el('td', { class: 'num ac-muted', text: String(list.indexOf(a) + 1) }),
@@ -648,6 +651,26 @@
             document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
                 document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); }); appFilter = b.dataset.f; drawApps(); }); });
             document.getElementById('app-q').addEventListener('input', drawApps);
+            function drawPipe() {
+                var box = document.getElementById('app-pipe'), c = cur() || {}; box.textContent = '';
+                var off = apps.filter(function (a) { return a.status === 'shortlisted'; }), conf = apps.filter(function (a) { return a.status === 'completed'; }).length, miss = apps.filter(function (a) { return a.status === 'missed'; }).length;
+                if (!off.length && !conf && !miss) { box.hidden = true; return; }
+                box.hidden = false;
+                function k(n, label) { return el('div', { class: 'app-pipe__k' }, el('b', { class: 'num', text: String(n) }), el('span', { text: label })); }
+                var row = el('div', { class: 'app-pipe__row' }, k(off.length, 'offers waiting'), k(off.filter(function (a) { return a.offer_signed_at; }).length, 'signed'));
+                if (c.require_post) row.appendChild(k(off.filter(function (a) { return a.post_url; }).length, 'posted on LinkedIn'));
+                if (c.require_whatsapp) row.appendChild(k(off.filter(function (a) { return a.whatsapp_joined_at; }).length, 'joined WhatsApp'));
+                row.append(k(off.filter(function (a) { return a.trial_done; }).length, 'passed Lesson ' + (c.trial_lesson || 1)), k(conf, 'places confirmed'), k(miss, 'offers expired'));
+                box.appendChild(el('h3', { text: 'Offer progress' })); box.appendChild(row);
+                var behind = off.filter(function (a) { return (a.steps_left || []).length; });
+                var btn = el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Remind everyone with steps left (' + behind.length + ')', disabled: behind.length ? null : 'disabled', onclick: async function () {
+                    var note = window.prompt('Send a reminder to ' + behind.length + (behind.length === 1 ? ' person' : ' people') + ' listing the steps they still have to do and their deadline. Add a short personal line (optional):', '');
+                    if (note === null) return; btn.disabled = true;
+                    var r = await sb.rpc('application_nudge', { p_ids: behind.map(function (a) { return a.id; }), p_message: note || null }); btn.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    OFL.notice(msg, 'Reminder sent to ' + r.data.sent + (r.data.skipped ? '. ' + r.data.skipped + ' skipped (reminded in the last 6 hours or nothing left to do).' : '.'), 'success'); loadApps(); } });
+                box.appendChild(el('div', { class: 'app-pipe__foot' }, btn, el('span', { class: 'ac-muted ac-small', text: 'Automatic reminders also go out 2 days after an offer if it isn\u2019t signed, 2 days before the deadline and 12 hours before it. You get an email at the Academy inbox when someone signs, when a place is confirmed and when an offer expires.' })));
+            }
             var decideBusy = false;
             async function decide(a, action, note) {
                 var text = { shortlist: 'Offer ' + (a.full_name || a.email) + ' a place now' + (a.proof_status !== 'ok' ? ', even though their screenshots aren\u2019t confirmed' : '') + '? They\u2019ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to complete the offer steps.',
@@ -704,6 +727,19 @@
                     if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
                     if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : 'Not yet' })));
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Lesson ' + c0.trial_lesson }), el('b', { text: a.trial_done ? 'Passed' : 'Not yet' })));
+                    if (a.status === 'shortlisted') {
+                        os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Reminders' }), el('b', { text: a.last_reminder_at ? 'Last sent ' + dt(a.last_reminder_at) + (a.nudge_count ? ' (' + a.nudge_count + ' sent by staff)' : '') : 'None yet' })));
+                        var left = a.steps_left || [];
+                        if (left.length) {
+                            var nm = el('textarea', { rows: '2', maxlength: '600', class: 'app-note', placeholder: 'Optional personal line, e.g. “We’d love to have you in the cohort.”' });
+                            var nb = el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Send reminder now', onclick: async function () {
+                                nb.disabled = true; var r = await sb.rpc('application_nudge', { p_ids: [a.id], p_message: nm.value || null }); nb.disabled = false;
+                                if (r.error) return OFL.notice(document.getElementById('app-dlg-msg'), OFL.friendlyError(r.error), 'error');
+                                if (!r.data.sent) return OFL.notice(document.getElementById('app-dlg-msg'), 'Not sent: they were reminded in the last 6 hours.', 'error');
+                                appDlg.close(); OFL.notice(msg, 'Reminder sent to ' + (a.full_name || a.email) + '.', 'success'); loadApps(); } });
+                            os.appendChild(el('div', { class: 'app-nudge' }, el('p', { class: 'ac-small', text: 'Still to do: ' + left.join('; ') + '.' }), nm, nb));
+                        } else os.appendChild(el('p', { class: 'ac-muted ac-small', text: 'All steps done. Their place confirms automatically.' }));
+                    }
                     b.appendChild(os);
                 }
                 var grid = el('div', { class: 'app-detail' });
@@ -902,6 +938,13 @@
                         ap.appendChild(pa); b.appendChild(ap);
                     }
                 } else if (a.status === 'accepted') b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Offer signed. Waiting for their staff profile; they were emailed the link.' }));
+                if (a.status === 'offered' || (a.status === 'accepted' && (!a.staff_profile || a.staff_profile_status === 'returned'))) {
+                    var rn = el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: a.status === 'offered' ? 'Remind them to sign' : 'Remind them about the staff profile', onclick: async function () {
+                        rn.disabled = true; var r = await sb.rpc('role_application_nudge', { p_id: a.id, p_message: null }); rn.disabled = false;
+                        if (r.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(r.error), 'error');
+                        roleDlg.close(); OFL.notice(msg, 'Reminder sent to ' + (a.full_name || a.email) + '.', 'success'); loadRoleApps(); } });
+                    b.appendChild(el('div', { class: 'ofl-actions' }, rn, el('span', { class: 'ac-muted ac-small', text: a.nudged_at ? 'Last reminded ' + dt(a.nudged_at) : 'Automatic reminders also go out before the deadline.' })));
+                }
                 var acts = el('div', { class: 'ofl-actions' });
                 [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
                     if (a.status === x[0]) return;
