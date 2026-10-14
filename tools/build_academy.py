@@ -4810,9 +4810,16 @@ page("academy/admin/messages", "Email learners | Open Fraud Labs Academy", "Send
 
 # ============================================================== Learner chat (staff announcements and learner replies)
 chat_main = """        <div class="ac-wrap ch">
-            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post to ask a question everyone can see. For anything private, email academy@openfraudlabs.com.</p></div></div>
+            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post for everyone to see, or choose to reply privately to the team. You can also message the team privately below.</p></div></div>
             <div id="msg"></div>
             <div id="ch-body" hidden>
+                <div class="ch-settings" id="ch-settings" hidden></div>
+                <form class="ch-compose ch-private" id="ch-private" hidden novalidate>
+                    <p class="ch-private__head"><b>Message the team privately</b> <span class="ac-muted ac-small">Only the people you choose can see it. You get an email when they reply.</span></p>
+                    <textarea name="body" rows="2" maxlength="2000" placeholder="Ask a question, report a problem or ask for help…" required></textarea>
+                    <div class="ch-compose__bar"><label class="ch-to">Send to <select name="aud"><option value="team">The team (HR, admins and the founder)</option><option value="admin">The founder and admins only</option></select></label><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Send privately</button></div>
+                </form>
+                <div class="ofl-notice ofl-notice--info ch-off" id="ch-off" hidden>Right now, replies from learners are visible only to the person who wrote them and the team.</div>
                 <form class="ch-compose" id="ch-compose" hidden novalidate>
                     <textarea name="body" rows="3" maxlength="2000" placeholder="Write an announcement for all learners…" required></textarea>
                     <div class="ch-compose__bar"><label class="ap-check"><input type="checkbox" name="pin"> Pin to the top</label><span class="ac-muted ac-small" id="ch-count">0 / 2000</span><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Post to all learners</button></div>
@@ -4835,6 +4842,14 @@ chat_script = r"""        (async function () {
                 if (!D.allowed) return OFL.notice(msg, 'Messages from the team are for enrolled learners and cohort members. Once you’re enrolled, you’ll see them here.', 'info');
                 document.getElementById('ch-body').hidden = false;
                 document.getElementById('ch-compose').hidden = !D.is_staff;
+                document.getElementById('ch-private').hidden = D.is_staff;
+                document.getElementById('ch-off').hidden = D.is_staff || D.learners_see_others;
+                var st = document.getElementById('ch-settings'); st.hidden = !D.can_settings; st.textContent = '';
+                if (D.can_settings) {
+                    var sw = el('input', { type: 'checkbox', role: 'switch' }); sw.checked = !!D.learners_see_others;
+                    sw.addEventListener('change', async function () { var x = await sb.rpc('chat_settings_set', { p_learners_see_others: sw.checked }); if (x.error) { sw.checked = !sw.checked; return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); } OFL.toast(sw.checked ? 'Learners can now see each other’s replies.' : 'Learner replies are now visible only to the writer and the team.', 'success'); load(true); });
+                    st.appendChild(el('label', { class: 'ch-switch' }, sw, el('span', { class: 'ch-switch__ui', 'aria-hidden': 'true' }), el('span', {}, el('b', { text: 'Learners can see each other’s replies' }), el('small', { text: sw.checked ? 'On: learner replies under team posts are visible to all learners.' : 'Off: each learner sees only the team’s posts and their own replies. Turn this off if a conversation needs calming down.' }))));
+                }
                 if (D.is_staff) document.getElementById('ch-sub').textContent = 'Post announcements every learner and cohort member can see. Learners can reply under each post. Hide anything that shouldn’t be there.';
                 draw();
                 try { var top = D.messages.filter(function (m) { return !m.parent_id; }).map(function (m) { return m.id; }); if (top.length) localStorage.setItem('ofl-chat-seen', String(Math.max.apply(null, top))); } catch (e) {}
@@ -4846,7 +4861,8 @@ chat_script = r"""        (async function () {
                 if (!isReply && D.can_moderate && !m.hidden) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: m.pinned ? 'Unpin' : 'Pin', onclick: function () { mod(m.id, m.pinned ? 'unpin' : 'pin'); } }));
                 return el('div', { class: 'ch-msg' + (m.is_staff ? ' is-staff' : '') + (isReply ? ' is-reply' : '') + (m.hidden ? ' is-hidden' : '') },
                     el('span', { class: 'ch-av', 'aria-hidden': 'true', text: initials(m.author) }),
-                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null, el('small', { text: ago(m.created_at) }), acts),
+                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null,
+                        !isReply && m.audience !== 'everyone' ? el('span', { class: 'ch-priv', text: m.audience === 'admin' ? 'Private · founder and admins' : 'Private · team' }) : null, el('small', { text: ago(m.created_at) }), acts),
                         m.hidden ? el('p', { class: 'ac-muted ac-small', text: 'This message was hidden.' + (D.can_moderate && m.body ? ' (' + m.body + ')' : '') }) : textBody(m.body)));
             }
             function draw() {
@@ -4856,17 +4872,22 @@ chat_script = r"""        (async function () {
                 top.sort(function (a, b) { return (b.pinned - a.pinned) || (b.id - a.id); });
                 if (!top.length) feed.appendChild(el('p', { class: 'ac-muted ch-empty', text: D.is_staff ? 'No posts yet. Write the first announcement above.' : 'No messages yet. The team will post updates here.' }));
                 top.forEach(function (m) {
-                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') }, msgEl(m, false));
+                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') + (m.audience !== 'everyone' ? ' is-private' : ''), id: 'm' + m.id }, msgEl(m, false));
                     var rbox = el('div', { class: 'ch-replies' }); replies.forEach(function (x) { rbox.appendChild(msgEl(x, true)); });
                     card.appendChild(rbox);
                     if (!m.hidden) {
-                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
+                        var pickTo = !D.is_staff && m.audience === 'everyone' ? el('select', { name: 'aud', class: 'ch-reply__to', 'aria-label': 'Who should see your reply' },
+                            el('option', { value: 'everyone', text: 'Reply to everyone' }), el('option', { value: 'team', text: 'Privately to the team' }), el('option', { value: 'admin', text: 'Privately to the founder and admins' })) : null;
+                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: m.audience !== 'everyone' ? 'Reply in this private conversation…' : replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), pickTo, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
                         f.body.addEventListener('input', function () { open[m.id] = f.body.value; });
                         f.addEventListener('submit', async function (e) {
                             e.preventDefault(); if (!f.body.value.trim()) return;
-                            var r = await sb.rpc('chat_post', { p_body: f.body.value, p_parent: m.id });
+                            var to = pickTo ? pickTo.value : 'everyone';
+                            var r = await sb.rpc('chat_send', { p_body: f.body.value, p_parent: m.id, p_pin: false, p_audience: to });
                             if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                            open[m.id] = ''; msg.textContent = ''; load(true);
+                            open[m.id] = ''; msg.textContent = '';
+                            if (to !== 'everyone') OFL.toast('Sent privately. Only ' + (to === 'admin' ? 'the founder and admins' : 'the team') + ' can see it, and you’ll get an email when they reply.', 'success');
+                            await load(true); if (r.data && r.data.thread && r.data.thread !== m.id) focusThread(r.data.thread);
                         });
                         card.appendChild(f);
                     }
@@ -4878,15 +4899,332 @@ chat_script = r"""        (async function () {
             comp.body.addEventListener('input', function () { document.getElementById('ch-count').textContent = comp.body.value.length + ' / 2000'; });
             comp.addEventListener('submit', async function (e) {
                 e.preventDefault(); if (!comp.body.value.trim()) return;
-                var r = await sb.rpc('chat_post', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked });
+                var r = await sb.rpc('chat_send', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked, p_audience: 'everyone' });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
                 comp.reset(); document.getElementById('ch-count').textContent = '0 / 2000'; OFL.toast('Posted. Learners see it on their dashboard and here.', 'success'); load(true);
             });
+            function focusThread(id) { var t = document.getElementById('m' + id); if (!t) return; t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('is-flash'); setTimeout(function () { t.classList.remove('is-flash'); }, 1600); }
+            var pf = document.getElementById('ch-private');
+            pf.addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!pf.body.value.trim()) return;
+                var r = await sb.rpc('chat_send', { p_body: pf.body.value, p_parent: null, p_pin: false, p_audience: pf.aud.value });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                pf.reset(); msg.textContent = ''; OFL.toast('Sent privately. You’ll get an email when the team replies.', 'success'); await load(true); focusThread(r.data.thread);
+            });
             await load();
+            if (/^#m\d+$/.test(location.hash)) focusThread(location.hash.slice(2));
             timer = setInterval(function () { if (!document.hidden && !document.activeElement.closest('.ch-reply, .ch-compose')) load(true); }, 20000);
         })();"""
 
 page("academy/chat", "Messages from the team | Open Fraud Labs Academy", "Announcements from the Open Fraud Labs team, with replies.", chat_main, chat_script, noindex=True)
+
+
+# ============================================================== Orientation deck (self-hosted, for presenting and screen sharing)
+ORIENT_SLIDES = [
+("cover", "dark", """<div class="o-cover">
+  <p class="o-eyebrow o-eyebrow--light">Open Fraud Labs Academy</p>
+  <h1 class="o-hero">Welcome to the<br><span class="o-grad">Founding Cohort</span></h1>
+  <p class="o-lead o-lead--light">Orientation for Data Science from Scratch &middot; 12 October to 31 December 2026</p>
+  <div class="o-row"><span class="o-chip o-chip--mint">Onboarding meeting &middot; Wed 14 Oct &middot; 5&ndash;6 pm WAT</span><span class="o-chip o-chip--ghost">openfraudlabs.com/academy</span></div>
+</div><div class="o-orb"></div><div class="o-grid-bg"></div>""",
+ "Welcome everyone. Over the next hour: who we are, what you will learn, how much time it takes, the key dates, how we support you, and what to do tonight. Attendance is taken in this meeting: everyone marked present gets their enrollment number by email at 6 pm, and that number opens the lessons."),
+("who", "light", """<p class="o-eyebrow">Who we are</p>
+<h2 class="o-h2">Open Fraud Labs builds better AI<br>through better data</h2>
+<div class="o-cards o-cards--4">
+  <div class="o-card"><span class="o-ico">&#9707;</span><h3>AI data operations</h3><p>Collecting, annotating and validating datasets</p></div>
+  <div class="o-card"><span class="o-ico">&#10003;</span><h3>Human evaluation</h3><p>Expert review of AI outputs with clear frameworks</p></div>
+  <div class="o-card"><span class="o-ico">&#9888;</span><h3>Trust and safety</h3><p>Quality assurance and risk detection for AI systems</p></div>
+  <div class="o-card"><span class="o-ico">&#9733;</span><h3>Applied research</h3><p>Fraud detection and trustworthy, explainable AI</p></div>
+</div>
+<p class="o-foot">The Academy grows out of this work: the skills we teach are the ones we use every day.</p>""",
+ "Open Fraud Labs partners with AI companies, research institutions and enterprises on datasets, evaluation and trustworthy AI research, including fraud detection. The Academy shares those practical skills."),
+("academy", "light", """<div class="o-split">
+  <div><p class="o-eyebrow">The Academy</p><h2 class="o-h2">Practical data skills,<br>one lesson at a time</h2>
+  <p class="o-lead">Short video lessons built on real code and real data. You practise in your browser, build a portfolio and earn a certificate anyone can verify.</p></div>
+  <div class="o-stack">
+    <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">You are the first</p><p class="o-big">This is our pre-launch cohort. It is free, and your feedback shapes the Academy before it opens to everyone in early 2027.</p></div>
+    <div class="o-panel"><p class="o-tag">Coming next</p><p class="o-mid">Data Analysis, Data Engineering, Machine Learning and Financial Analysis</p></div>
+  </div>
+</div>""",
+ "Founding learners are helping us test and improve everything. Tell us what works and what does not. More tracks are in preparation for the public launch."),
+("vision", "dark", """<div class="o-vm">
+  <div><p class="o-eyebrow o-eyebrow--light">Vision</p><p class="o-quote">A generation of data practitioners who build AI that people can trust.</p></div>
+  <div class="o-rule"></div>
+  <div><p class="o-eyebrow o-eyebrow--mint">Mission</p><p class="o-quote o-quote--sm">Make practical, honest data skills accessible, taught on real problems and proven with real work.</p></div>
+</div><div class="o-grid-bg"></div>""",
+ "Link this to the Open Fraud Labs focus on trustworthy and explainable AI and better data."),
+("numbers", "light", """<p class="o-eyebrow">The training</p><h2 class="o-h2">Data Science from Scratch, in numbers</h2>
+<div class="o-stats">
+  <div class="o-stat"><b data-count="30">30</b><span>video lessons, from first principles to explainable models</span></div>
+  <div class="o-stat"><b data-count="117">117</b><span>coding exercises that run in your browser</span></div>
+  <div class="o-stat"><b>3 + 1</b><span>portfolio projects plus your own capstone</span></div>
+</div>
+<div class="o-row o-row--pills"><span class="o-pill">Beginner level, no experience needed</span><span class="o-pill">About 6.6 hours of video</span><span class="o-pill">12 weeks</span><span class="o-pill o-pill--mint">Free for this cohort</span></div>""",
+ "39 lessons and project parts in total. The projects are credit risk, clinic no-shows and city rents. The capstone is an analysis of a dataset you choose."),
+("lesson", "light", """<p class="o-eyebrow">Inside every lesson</p><h2 class="o-h2">The same four steps, about an hour each lesson</h2>
+<div class="o-steps">
+  <div class="o-step"><i>01</i><h3>Watch</h3><p>A 10-minute video with worked Python examples</p></div>
+  <div class="o-step"><i>02</i><h3>Read</h3><p>Study notes with the code, key terms and common mistakes</p></div>
+  <div class="o-step"><i>03</i><h3>Practise</h3><p>Three coding exercises in your browser or in Google Colab, nothing to install</p></div>
+  <div class="o-step o-step--hi"><i>04</i><h3>Quiz</h3><p>Score 70% to pass and unlock the next lesson</p></div>
+</div>
+<p class="o-foot">Missed the mark? Review the notes and try again. Worked solutions appear once you pass.</p>""",
+ "Each step unlocks the next, so finishing a lesson means you really did the work. The practice exercises must be solved before the quiz opens. Budget about 45 to 60 minutes per lesson including practice."),
+("journey", "light", """<p class="o-eyebrow">Your 12-week journey</p><h2 class="o-h2">From first dataset to verified certificate</h2>
+<div class="o-time">
+  <div class="o-time__bar"><span style="width:25%"></span><span style="width:17%"></span><span style="width:25%"></span><span style="width:25%"></span><span style="width:8%"></span></div>
+  <div class="o-time__cols">
+    <div><em>Weeks 1&ndash;3</em><h3>Foundations</h3><p>Lessons 1&ndash;11: averages, spread, cleaning and exploring data</p></div>
+    <div><em>Weeks 4&ndash;5</em><h3>Tools</h3><p>Lessons 12&ndash;19: probability, pandas, SQL, regression</p></div>
+    <div><em>Weeks 6&ndash;8</em><h3>Machine learning</h3><p>Lessons 20&ndash;30: models, evaluation, explainable AI, ethics</p></div>
+    <div><em>Weeks 8&ndash;11</em><h3>Projects</h3><p>Three peer-reviewed projects, then your capstone by 27 Dec</p></div>
+    <div><em>Week 12</em><h3>Certificate</h3><p>Review capstones, make changes, claim it by 31 Dec</p></div>
+  </div>
+</div>
+<p class="o-foot">Each week's work is due on Sunday at 11:59 pm Lagos time. The full calendar is on your Academy calendar and in the orientation document.</p>""",
+ "Week 8 overlaps: the last three lessons plus Project 1 Part 1. Weeks 11 and 12 are lighter, so use them to catch up if needed. No set work on 25 and 26 December."),
+("time", "light", """<div class="o-split o-split--time">
+  <div class="o-panel o-panel--blue"><p class="o-eyebrow o-eyebrow--light">Your time</p><p class="o-giant">45 min</p><p class="o-mid o-mid--light">a day, five days a week</p><p class="o-small o-small--light">Short, regular sessions beat one long weekend sitting.</p></div>
+  <div class="o-stack">
+    <div class="o-panel"><p class="o-tag">Lesson weeks 1&ndash;8</p><p class="o-big o-big--ink">3&ndash;4 hours a week</p><p class="o-small">three or four lessons, about an hour each</p></div>
+    <div class="o-panel"><p class="o-tag">Project weeks 9&ndash;11</p><p class="o-big o-big--ink">4&ndash;5 hours a week</p><p class="o-small">about an hour a day</p></div>
+    <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">Whole programme</p><p class="o-big">About 45&ndash;50 hours</p><p class="o-small o-small--light">plus office hours once every two weeks</p></div>
+  </div>
+</div>""",
+ "Our planning figure is 3 to 5 hours a week. December has the three projects and the capstone, so plan a little more time then. Ahead of schedule? Keep going: lessons unlock as soon as you pass."),
+("tonight", "dark", """<p class="o-eyebrow o-eyebrow--light">Tonight</p><h2 class="o-h2 o-h2--light">Your enrollment number opens your lessons</h2>
+<div class="o-flow">
+  <div class="o-flow__step"><b>5:00 pm</b><h3>Attend this meeting</h3><p>The team takes attendance during the call.</p></div>
+  <span class="o-flow__arrow">&rarr;</span>
+  <div class="o-flow__step o-flow__step--hi"><b>6:00 pm</b><h3>Number by email</h3><p>Everyone marked present receives their enrollment number, in the format OFL-2026-XXXX.</p></div>
+  <span class="o-flow__arrow">&rarr;</span>
+  <div class="o-flow__step"><b>Tonight</b><h3>Start Lesson 1</h3><p>Your lessons open with your number. Quote it whenever you contact us.</p></div>
+</div>
+<p class="o-foot o-foot--light">Joined late or no email by 6:30 pm? Check spam, then email academy@openfraudlabs.com.</p><div class="o-grid-bg"></div>""",
+ "The HR coordinator marks attendance on the team calendar. Numbers go out automatically when the meeting ends at 6 pm. Anyone ticked after 6 pm gets theirs straight away. Learners who did not attend do not get a number; the founder can issue one manually for a good reason."),
+("dates", "light", """<p class="o-eyebrow">Key dates &middot; Lagos time</p><h2 class="o-h2">Dates to put in your calendar</h2>
+<div class="o-cards o-cards--4">
+  <div class="o-card o-card--ink"><em>Wed 14 Oct</em><h3>Onboarding, 5 pm</h3><p>Required. Attendees get their enrollment number at 6 pm</p></div>
+  <div class="o-card"><em>Wed 21 Oct</em><h3>Accept your offer</h3><p>Every step done, Lesson 1 passed, by 8:30 pm</p></div>
+  <div class="o-card"><em>Every Sunday</em><h3>Weekly work due</h3><p>By 11:59 pm, from 18 Oct</p></div>
+  <div class="o-card o-card--mint"><em>Thu 31 Dec</em><h3>Final deadline</h3><p>Lessons, projects and capstone complete</p></div>
+</div>
+<p class="o-foot">Your own offer deadline is on your application page and your Academy calendar. Offers that arrive later get 7 days from the offer.</p>""",
+ "For offers made before lessons open, the 7-day window starts when lessons open, so the deadline is Wednesday 21 October at 8:30 pm. Missed steps mean the place goes to the waitlist, and you get reminders before that happens."),
+("support", "light", """<p class="o-eyebrow">How we support you</p><h2 class="o-h2">You are never learning alone</h2>
+<div class="o-cards o-cards--3">
+  <div class="o-card"><span class="o-ico">&#9719;</span><h3>Office hours</h3><p>Live help from the cohort team. <b>Attend at least once every two weeks.</b></p></div>
+  <div class="o-card o-card--hi"><span class="o-ico">&#9993;</span><h3>Messages from the team</h3><p>Announcements on your dashboard. Reply to everyone, or privately to the team.</p></div>
+  <div class="o-card"><span class="o-ico">&#9742;</span><h3>WhatsApp group</h3><p>Updates, reminders and questions. Check it at least twice a week.</p></div>
+  <div class="o-card"><span class="o-ico">&#128197;</span><h3>Your calendar</h3><p>Deadlines and sessions at openfraudlabs.com/academy/calendar, with email invites</p></div>
+  <div class="o-card"><span class="o-ico">&#128273;</span><h3>Enrollment number</h3><p>Emailed at 6 pm today to everyone marked present. Quote it whenever you contact us.</p></div>
+  <div class="o-card"><span class="o-ico">&#128202;</span><h3>Progress tracking</h3><p>Your My learning page shows where you are. The team sees it too.</p></div>
+</div>""",
+ "Private matters such as your account or a personal situation: academy@openfraudlabs.com, or a private message to the team in Messages from the team. Office hours times are posted in the WhatsApp group and on the calendar."),
+("messages", "light", """<div class="o-split">
+  <div><p class="o-eyebrow">New on the Academy</p><h2 class="o-h2">Messages from the team</h2>
+  <p class="o-lead">A place on the Academy for updates and questions, alongside WhatsApp. Open it from the card on your dashboard or your profile menu.</p>
+  <div class="o-row o-row--pills"><span class="o-pill">openfraudlabs.com/academy/chat</span></div></div>
+  <div class="o-stack">
+    <div class="o-panel"><p class="o-tag">1 &middot; Read</p><p class="o-mid">The team posts announcements. Important ones are pinned to the top.</p></div>
+    <div class="o-panel"><p class="o-tag">2 &middot; Reply</p><p class="o-mid">Reply under a post, and choose who sees it: <b>everyone</b>, <b>the team</b>, or <b>the founder and admins</b> only.</p></div>
+    <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">3 &middot; Ask privately</p><p class="o-big">Send the team a private message. You get an email when they reply.</p></div>
+  </div>
+</div>""",
+ "Learners appear by first name and last initial. Be kind and on-topic; the team can hide messages and can switch learner replies to private if needed. Quiz answers and project solutions must never be posted."),
+("rules", "light", """<p class="o-eyebrow">Ground rules</p><h2 class="o-h2">Four promises we ask you to keep</h2>
+<div class="o-cards o-cards--2">
+  <div class="o-card o-card--line"><h3>Do your own work</h3><p>Keep quiz answers and project solutions to yourself, in the group, in the chat and everywhere else.</p></div>
+  <div class="o-card o-card--line"><h3>Review honestly and kindly</h3><p>Score peers fairly against the rubric and say how to improve.</p></div>
+  <div class="o-card o-card--line"><h3>Keep to the calendar</h3><p>Weekly work by Sunday, everything by 31 December.</p></div>
+  <div class="o-card o-card--line"><h3>Speak up early</h3><p>Stuck or falling behind? Tell us now, not at the deadline.</p></div>
+</div>""",
+ "These come from the offer letter and the Academy's Terms of Service."),
+("portfolio", "light", """<p class="o-eyebrow">What you finish with</p><h2 class="o-h2">A portfolio, not just a certificate</h2>
+<div class="o-cards o-cards--3">
+  <div class="o-card"><em>Finance</em><h3>Credit risk</h3><p>A default model and a costed loan approval policy</p></div>
+  <div class="o-card"><em>Health</em><h3>Clinic no-shows</h3><p>A risk model and a reminder plan a clinic could run</p></div>
+  <div class="o-card"><em>Real estate</em><h3>City rents</h3><p>A price model, error analysis and a valuation tool</p></div>
+</div>
+<div class="o-cards o-cards--2 o-mt">
+  <div class="o-card o-card--ink"><em>Your capstone</em><p class="o-mid o-mid--light">Your own analysis of a dataset you choose, reviewed by three peers</p></div>
+  <div class="o-card o-card--mint"><em>Your certificate</em><p class="o-mid">In your registered name, with a unique ID anyone can verify online</p></div>
+</div>""",
+ "Projects pass with a median peer score of 70% against the published rubric. You review other learners' work in return. The certificate is a certificate of course completion, not an accredited qualification."),
+("next", "blue", """<div class="o-split">
+  <div><p class="o-eyebrow o-eyebrow--light">After this meeting</p><h2 class="o-h2 o-h2--light">Your next steps</h2><p class="o-lead o-lead--light">Finish them by Wednesday 21 October, 8:30 pm, to keep your place.</p></div>
+  <ol class="o-todo">
+    <li><b>1</b>Sign your offer letter</li>
+    <li><b>2</b>Post your offer on LinkedIn and tag us</li>
+    <li><b>3</b>Join the WhatsApp group</li>
+    <li class="is-hi"><b>4</b>Watch for your enrollment number at 6 pm, then start Lesson 1 tonight</li>
+  </ol>
+</div>""",
+ "Your application page shows which steps are done. Attendance is taken in this meeting. At 6 pm everyone marked present is emailed their enrollment number, and that number opens Lesson 1. If you joined late or your number has not arrived, email academy@openfraudlabs.com."),
+("close", "dark", """<div class="o-cover">
+  <p class="o-eyebrow o-eyebrow--light">Questions?</p>
+  <h1 class="o-hero">Let's build<br><span class="o-grad">something real.</span></h1>
+  <div class="o-row"><span class="o-chip o-chip--ghost">openfraudlabs.com/academy</span><span class="o-chip o-chip--ghost">academy@openfraudlabs.com</span><span class="o-chip o-chip--ghost">TikTok @_drhola</span></div>
+</div><div class="o-orb o-orb--2"></div><div class="o-grid-bg"></div>""",
+ "Take questions. Remind everyone: enrollment numbers arrive at 6 pm, office hours at least once every two weeks, and check Messages from the team and the WhatsApp group for updates."),
+]
+
+def build_orientation():
+    slides = []
+    for i, (sid, theme, body, notes) in enumerate(ORIENT_SLIDES):
+        slides.append(f'<section class="o-slide o-slide--{theme}" id="s-{sid}" data-i="{i}" aria-roledescription="slide" aria-label="Slide {i+1} of {len(ORIENT_SLIDES)}"{" hidden" if i else ""}>{body}<aside class="o-notes-src" hidden>{notes}</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>{i+1:02d}</span></footer></section>')
+    css = r"""
+:root{--navy:#0B1626;--ink:#0E1A2B;--ink2:#2E3B52;--ink3:#5B6B82;--blue:#2453E6;--peri:#8FA3FF;--mint:#3DDC97;--amber:#F5B83D;--paper:#F5F7FB;--line:#DDE3EE}
+[hidden]{display:none!important}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#05090F;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.o-app{position:fixed;inset:0;display:grid;place-items:center}
+.o-stage{position:absolute;width:1920px;height:1080px;transform-origin:center center}
+.o-slide{position:absolute;inset:0;padding:110px 128px 120px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:34px;animation:o-in .55s cubic-bezier(.2,.8,.2,1)}
+.o-slide.is-back{animation-name:o-in-back}
+@keyframes o-in{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes o-in-back{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.o-slide--light{background:var(--paper);color:var(--ink)}
+.o-slide--dark{background:radial-gradient(1200px 700px at 85% 15%,#1E46C7 0%,rgba(30,70,199,0) 60%),linear-gradient(135deg,#0B1626 0%,#13264A 100%);color:#F3F6FC}
+.o-slide--blue{background:linear-gradient(135deg,#1E46C7,#2453E6 60%,#3B6BFF);color:#fff}
+.o-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 70% 30%,#000 10%,transparent 70%);pointer-events:none}
+.o-orb{position:absolute;right:-120px;top:120px;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle,rgba(143,163,255,.45),rgba(143,163,255,0) 65%);filter:blur(10px);animation:o-float 9s ease-in-out infinite;pointer-events:none}
+.o-orb--2{top:auto;bottom:-200px;right:200px;background:radial-gradient(circle,rgba(61,220,151,.30),rgba(61,220,151,0) 65%)}
+@keyframes o-float{50%{transform:translateY(-30px) scale(1.04)}}
+.o-eyebrow{font:600 26px/1 'Space Grotesk',sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--blue);margin:0}
+.o-eyebrow--light{color:var(--peri)}.o-eyebrow--mint{color:var(--mint)}
+.o-hero{font:700 150px/1 'Space Grotesk',sans-serif;letter-spacing:-4px;margin:0}
+.o-grad{background:linear-gradient(90deg,#8FA3FF,#3DDC97);-webkit-background-clip:text;background-clip:text;color:transparent}
+.o-h2{font:700 78px/1.06 'Space Grotesk',sans-serif;letter-spacing:-1.5px;margin:0;max-width:1500px}
+.o-h2--light{color:#fff}
+.o-lead{font-size:36px;line-height:1.45;color:var(--ink2);margin:0;max-width:1300px}
+.o-lead--light{color:#C9D4EA}
+.o-cover{position:relative;z-index:1;display:flex;flex-direction:column;gap:40px}
+.o-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.o-chip{font:600 28px/1 'IBM Plex Sans',system-ui,sans-serif;padding:18px 30px;border-radius:999px}
+.o-chip--mint{background:var(--mint);color:#062A1B}.o-chip--ghost{border:1.5px solid rgba(255,255,255,.3);color:#DCE4F5}
+.o-cards{display:grid;gap:26px}.o-cards--4{grid-template-columns:repeat(4,1fr)}.o-cards--3{grid-template-columns:repeat(3,1fr)}.o-cards--2{grid-template-columns:repeat(2,1fr)}
+.o-mt{margin-top:4px}
+.o-card{background:#fff;border:1px solid var(--line);border-radius:26px;padding:36px;display:flex;flex-direction:column;gap:12px;box-shadow:0 18px 40px rgba(14,26,43,.06);transition:transform .25s,box-shadow .25s}
+.o-card h3{font:600 38px/1.15 'IBM Plex Sans',system-ui,sans-serif;margin:0}.o-card p{font-size:27px;line-height:1.42;color:#4A5568;margin:0}.o-card em{font:600 26px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--blue)}
+.o-card--ink{background:var(--ink);border-color:var(--ink);color:#F3F6FC}.o-card--ink p{color:#C9D4EA}.o-card--ink em{color:var(--peri)}
+.o-card--mint{background:#E7F6EE;border-color:#BFE8D1}.o-card--mint em{color:#1F6B47}
+.o-card--hi{border:2px solid var(--blue);background:#F3F6FF}
+.o-card--line{border-left:8px solid var(--mint);border-radius:18px}
+.o-ico{width:64px;height:64px;border-radius:18px;background:#E8EDFF;color:var(--blue);display:grid;place-items:center;font-size:34px}
+.o-foot{font-size:28px;line-height:1.45;color:var(--ink3);margin:0;max-width:1500px}.o-foot--light{color:#AFC0E0}
+.o-split{display:grid;grid-template-columns:1fr 1fr;gap:90px;align-items:center}
+.o-split--time{grid-template-columns:.85fr 1.15fr}
+.o-split>div:first-child:not(.o-panel){display:flex;flex-direction:column;gap:30px}
+.o-stack{display:flex;flex-direction:column;gap:22px}
+.o-panel{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 36px;display:flex;flex-direction:column;gap:8px}
+.o-panel--ink{background:var(--ink);border-color:var(--ink);color:#F3F6FC}
+.o-panel--blue{background:linear-gradient(160deg,#2453E6,#1838A8);border:0;color:#fff;padding:60px 56px;border-radius:32px;gap:14px}
+.o-tag{font:600 24px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin:0}.o-tag--mint{color:var(--mint)}
+.o-big{font-size:34px;line-height:1.4;margin:0}.o-big--ink{font:700 46px/1.1 'Space Grotesk',system-ui,sans-serif;color:var(--ink)}
+.o-panel--ink .o-big{font:600 36px/1.35 'IBM Plex Sans',system-ui,sans-serif}
+.o-mid{font-size:30px;line-height:1.4;margin:0;color:var(--ink2)}.o-mid--light{color:#E4EAFF}
+.o-small{font-size:24px;color:var(--ink3);margin:0}.o-small--light{color:#C9D4FF}
+.o-giant{font:700 190px/0.95 'Space Grotesk',system-ui,sans-serif;letter-spacing:-6px;margin:0}
+.o-vm{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto 1fr;gap:80px;align-items:center}
+.o-rule{width:2px;height:420px;background:linear-gradient(transparent,rgba(255,255,255,.35),transparent)}
+.o-quote{font:600 64px/1.15 'Space Grotesk',system-ui,sans-serif;letter-spacing:-1px;margin:24px 0 0}.o-quote--sm{font-size:52px;color:#DCE4F5}
+.o-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.o-stat{background:#fff;border:1px solid var(--line);border-radius:28px;padding:48px 44px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.o-stat::after{content:"";position:absolute;left:0;top:0;height:8px;width:100%;background:linear-gradient(90deg,var(--blue),var(--peri))}
+.o-stat b{font:700 140px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-4px;color:var(--blue)}.o-stat span{font-size:30px;line-height:1.35;color:var(--ink2)}
+.o-row--pills{gap:14px}.o-pill{font-size:26px;padding:12px 24px;border-radius:999px;background:#E8EDFF;color:#1A3DB0;font-weight:600}.o-pill--mint{background:#DDF6EA;color:#1F6B47}
+.o-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;counter-reset:s}
+.o-step{position:relative;background:#fff;border:1px solid var(--line);border-radius:26px;padding:40px 34px;display:flex;flex-direction:column;gap:14px}
+.o-step:not(:last-child)::after{content:"\2192";position:absolute;right:-24px;top:50%;transform:translateY(-50%);font-size:34px;color:var(--peri);z-index:2}
+.o-step i{font:700 30px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--blue);background:#E8EDFF;width:70px;height:70px;border-radius:50%;display:grid;place-items:center}
+.o-step h3{font:700 46px/1 'Space Grotesk',system-ui,sans-serif;margin:0}.o-step p{font-size:27px;line-height:1.4;color:#4A5568;margin:0}
+.o-step--hi{background:var(--blue);border-color:var(--blue);color:#fff}.o-step--hi i{background:rgba(255,255,255,.2);color:#fff}.o-step--hi p{color:#E4EAFF}
+.o-time{display:flex;flex-direction:column;gap:28px}
+.o-time__bar{display:flex;gap:8px;height:16px}.o-time__bar span{border-radius:999px;background:var(--blue)}
+.o-time__bar span:nth-child(2){background:#5878F0}.o-time__bar span:nth-child(3){background:var(--peri)}.o-time__bar span:nth-child(4){background:var(--amber)}.o-time__bar span:nth-child(5){background:var(--mint)}
+.o-time__cols{display:grid;grid-template-columns:repeat(5,1fr);gap:24px}
+.o-time__cols em{font:600 26px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--blue)}.o-time__cols h3{font:700 40px/1.1 'Space Grotesk',system-ui,sans-serif;margin:12px 0 10px}.o-time__cols p{font-size:25px;line-height:1.4;color:#4A5568;margin:0}
+.o-flow{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:28px;align-items:stretch}
+.o-flow__step{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:28px;padding:44px 40px;display:flex;flex-direction:column;gap:14px;backdrop-filter:blur(4px)}
+.o-flow__step b{font:700 34px/1 'Space Grotesk',system-ui,sans-serif;color:var(--peri)}.o-flow__step h3{font:700 48px/1.05 'Space Grotesk',system-ui,sans-serif;margin:0;color:#fff}.o-flow__step p{font-size:28px;line-height:1.4;color:#C9D4EA;margin:0}
+.o-flow__step--hi{background:var(--mint);border-color:var(--mint)}.o-flow__step--hi b,.o-flow__step--hi h3{color:#062A1B}.o-flow__step--hi p{color:#0D3D27}
+.o-flow__arrow{align-self:center;font-size:56px;color:var(--peri)}
+.o-todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
+.o-todo li{display:flex;gap:26px;align-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:28px 36px;font-size:33px;line-height:1.3}
+.o-todo b{font:700 44px/1 'Space Grotesk',system-ui,sans-serif;color:var(--mint);min-width:34px}
+.o-todo li.is-hi{background:#0E1A2B;border-color:#0E1A2B}
+.o-slide--dark .o-h2,.o-slide--dark .o-flow,.o-slide--dark .o-eyebrow,.o-slide--dark .o-foot{position:relative;z-index:1}
+.o-sfoot{position:absolute;left:128px;right:128px;bottom:44px;display:flex;justify-content:space-between;align-items:center;font:500 22px/1 'IBM Plex Sans',system-ui,sans-serif;color:var(--ink3);opacity:.8}
+.o-sfoot span:first-child{display:flex;gap:12px;align-items:center}.o-sfoot img{width:30px;height:30px;border-radius:50%}
+.o-slide--dark .o-sfoot,.o-slide--blue .o-sfoot{color:rgba(255,255,255,.65)}
+#s-cover .o-sfoot,#s-close .o-sfoot{display:none}
+.o-slide .o-card,.o-slide .o-step,.o-slide .o-stat,.o-slide .o-panel,.o-slide .o-flow__step,.o-slide .o-todo li,.o-slide .o-time__cols>div{animation:o-up .6s cubic-bezier(.2,.8,.2,1) both}
+.o-slide :is(.o-card,.o-step,.o-stat,.o-panel,.o-flow__step,.o-todo li,.o-time__cols>div):nth-child(2){animation-delay:.07s}
+.o-slide :is(.o-card,.o-step,.o-stat,.o-panel,.o-flow__step,.o-todo li,.o-time__cols>div):nth-child(3){animation-delay:.14s}
+.o-slide :is(.o-card,.o-step,.o-stat,.o-panel,.o-flow__step,.o-todo li,.o-time__cols>div):nth-child(4){animation-delay:.21s}
+.o-slide :is(.o-card,.o-step,.o-stat,.o-panel,.o-flow__step,.o-todo li,.o-time__cols>div):nth-child(5){animation-delay:.28s}
+.o-slide :is(.o-card,.o-step,.o-stat,.o-panel,.o-flow__step,.o-todo li,.o-time__cols>div):nth-child(6){animation-delay:.35s}
+@keyframes o-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+/* controls */
+.o-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:rgba(14,26,43,.86);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px;z-index:10;transition:opacity .3s,transform .3s;font:500 14px 'IBM Plex Sans',system-ui,sans-serif;color:#DCE4F5}
+.o-bar button{background:none;border:0;color:#DCE4F5;font:inherit;padding:9px 14px;border-radius:999px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.o-bar button:hover{background:rgba(255,255,255,.12)}.o-bar button:focus-visible{outline:2px solid var(--peri)}
+.o-bar .o-count{padding:0 10px;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.o-app.is-idle .o-bar{opacity:0;transform:translate(-50%,20px);pointer-events:none}
+.o-app.is-idle{cursor:none}
+.o-progress{position:fixed;left:0;top:0;height:4px;background:linear-gradient(90deg,var(--blue),var(--mint));z-index:11;transition:width .4s}
+.o-notes{position:fixed;left:16px;right:16px;bottom:76px;max-width:900px;margin:0 auto;background:rgba(255,253,240,.97);color:#3B2F00;border-radius:14px;padding:16px 20px;font:400 17px/1.5 'IBM Plex Sans',system-ui,sans-serif;z-index:12;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.o-notes b{display:block;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;color:#8a6a00}
+.o-help{position:fixed;inset:0;background:rgba(5,9,15,.7);display:grid;place-items:center;z-index:20}
+.o-help div{background:#fff;color:var(--ink);border-radius:18px;padding:26px 30px;font:400 16px/1.8 'IBM Plex Sans',system-ui,sans-serif;max-width:460px}
+.o-help kbd{background:#EEF1F6;border:1px solid #D6DCE8;border-bottom-width:2px;border-radius:6px;padding:1px 7px;font:600 13px 'IBM Plex Mono',monospace}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+"""
+    js = r"""
+(function(){
+  var app=document.querySelector('.o-app'),stage=document.querySelector('.o-stage'),slides=[].slice.call(document.querySelectorAll('.o-slide')),n=slides.length,cur=0;
+  var count=document.querySelector('.o-count'),prog=document.querySelector('.o-progress'),notes=document.querySelector('.o-notes'),notesTxt=notes.querySelector('p');
+  function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}
+  addEventListener('resize',fit);fit();
+  function go(i,back){i=Math.max(0,Math.min(n-1,i));if(i===cur&&slides[i].hidden===false&&arguments.length<3){}
+    slides[cur].hidden=true;cur=i;var s=slides[cur];s.classList.toggle('is-back',!!back);s.hidden=false;s.style.animation='none';void s.offsetWidth;s.style.animation='';
+    count.textContent=(cur+1)+' / '+n;prog.style.width=((cur+1)/n*100)+'%';notesTxt.textContent=s.querySelector('.o-notes-src').textContent;
+    try{history.replaceState(null,'','#'+(cur+1));}catch(e){}
+    s.querySelectorAll('[data-count]').forEach(function(b){var t=+b.getAttribute('data-count'),t0=performance.now();(function f(now){var p=Math.min(1,(now-t0)/900);b.textContent=Math.round(t*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);})(t0);});}
+  function next(){if(cur<n-1)go(cur+1);} function prev(){if(cur>0)go(cur-1,true);}
+  function full(){var d=document;if(!d.fullscreenElement){(d.documentElement.requestFullscreen||d.documentElement.webkitRequestFullscreen).call(d.documentElement);}else{(d.exitFullscreen||d.webkitExitFullscreen).call(d);}}
+  document.querySelector('[data-a=prev]').onclick=prev;document.querySelector('[data-a=next]').onclick=next;document.querySelector('[data-a=full]').onclick=full;
+  document.querySelector('[data-a=notes]').onclick=function(){notes.hidden=!notes.hidden;};
+  var help=document.querySelector('.o-help');document.querySelector('[data-a=help]').onclick=function(){help.hidden=false;};help.onclick=function(){help.hidden=true;};
+  addEventListener('keydown',function(e){var k=e.key;
+    if(k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){e.preventDefault();next();}
+    else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault();prev();}
+    else if(k==='Home')go(0,true);else if(k==='End')go(n-1);
+    else if(k==='f'||k==='F')full();else if(k==='n'||k==='N')notes.hidden=!notes.hidden;
+    else if(k==='?'||k==='h'||k==='H')help.hidden=!help.hidden;else if(k==='Escape')help.hidden=true;
+    else if(/^[1-9]$/.test(k))go(+k-1);});
+  stage.addEventListener('click',function(e){if(e.target.closest('a'))return;var r=stage.getBoundingClientRect();(e.clientX-r.left<r.width/3)?prev():next();});
+  var tx=null;addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)(dx<0?next:prev)();tx=null;});
+  var idle;function wake(){app.classList.remove('is-idle');clearTimeout(idle);idle=setTimeout(function(){app.classList.add('is-idle');},2500);}
+  addEventListener('mousemove',wake);wake();
+  var start=parseInt((location.hash||'').slice(1),10);go(start>0?start-1:0);
+})();
+"""
+    html = head("Founding Cohort orientation | Open Fraud Labs Academy", "Orientation slides for the Open Fraud Labs Academy Founding Cohort 2026.", noindex=True, path="academy/orientation")
+    html = html.replace('<link rel="stylesheet" href="/assets/css/academy.css?v=' + V + '">', '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">\n    <style>' + css + '</style>')
+    html = html.replace('<a class="ac-skip" href="#main">Skip to content</a>', '')
+    html += ('<div class="o-progress" aria-hidden="true"></div><div class="o-app" role="region" aria-label="Orientation slides"><div class="o-stage">' + "\n".join(slides) + '</div>'
+             '<div class="o-notes" hidden><b>Speaker notes</b><p></p></div>'
+             '<nav class="o-bar" aria-label="Slide controls"><button type="button" data-a="prev" aria-label="Previous slide">&larr;</button><span class="o-count">1 / ' + str(len(ORIENT_SLIDES)) + '</span><button type="button" data-a="next" aria-label="Next slide">&rarr;</button>'
+             '<button type="button" data-a="notes">Notes</button><button type="button" data-a="full">&#x26F6; Full screen</button><button type="button" data-a="help" aria-label="Keyboard shortcuts">?</button></nav>'
+             '<div class="o-help" hidden><div><b>Presenting</b><br><kbd>&rarr;</kbd> <kbd>Space</kbd> next &nbsp; <kbd>&larr;</kbd> previous<br><kbd>F</kbd> full screen (hides the browser bar) &nbsp; <kbd>Esc</kbd> leave it<br><kbd>N</kbd> speaker notes &nbsp; <kbd>1</kbd>&ndash;<kbd>9</kbd> jump to a slide<br>Click the right or left of a slide, or swipe on a phone.<br><br>Tip for Google Meet: open this page, press <kbd>F</kbd>, then share this tab or window. Only the slides are shown.</div></div></div>'
+             '<script>' + js + '</script>\n</body>\n</html>\n')
+    os.makedirs("academy/orientation", exist_ok=True)
+    open("academy/orientation/index.html", "w").write(html)
+    print("wrote academy/orientation")
+
+build_orientation()
 
 
 # ============================================================== Redirects from old URLs

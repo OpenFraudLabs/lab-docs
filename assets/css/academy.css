@@ -1567,3 +1567,22 @@ a,button,input,select,textarea{-webkit-tap-highlight-color:transparent}
 .ac-teammsg__n{background:#2453E6;color:#fff;font-size:.72rem;font-weight:700;border-radius:999px;padding:1px 8px}
 .ac-teammsg__txt{color:var(--ink-2);font-size:.92rem}
 .ac-teammsg__go{color:var(--blue);font-weight:600;font-size:.88rem}
+.ch-private{border-color:var(--line);box-shadow:none;background:#FAFBFE}
+.ch-private__head{margin:0 0 6px}
+.ch-to{display:flex;gap:8px;align-items:center;margin-right:auto;font-size:.88rem;font-weight:600}
+.ch-to select,.ch-reply__to{font:400 .85rem var(--font);border:1px solid var(--line-2);border-radius:999px;padding:.4rem .6rem;background:var(--surface);color:var(--ink)}
+.ch-priv{font-size:.72rem;font-weight:700;background:#F3E8FF;color:#6B2BB3;border-radius:999px;padding:1px 8px}
+.ch-thread.is-private{border-style:dashed;border-color:#C9A8F0;background:#FCFAFF}
+.ch-thread.is-flash{box-shadow:0 0 0 3px rgba(36,83,230,.35)}
+.ch-thread{scroll-margin-top:100px}
+.ch-settings{margin:0 0 14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}
+.ch-switch{display:flex;gap:12px;align-items:flex-start;cursor:pointer;position:relative}
+.ch-switch input{position:absolute;opacity:0;width:44px;height:24px;margin:0}
+.ch-switch__ui{flex:none;width:44px;height:24px;border-radius:999px;background:#C5CEDE;position:relative;transition:background .2s;margin-top:2px}
+.ch-switch__ui::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ch-switch input:checked + .ch-switch__ui{background:#1f9d64}
+.ch-switch input:checked + .ch-switch__ui::after{transform:translateX(20px)}
+.ch-switch input:focus-visible + .ch-switch__ui{outline:3px solid rgba(36,83,230,.45);outline-offset:2px}
+.ch-switch small{display:block;color:var(--ink-3);font-size:.82rem;margin-top:2px}
+.ch-off{margin-bottom:14px}
+@media (max-width:560px){.ch-reply{flex-wrap:wrap}.ch-reply input{flex-basis:100%}}

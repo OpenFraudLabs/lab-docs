@@ -53,9 +53,16 @@
     </header>
     <main id="main">
         <div class="ac-wrap ch">
-            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post to ask a question everyone can see. For anything private, email academy@openfraudlabs.com.</p></div></div>
+            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post for everyone to see, or choose to reply privately to the team. You can also message the team privately below.</p></div></div>
             <div id="msg"></div>
             <div id="ch-body" hidden>
+                <div class="ch-settings" id="ch-settings" hidden></div>
+                <form class="ch-compose ch-private" id="ch-private" hidden novalidate>
+                    <p class="ch-private__head"><b>Message the team privately</b> <span class="ac-muted ac-small">Only the people you choose can see it. You get an email when they reply.</span></p>
+                    <textarea name="body" rows="2" maxlength="2000" placeholder="Ask a question, report a problem or ask for help…" required></textarea>
+                    <div class="ch-compose__bar"><label class="ch-to">Send to <select name="aud"><option value="team">The team (HR, admins and the founder)</option><option value="admin">The founder and admins only</option></select></label><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Send privately</button></div>
+                </form>
+                <div class="ofl-notice ofl-notice--info ch-off" id="ch-off" hidden>Right now, replies from learners are visible only to the person who wrote them and the team.</div>
                 <form class="ch-compose" id="ch-compose" hidden novalidate>
                     <textarea name="body" rows="3" maxlength="2000" placeholder="Write an announcement for all learners…" required></textarea>
                     <div class="ch-compose__bar"><label class="ap-check"><input type="checkbox" name="pin"> Pin to the top</label><span class="ac-muted ac-small" id="ch-count">0 / 2000</span><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Post to all learners</button></div>
@@ -110,6 +117,14 @@
                 if (!D.allowed) return OFL.notice(msg, 'Messages from the team are for enrolled learners and cohort members. Once you’re enrolled, you’ll see them here.', 'info');
                 document.getElementById('ch-body').hidden = false;
                 document.getElementById('ch-compose').hidden = !D.is_staff;
+                document.getElementById('ch-private').hidden = D.is_staff;
+                document.getElementById('ch-off').hidden = D.is_staff || D.learners_see_others;
+                var st = document.getElementById('ch-settings'); st.hidden = !D.can_settings; st.textContent = '';
+                if (D.can_settings) {
+                    var sw = el('input', { type: 'checkbox', role: 'switch' }); sw.checked = !!D.learners_see_others;
+                    sw.addEventListener('change', async function () { var x = await sb.rpc('chat_settings_set', { p_learners_see_others: sw.checked }); if (x.error) { sw.checked = !sw.checked; return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); } OFL.toast(sw.checked ? 'Learners can now see each other’s replies.' : 'Learner replies are now visible only to the writer and the team.', 'success'); load(true); });
+                    st.appendChild(el('label', { class: 'ch-switch' }, sw, el('span', { class: 'ch-switch__ui', 'aria-hidden': 'true' }), el('span', {}, el('b', { text: 'Learners can see each other’s replies' }), el('small', { text: sw.checked ? 'On: learner replies under team posts are visible to all learners.' : 'Off: each learner sees only the team’s posts and their own replies. Turn this off if a conversation needs calming down.' }))));
+                }
                 if (D.is_staff) document.getElementById('ch-sub').textContent = 'Post announcements every learner and cohort member can see. Learners can reply under each post. Hide anything that shouldn’t be there.';
                 draw();
                 try { var top = D.messages.filter(function (m) { return !m.parent_id; }).map(function (m) { return m.id; }); if (top.length) localStorage.setItem('ofl-chat-seen', String(Math.max.apply(null, top))); } catch (e) {}
@@ -121,7 +136,8 @@
                 if (!isReply && D.can_moderate && !m.hidden) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: m.pinned ? 'Unpin' : 'Pin', onclick: function () { mod(m.id, m.pinned ? 'unpin' : 'pin'); } }));
                 return el('div', { class: 'ch-msg' + (m.is_staff ? ' is-staff' : '') + (isReply ? ' is-reply' : '') + (m.hidden ? ' is-hidden' : '') },
                     el('span', { class: 'ch-av', 'aria-hidden': 'true', text: initials(m.author) }),
-                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null, el('small', { text: ago(m.created_at) }), acts),
+                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null,
+                        !isReply && m.audience !== 'everyone' ? el('span', { class: 'ch-priv', text: m.audience === 'admin' ? 'Private · founder and admins' : 'Private · team' }) : null, el('small', { text: ago(m.created_at) }), acts),
                         m.hidden ? el('p', { class: 'ac-muted ac-small', text: 'This message was hidden.' + (D.can_moderate && m.body ? ' (' + m.body + ')' : '') }) : textBody(m.body)));
             }
             function draw() {
@@ -131,17 +147,22 @@
                 top.sort(function (a, b) { return (b.pinned - a.pinned) || (b.id - a.id); });
                 if (!top.length) feed.appendChild(el('p', { class: 'ac-muted ch-empty', text: D.is_staff ? 'No posts yet. Write the first announcement above.' : 'No messages yet. The team will post updates here.' }));
                 top.forEach(function (m) {
-                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') }, msgEl(m, false));
+                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') + (m.audience !== 'everyone' ? ' is-private' : ''), id: 'm' + m.id }, msgEl(m, false));
                     var rbox = el('div', { class: 'ch-replies' }); replies.forEach(function (x) { rbox.appendChild(msgEl(x, true)); });
                     card.appendChild(rbox);
                     if (!m.hidden) {
-                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
+                        var pickTo = !D.is_staff && m.audience === 'everyone' ? el('select', { name: 'aud', class: 'ch-reply__to', 'aria-label': 'Who should see your reply' },
+                            el('option', { value: 'everyone', text: 'Reply to everyone' }), el('option', { value: 'team', text: 'Privately to the team' }), el('option', { value: 'admin', text: 'Privately to the founder and admins' })) : null;
+                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: m.audience !== 'everyone' ? 'Reply in this private conversation…' : replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), pickTo, el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
                         f.body.addEventListener('input', function () { open[m.id] = f.body.value; });
                         f.addEventListener('submit', async function (e) {
                             e.preventDefault(); if (!f.body.value.trim()) return;
-                            var r = await sb.rpc('chat_post', { p_body: f.body.value, p_parent: m.id });
+                            var to = pickTo ? pickTo.value : 'everyone';
+                            var r = await sb.rpc('chat_send', { p_body: f.body.value, p_parent: m.id, p_pin: false, p_audience: to });
                             if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                            open[m.id] = ''; msg.textContent = ''; load(true);
+                            open[m.id] = ''; msg.textContent = '';
+                            if (to !== 'everyone') OFL.toast('Sent privately. Only ' + (to === 'admin' ? 'the founder and admins' : 'the team') + ' can see it, and you’ll get an email when they reply.', 'success');
+                            await load(true); if (r.data && r.data.thread && r.data.thread !== m.id) focusThread(r.data.thread);
                         });
                         card.appendChild(f);
                     }
@@ -153,11 +174,20 @@
             comp.body.addEventListener('input', function () { document.getElementById('ch-count').textContent = comp.body.value.length + ' / 2000'; });
             comp.addEventListener('submit', async function (e) {
                 e.preventDefault(); if (!comp.body.value.trim()) return;
-                var r = await sb.rpc('chat_post', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked });
+                var r = await sb.rpc('chat_send', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked, p_audience: 'everyone' });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
                 comp.reset(); document.getElementById('ch-count').textContent = '0 / 2000'; OFL.toast('Posted. Learners see it on their dashboard and here.', 'success'); load(true);
             });
+            function focusThread(id) { var t = document.getElementById('m' + id); if (!t) return; t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('is-flash'); setTimeout(function () { t.classList.remove('is-flash'); }, 1600); }
+            var pf = document.getElementById('ch-private');
+            pf.addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!pf.body.value.trim()) return;
+                var r = await sb.rpc('chat_send', { p_body: pf.body.value, p_parent: null, p_pin: false, p_audience: pf.aud.value });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                pf.reset(); msg.textContent = ''; OFL.toast('Sent privately. You’ll get an email when the team replies.', 'success'); await load(true); focusThread(r.data.thread);
+            });
             await load();
+            if (/^#m\d+$/.test(location.hash)) focusThread(location.hash.slice(2));
             timer = setInterval(function () { if (!document.hidden && !document.activeElement.closest('.ch-reply, .ch-compose')) load(true); }, 20000);
         })();
     </script>
