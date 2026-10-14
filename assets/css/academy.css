@@ -1586,3 +1586,4 @@ a,button,input,select,textarea{-webkit-tap-highlight-color:transparent}
 .ch-switch small{display:block;color:var(--ink-3);font-size:.82rem;margin-top:2px}
 .ch-off{margin-bottom:14px}
 @media (max-width:560px){.ch-reply{flex-wrap:wrap}.ch-reply input{flex-basis:100%}}
+.doc-tag--owner { background: #FDECEC; color: #A12B2B; }

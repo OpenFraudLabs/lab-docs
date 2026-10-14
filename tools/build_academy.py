@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014f"
+V = "20261014g"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1697,7 +1697,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                         <label>Title<input name="title" maxlength="160" required placeholder="e.g. Office hours rota"></label>
                         <label><span>Link <em class="ac-muted">(Google Doc, Sheet, Drive file or a page on the site)</em></span><input name="url" maxlength="500" required placeholder="https://docs.google.com/..."></label>
                         <div class="co-two"><label>Category<input name="category" maxlength="60" list="doc-cats" placeholder="e.g. Founding Cohort 2026"><datalist id="doc-cats"></datalist></label>
-                        <label>Who can see it<select name="audience"><option value="staff">Staff dashboard only</option><option value="team">Staff and interns (team calendar)</option><option value="learners">Staff, interns and cohort learners</option></select></label></div>
+                        <label>Who can see it<select name="audience"><option value="owner" id="doc-aud-owner" hidden>Owner only (just me)</option><option value="staff">Staff dashboard only</option><option value="team">Staff and interns (team calendar)</option><option value="learners">Staff, interns and cohort learners</option></select></label></div>
                         <label><span>Notes <em class="ac-muted">(optional)</em></span><textarea name="notes" rows="2" maxlength="500" placeholder="What it is and when to use it"></textarea></label>
                         <p class="ac-muted ac-small">For a Google file, set its sharing to “Anyone with the link can view” so interns and learners can open it.</p>
                         <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
@@ -2639,11 +2639,11 @@ admin_script = r"""        (async function () {
             }
             // ---- Documents library
             var docs = [], docEdit = null, docDlg = document.getElementById('doc-dlg'), docForm = document.getElementById('doc-form');
-            var DOC_AUD = { staff: 'Staff only', team: 'Staff and interns', learners: 'Staff, interns and learners' };
+            var DOC_AUD = { owner: 'Owner only', staff: 'Staff only', team: 'Staff and interns', learners: 'Staff, interns and learners' };
             docDlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { docDlg.close(); }); });
             async function loadDocs() {
                 var r = await sb.rpc('documents_list'); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                docs = (r.data && r.data.documents) || []; var mg = !!(r.data && r.data.can_manage); document.getElementById('doc-add').hidden = !mg;
+                docs = (r.data && r.data.documents) || []; var mg = !!(r.data && r.data.can_manage), own = !!(r.data && r.data.is_owner); var ao = document.getElementById('doc-aud-owner'); ao.hidden = !own; ao.disabled = !own; document.getElementById('doc-add').hidden = !mg;
                 var q = document.getElementById('doc-q').value.trim().toLowerCase(), box = document.getElementById('doc-list'); box.textContent = '';
                 var groups = {}; docs.filter(function (d) { return !q || (d.title + ' ' + d.category + ' ' + (d.notes || '')).toLowerCase().indexOf(q) >= 0; })
                     .forEach(function (d) { (groups[d.category] = groups[d.category] || []).push(d); });
@@ -2656,7 +2656,7 @@ admin_script = r"""        (async function () {
                         var li = el('li', { class: 'doc-item' }, el('div', { class: 'doc-item__main' }, el('a', { href: href, target: '_blank', rel: 'noopener noreferrer', text: d.title }),
                             el('span', { class: 'doc-tag', text: kind }), el('span', { class: 'doc-tag doc-tag--' + d.audience, text: DOC_AUD[d.audience] })),
                             d.notes ? el('p', { class: 'ac-muted ac-small', text: d.notes }) : null);
-                        if (mg) li.appendChild(el('div', { class: 'doc-item__acts' },
+                        if (mg && (d.audience !== 'owner' || own)) li.appendChild(el('div', { class: 'doc-item__acts' },
                             el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Edit', onclick: function () { openDoc(d); } }),
                             el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Remove', onclick: async function () {
                                 if (!window.confirm('Remove “' + d.title + '” from the documents list? The file itself isn\u2019t deleted.')) return;
