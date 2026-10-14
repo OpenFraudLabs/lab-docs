@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014g"
+V = "20261014h"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1676,15 +1676,21 @@ port("verify", "verify", "Verify a certificate | Open Fraud Labs Academy", "Chec
 json.dump(PORTED, open(CACHE, "w"))
 
 # ============================================================== Admin (reports + capstone review)
-admin_main = """        <div class="ac-wrap ac-admin">
-            <div class="ac-dash-head">
-                <h1>Academy admin</h1>
-                <p class="ac-muted" id="admin-sub">Live figures from the learning database. <a href="/verify/?sample=1" target="_blank" rel="noopener">Preview the certificate design</a> · <a href="/academy/team/">Team calendar</a></p>
+admin_main = """        <div class="ac-wrap ac-admin adm-shell" id="adm-shell">
+            <aside class="adm-rail" id="adm-rail" aria-label="Staff dashboard sections" hidden></aside>
+            <div class="adm-main">
+            <div class="adm-top">
+                <div><h1 id="adm-title">Staff dashboard</h1>
+                <p class="ac-muted" id="admin-sub">Live figures from the learning database.</p></div>
+                <div class="adm-top__links" id="adm-links"><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/team/">Team calendar</a><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/verify/?sample=1" target="_blank" rel="noopener">Certificate preview</a></div>
                 <div id="msg"></div>
             </div>
             <div id="admin-body" hidden>
-                <div class="ac-kpis" id="kpis"></div>
-                <nav class="adm-jump" id="adm-jump" aria-label="Sections"></nav>
+                <section class="ac-admin__sec" id="overview-sec" data-cap="view_stats">
+                    <div class="ac-admin__head"><h2>Overview</h2><p class="ac-muted">Where the Academy stands today, and what needs a decision from the team.</p></div>
+                    <div class="adm-attn" id="adm-attn"></div>
+                    <div class="ac-kpis adm-kpis" id="kpis"></div>
+                </section>
                 <section class="ac-admin__sec" data-cap="view_stats" id="doc-sec">
                     <div class="ac-admin__head"><h2>Documents</h2><p class="ac-muted">Every Academy document and page in one place: the orientation document, policies, calendars, application pages and banners. “Who can see it” controls whether interns and cohort learners also see it on their calendar.</p>
                         <div class="ac-admin__tools"><input type="search" id="doc-q" placeholder="Search documents" aria-label="Search documents"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="doc-add" hidden>Add document</button></div></div>
@@ -1923,6 +1929,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <div id="subs"></div>
                 </section>
             </div>
+        </div>
         </div>"""
 
 admin_script = r"""        (async function () {
@@ -1991,12 +1998,65 @@ admin_script = r"""        (async function () {
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
             var ROLE_OPTS = [['admin', 'Admin'], ['instructor', 'Instructor'], ['reviewer', 'Reviewer'], ['scholarship', 'Scholarship officer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']];
             document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
-            (function jump() {
-                var nav = document.getElementById('adm-jump'); nav.textContent = '';
-                document.querySelectorAll('section.ac-admin__sec').forEach(function (sec) {
-                    if (sec.hidden || !sec.id) return; var h = sec.querySelector('h2'); if (!h) return;
-                    nav.appendChild(el('a', { href: '#' + sec.id, text: h.textContent.replace(/:.*$/, '').replace('Signed up but didn’t apply', 'Not applied yet') }));
+            (function shell() {
+                var rail = document.getElementById('adm-rail'), shellEl = document.getElementById('adm-shell');
+                var GROUPS = [
+                    ['Today', [['overview-sec', 'Overview']]],
+                    ['Founding Cohort', [['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
+                    ['Learners', [['learners-sec', 'Learners'], ['reviews-sec', 'Project reviews'], ['sch-sec', 'Scholarships']]],
+                    ['Content', [['courses-sec', 'Courses and lessons'], ['doc-sec', 'Documents']]],
+                    ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
+                    ['Team', [['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
+                    ['Messages', [['link:/academy/admin/messages/', 'Email learners', 'send_messages'], ['link:/academy/chat/', 'Learner chat']]],
+                    ['Money', [['finance-sec', 'Finance']]]];
+                var act = document.getElementById('activity-sec'), ovs = document.getElementById('overview-sec');
+                if (act && ovs && !act.hidden) { ovs.appendChild(act); act.classList.add('adm-embed'); }
+                ['mail-sec', 'pay-sec'].forEach(function (id) { var s = document.getElementById(id); if (s) s.hidden = true; });
+                var first = null;
+                GROUPS.forEach(function (g) {
+                    var items = g[1].filter(function (it) {
+                        if (it[0].indexOf('link:') === 0) return !it[2] || can(it[2]);
+                        var s = document.getElementById(it[0]); return s && !s.hidden;
+                    });
+                    if (!items.length) return;
+                    var ul = el('ul');
+                    items.forEach(function (it) {
+                        var isLink = it[0].indexOf('link:') === 0;
+                        if (!isLink && !first) first = it[0];
+                        ul.appendChild(el('li', {}, el('a', { href: isLink ? it[0].slice(5) : '#' + it[0], 'data-sec': isLink ? null : it[0], class: 'adm-rail__item' + (isLink ? ' is-ext' : '') },
+                            el('span', { text: it[1] }), el('b', { class: 'adm-badge', 'data-badge': it[0], hidden: true }))));
+                    });
+                    rail.appendChild(el('div', { class: 'adm-rail__grp' }, el('p', { text: g[0] }), ul));
                 });
+                document.querySelectorAll('section.ac-admin__sec').forEach(function (s) { s.classList.add('adm-pane'); });
+                rail.hidden = false; shellEl.classList.add('is-ready');
+                function show() {
+                    var id = (location.hash || '').slice(1), sec = id && document.getElementById(id);
+                    if (!sec || !sec.classList.contains('adm-pane') || sec.hidden || sec.classList.contains('adm-embed')) id = first;
+                    document.querySelectorAll('section.adm-pane').forEach(function (s) { if (!s.classList.contains('adm-embed')) s.classList.toggle('is-on', s.id === id); });
+                    rail.querySelectorAll('.adm-rail__item[data-sec]').forEach(function (a) { var on = a.getAttribute('data-sec') === id; a.classList.toggle('is-on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+                    
+                    var on = rail.querySelector('.is-on'); if (on && window.innerWidth <= 900) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+                }
+                window.addEventListener('hashchange', function () { show(); window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); });
+                show();
+                // Live "needs attention" counts, read from what each section has loaded
+                function num(sel, re) { var n = document.querySelector(sel); if (!n) return 0; var m = (re || /\((\d+)\)/).exec(n.textContent || ''); return m ? +m[1] : 0; }
+                function badges() {
+                    var tabs = document.querySelectorAll('#app-sec .ofl-tab, #app-sec [role=tab]'), check = 0;
+                    tabs.forEach(function (t) { if (/to check/i.test(t.textContent)) { var m = /\((\d+)\)/.exec(t.textContent); if (m) check = +m[1]; } });
+                    var rev = document.querySelectorAll('#reviews-sec .ac-review-row, #reviews-sec tbody tr, #reviews-sec .ac-cap').length;
+                    var revTab = document.querySelector('#reviews-sec .ofl-tab.is-active'); if (revTab && !/waiting/i.test(revTab.textContent)) rev = 0;
+                    var inc = document.querySelectorAll('#inc-sec tbody input[type=checkbox]').length;
+                    var B = { 'app-sec': check, 'reviews-sec': rev, 'inc-sec': inc };
+                    Object.keys(B).forEach(function (k) { var b = rail.querySelector('[data-badge="' + k + '"]'); if (b) { b.hidden = !B[k]; b.textContent = B[k]; } });
+                    var attn = document.getElementById('adm-attn'); attn.textContent = '';
+                    var items = [[check, 'application' + (check === 1 ? '' : 's') + ' to check', '#app-sec'], [rev, 'project' + (rev === 1 ? '' : 's') + ' waiting for review', '#reviews-sec'], [inc, 'signed up but not applied', '#inc-sec']].filter(function (x) { return x[0] && document.querySelector(x[2]) && !document.querySelector(x[2]).hidden; });
+                    if (!items.length) attn.appendChild(el('p', { class: 'adm-attn__clear', text: 'Nothing is waiting for a decision right now.' }));
+                    else items.forEach(function (x) { attn.appendChild(el('a', { class: 'adm-attn__item', href: x[2] }, el('b', { class: 'num', text: String(x[0]) }), el('span', { text: x[1] }))); });
+                }
+                [1500, 4000, 8000, 15000].forEach(function (t) { setTimeout(badges, t); });
+                document.addEventListener('click', function () { setTimeout(badges, 1200); });
             })();
             if (!can('view_people')) document.getElementById('bg-csv').hidden = true;
             document.getElementById('admin-sub').prepend(el('span', { class: 'ac-rolebadge', text: 'Your role: ' + ROLE_NAME[role] }), ' ');
@@ -2752,8 +2812,8 @@ admin_script = r"""        (async function () {
             var ov = await sb.rpc('admin_overview');
             if (ov.error) return OFL.notice(msg, OFL.friendlyError(ov.error), 'error');
             var o = ov.data, k = document.getElementById('kpis');
-            [['Registered', o.registered, o.confirmed + ' confirmed email'], ['Signed terms', o.signed_terms, ''], ['Enrolled', o.enrolled, 'opened a lesson'],
-             ['Active, last 7 days', o.active_7d, o.logins_7d + ' log-ins'], ['Lessons passed', o.lessons_passed, ''], ['Quiz attempts', o.quiz_attempts, pct(o.quiz_pass_rate) + ' passed'],
+            [['Registered', o.registered, (o.confirmed || 0) + ' confirmed email'], ['Signed terms', o.signed_terms, ''], ['Enrolled', o.enrolled, 'opened a lesson'],
+             ['Active, last 7 days', o.active_7d, (o.logins_7d || 0) + ' log-ins'], ['Lessons passed', o.lessons_passed, ''], ['Quiz attempts', o.quiz_attempts, pct(o.quiz_pass_rate) + ' passed'],
              ['Practice exercises solved', o.practice_solved, ''], ['Capstones waiting', o.capstones_waiting, ''], ['Certificates', o.certificates, '']]
               .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1] == null ? 0 : x[1]) }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null)); });
 
