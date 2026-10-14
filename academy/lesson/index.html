@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -127,10 +127,10 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014b"></script>
-    <script src="/assets/js/academy.js?v=20261014b"></script>
+    <script src="/assets/js/learn.js?v=20261014c"></script>
+    <script src="/assets/js/academy.js?v=20261014c"></script>
     <script src="/assets/js/vendor/marked-18.0.14.js"></script>
-    <script src="/assets/js/codelab.js?v=20261014b"></script>
+    <script src="/assets/js/codelab.js?v=20261014c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, A = ACADEMY;
@@ -189,6 +189,7 @@
             var lc = await sb.rpc('get_lesson_content', { p_course: course, p_lesson: n });
             if (lc.error) {
                 tabs.hidden = true;
+                if (/ENROLNO:/.test(lc.error.message || '')) return lockedPanel('Your enrollment number opens your lessons', lc.error.message.replace(/^ENROLNO:\s*/, ''), '/academy/calendar/', 'See your calendar');
                 if (/ORIENTATION:/.test(lc.error.message || '')) return lockedPanel('Lessons open after onboarding', lc.error.message.replace(/^ORIENTATION:\s*/, '') + ' Please attend the onboarding meeting; the link is shared in the cohort WhatsApp group.', '/academy/apply/', 'See your offer steps');
                 if (/PAID:/.test(lc.error.message || '')) return lockedPanel(fullTitle, 'This lesson is part of the full course. A pass unlocks every lesson, practice exercise, project and certificate.', '/academy/pricing/', 'See plans');
                 return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
@@ -283,7 +284,7 @@
                 if (done) return;
                 var r = await sb.rpc('complete_video', { p_course: course, p_lesson: n });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                done = true; act.video_completed_at = new Date().toISOString(); paintMeter(); refreshTabs();
+                done = true; act.video_completed_at = new Date().toISOString(); paintMeter(); refreshTabs(); OFL.toast('Video complete. The study notes are unlocked.', 'success');
                 watchNext();
             });
             function watchNext() {
@@ -327,7 +328,7 @@
                 readBtn.disabled = true;
                 var r = await sb.rpc('complete_notes', { p_course: course, p_lesson: n });
                 if (r.error) { readBtn.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
-                act.notes_completed_at = new Date().toISOString(); refreshTabs(); show(hasLab && !labDone ? 'lab' : 'quiz');
+                act.notes_completed_at = new Date().toISOString(); refreshTabs(); OFL.toast(hasLab && !labDone ? 'Notes done. Next: solve the practice exercises.' : 'Notes done. The quiz is ready.', 'success'); show(hasLab && !labDone ? 'lab' : 'quiz');
             });
             function renderReading(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
@@ -356,6 +357,8 @@
             function labSub(done, total) {
                 document.getElementById('tab-lab-sub').textContent = done ? done + ' of ' + total + ' solved' : total + (total === 1 ? ' exercise' : ' exercises');
                 var was = labDone; labDone = done === total; refreshTabs();
+                if (labMounted && labSub.last != null && done > labSub.last) OFL.toast(done === total ? 'All ' + total + ' exercises solved. The quiz is unlocked!' : 'Exercise solved: ' + done + ' of ' + total + '. +10 points', done === total ? 'success' : 'points');
+                labSub.last = done;
                 if (labDone && !was && !passed && document.getElementById('lab-next') === null && labMounted) {
                     var box = document.getElementById('lab');
                     box.insertBefore(el('div', { class: 'ofl-notice ofl-notice--success', id: 'lab-next' }, 'All practice exercises solved. The quiz is unlocked. ',
@@ -570,6 +573,7 @@
                 var actions = el('div', { class: 'ofl-actions' });
                 var wasPassed = passed;
                 if (res.passed) {
+                    if (!wasPassed) { OFL.celebrate(); OFL.toast('Lesson ' + n + ' passed! +' + (100 + Math.round(res.score * 50)) + ' leaderboard points', 'points'); }
                     passed = true; st.passed[n] = Math.max(st.passed[n] || 0, res.score); st.done = Object.keys(st.passed).length; refreshTabs();
                     A.renderLedger(document.getElementById('ledger'), st, { course: course, currentN: n });
                     var nl = st.lessons.find(function (l) { return l.n === n + 1; });

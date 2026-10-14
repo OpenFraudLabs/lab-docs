@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014b"
+V = "20261014c"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -741,6 +741,7 @@ lesson_script = r"""        (async function () {
             var lc = await sb.rpc('get_lesson_content', { p_course: course, p_lesson: n });
             if (lc.error) {
                 tabs.hidden = true;
+                if (/ENROLNO:/.test(lc.error.message || '')) return lockedPanel('Your enrollment number opens your lessons', lc.error.message.replace(/^ENROLNO:\s*/, ''), '/academy/calendar/', 'See your calendar');
                 if (/ORIENTATION:/.test(lc.error.message || '')) return lockedPanel('Lessons open after onboarding', lc.error.message.replace(/^ORIENTATION:\s*/, '') + ' Please attend the onboarding meeting; the link is shared in the cohort WhatsApp group.', '/academy/apply/', 'See your offer steps');
                 if (/PAID:/.test(lc.error.message || '')) return lockedPanel(fullTitle, 'This lesson is part of the full course. A pass unlocks every lesson, practice exercise, project and certificate.', '/academy/pricing/', 'See plans');
                 return OFL.notice(msg, OFL.friendlyError(lc.error), 'error');
@@ -835,7 +836,7 @@ lesson_script = r"""        (async function () {
                 if (done) return;
                 var r = await sb.rpc('complete_video', { p_course: course, p_lesson: n });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                done = true; act.video_completed_at = new Date().toISOString(); paintMeter(); refreshTabs();
+                done = true; act.video_completed_at = new Date().toISOString(); paintMeter(); refreshTabs(); OFL.toast('Video complete. The study notes are unlocked.', 'success');
                 watchNext();
             });
             function watchNext() {
@@ -879,7 +880,7 @@ lesson_script = r"""        (async function () {
                 readBtn.disabled = true;
                 var r = await sb.rpc('complete_notes', { p_course: course, p_lesson: n });
                 if (r.error) { readBtn.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
-                act.notes_completed_at = new Date().toISOString(); refreshTabs(); show(hasLab && !labDone ? 'lab' : 'quiz');
+                act.notes_completed_at = new Date().toISOString(); refreshTabs(); OFL.toast(hasLab && !labDone ? 'Notes done. Next: solve the practice exercises.' : 'Notes done. The quiz is ready.', 'success'); show(hasLab && !labDone ? 'lab' : 'quiz');
             });
             function renderReading(spec) {
                 var box = document.getElementById('notes'); box.textContent = '';
@@ -908,6 +909,8 @@ lesson_script = r"""        (async function () {
             function labSub(done, total) {
                 document.getElementById('tab-lab-sub').textContent = done ? done + ' of ' + total + ' solved' : total + (total === 1 ? ' exercise' : ' exercises');
                 var was = labDone; labDone = done === total; refreshTabs();
+                if (labMounted && labSub.last != null && done > labSub.last) OFL.toast(done === total ? 'All ' + total + ' exercises solved. The quiz is unlocked!' : 'Exercise solved: ' + done + ' of ' + total + '. +10 points', done === total ? 'success' : 'points');
+                labSub.last = done;
                 if (labDone && !was && !passed && document.getElementById('lab-next') === null && labMounted) {
                     var box = document.getElementById('lab');
                     box.insertBefore(el('div', { class: 'ofl-notice ofl-notice--success', id: 'lab-next' }, 'All practice exercises solved. The quiz is unlocked. ',
@@ -1122,6 +1125,7 @@ lesson_script = r"""        (async function () {
                 var actions = el('div', { class: 'ofl-actions' });
                 var wasPassed = passed;
                 if (res.passed) {
+                    if (!wasPassed) { OFL.celebrate(); OFL.toast('Lesson ' + n + ' passed! +' + (100 + Math.round(res.score * 50)) + ' leaderboard points', 'points'); }
                     passed = true; st.passed[n] = Math.max(st.passed[n] || 0, res.score); st.done = Object.keys(st.passed).length; refreshTabs();
                     A.renderLedger(document.getElementById('ledger'), st, { course: course, currentN: n });
                     var nl = st.lessons.find(function (l) { return l.n === n + 1; });
@@ -1193,7 +1197,7 @@ dash_script = r"""        (async function () {
             sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
             document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
-                : el('em', { text: 'Issued when you start your first lesson' })));
+                : el('em', { text: 'Issued when you attend onboarding' })));
             var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
             if (!bg) { location.replace('/academy/welcome/?next=/academy/dashboard/'); return; }
             if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
@@ -2797,6 +2801,17 @@ admin_script = r"""        (async function () {
                     group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
                         [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
                 }
+                if (can('manage_learners')) {
+                    var enoBox = el('span', { class: 'ac-muted', text: 'Checking\u2026' });
+                    group('Enrollment number', 'Learners get one automatically when they attend onboarding (or pay, or get a scholarship). Issue one here for anyone who missed onboarding for a good reason: their lessons open straight away and they\u2019re emailed.', [enoBox]);
+                    sb.from('enrollment_numbers').select('enrollment_no, basis, issued_at').eq('user_id', r.user_id).maybeSingle().then(function (x) {
+                        enoBox.replaceWith(x.data ? el('b', { class: 'num', text: x.data.enrollment_no + ' (' + ({ attendance: 'attended onboarding', manual: 'issued by staff', paid: 'paid', scholarship: 'scholarship', cohort_offer: 'first lesson' }[x.data.basis] || x.data.basis) + ')' })
+                            : btn('Issue enrollment number', 'primary', async function () {
+                                var why = window.prompt('Why are you issuing this number? (kept in the admin log)', 'Missed onboarding for a good reason'); if (why === null) return;
+                                var y = await sb.rpc('enrollment_issue', { p_user: r.user_id, p_reason: why }); if (y.error) return OFL.notice(document.getElementById('manage-msg'), OFL.friendlyError(y.error), 'error');
+                                OFL.notice(document.getElementById('manage-msg'), 'Issued ' + y.data.enrollment_no + '. They have been emailed.', 'success'); dlg.close(); }));
+                    });
+                }
                 var cert = certs[r.user_id];
                 group('Certificate', cert ? 'Valid certificate ' + cert.id + (cert.award_type === 'awarded' ? ' (awarded by an admin)' : ' (earned by completing the course)') + ', issued ' + dt(cert.issued_at) + '.'
                         : 'Learners normally earn the certificate by passing every lesson and an approved capstone. You can award one directly for exceptional cases, such as a live cohort. The public verification page will say it was awarded by Open Fraud Labs, not earned through the course.',
@@ -4092,6 +4107,46 @@ team_script = r"""        (async function () {
                 return URL.createObjectURL(new Blob([body], { type: 'text/calendar' }));
             }
             var evDlg = document.getElementById('tc-ev');
+            function attendancePanel(e) {
+                var box = el('div', { class: 'att' }, el('h3', { text: 'Attendance' }));
+                var body = el('div', { class: 'att-body' }, el('p', { class: 'ac-muted ac-small', text: 'Loading\u2026' })); box.appendChild(body);
+                (async function draw() {
+                    var r = await sb.rpc('attendance_list', { p_event: e.id });
+                    body.textContent = '';
+                    if (r.error) { body.appendChild(el('p', { class: 'ac-muted ac-small', text: OFL.friendlyError(r.error) })); return; }
+                    var d = r.data, ev = d.event, people = (d.people || []).filter(function (p) { return !p.staff; }), staffP = (d.people || []).filter(function (p) { return p.staff; });
+                    var open = new Date(ev.starts_at).getTime() - Date.now() <= 3600e3;
+                    if (e.audience === 'cohort') {
+                        var tg = el('input', { type: 'checkbox' }); tg.checked = !!ev.issues_enrollment; tg.disabled = !!ev.released_at;
+                        tg.addEventListener('change', async function () { var x = await sb.rpc('event_set_enrollment', { p_event: e.id, p_on: tg.checked }); if (x.error) { tg.checked = !tg.checked; return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error'); } });
+                        body.appendChild(el('label', { class: 'ap-check att-auto' }, tg, el('span', { text: ev.released_at ? 'Enrollment numbers were released ' + fmtDay(ev.released_at) + ', ' + fmtTime(ev.released_at) + '. Anyone marked present from now gets theirs straight away.' : 'When this meeting ends (' + fmtTime(ev.ends_at || ev.starts_at) + '), give everyone marked present their enrollment number by email. Absent learners don\u2019t get one.' })));
+                    }
+                    if (!open) { body.appendChild(el('p', { class: 'ac-muted ac-small', text: 'You can take attendance from an hour before the meeting starts.' })); return; }
+                    var present = people.filter(function (p) { return p.present; }).length;
+                    var bar = el('div', { class: 'att-bar' }, el('span', { class: 'att-count', text: present + ' of ' + people.length + ' learners present' }),
+                        el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Mark all present', onclick: function () { mark(people.map(function (p) { return p.user_id; }), true); } }));
+                    body.appendChild(bar);
+                    var ul = el('ul', { class: 'att-list' });
+                    people.concat(staffP).forEach(function (p) {
+                        var cb = el('input', { type: 'checkbox', 'aria-label': 'Present: ' + p.name }); cb.checked = !!p.present;
+                        cb.addEventListener('change', function () { mark([p.user_id], cb.checked); });
+                        var right = el('span', { class: 'att-right' });
+                        if (p.enrollment_no) right.appendChild(el('code', { class: 'att-no', text: p.enrollment_no }));
+                        else if (!p.staff && d.can_issue) right.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Issue number', onclick: async function () {
+                            if (!window.confirm('Issue an enrollment number to ' + p.name + ' now? Their lessons open and they\u2019re emailed straight away.')) return;
+                            var x = await sb.rpc('enrollment_issue', { p_user: p.user_id, p_reason: 'Issued from attendance for ' + e.title }); if (x.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error'); draw(); } }));
+                        ul.appendChild(el('li', { class: 'att-row' + (p.present ? ' is-in' : '') }, el('label', {}, cb, el('span', { class: 'att-name', text: p.name }), p.staff ? el('small', { class: 'ac-muted', text: ' team' }) : null), right));
+                    });
+                    body.appendChild(ul);
+                    async function mark(ids, on) {
+                        var x = await sb.rpc('attendance_mark', { p_event: e.id, p_users: ids, p_present: on });
+                        if (x.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error');
+                        if (x.data.issued) OFL.notice(document.getElementById('tc-ev-msg'), x.data.issued + ' enrollment number' + (x.data.issued === 1 ? '' : 's') + ' issued.', 'success');
+                        draw();
+                    }
+                })();
+                return box;
+            }
             function openEvent(e) {
                 var b = document.getElementById('tc-ev-body'); b.textContent = ''; document.getElementById('tc-ev-msg').textContent = '';
                 document.getElementById('tc-ev-title').textContent = e.title;
@@ -4113,6 +4168,7 @@ team_script = r"""        (async function () {
                     var ul = el('ul'); e.invitees.forEach(function (p) { ul.appendChild(el('li', {}, el('span', { text: p.name }), e.kind === 'meeting' ? el('small', { class: 'ac-muted', text: ' \u00b7 ' + RESP[p.response] }) : null)); });
                     det.appendChild(ul); b.appendChild(det);
                 }
+                if (canManage && !e.auto && e.id && !e.cancelled_at) b.appendChild(attendancePanel(e));
                 if (!e.cancelled_at) b.appendChild(el('div', { class: 'ofl-actions' },
                     el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: gcal(e), target: '_blank', rel: 'noopener noreferrer', text: 'Add to Google Calendar' }),
                     el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: ics(e), download: 'open-fraud-labs-' + (e.id || 'date') + '.ics', text: 'Download .ics (Outlook, Apple)' })));

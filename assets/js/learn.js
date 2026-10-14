@@ -48,6 +48,7 @@
         if (/^PRACTICE:/.test(m)) return m.replace(/^PRACTICE:\s*/, '') + '. Open the Practice tab.';
         if (/^APPLY:/.test(m)) return 'During pre-launch this course is open to shortlisted applicants. Apply for the Founding Cohort at openfraudlabs.com/academy/apply/.';
         if (/^ENROL:/.test(m)) return 'Enrol in this course first: open the course page and choose "Enrol for free".';
+        if (/^ENROLNO:/.test(m)) return m.replace(/^ENROLNO:\s*/, '');
         if (/^ORIENTATION:/.test(m)) return m.replace(/^ORIENTATION:\s*/, '') + ' The meeting link is shared in the cohort WhatsApp group.';
         if (/^PAID:/.test(m)) return 'This lesson is part of the full course. See the plans at openfraudlabs.com/academy/pricing/ to unlock it.';
         if (/already registered/i.test(m)) return 'An account with this email already exists. Try logging in instead.';
@@ -100,12 +101,52 @@
         return sb.rpc('log_event', { p_event: event, p_course: course || null, p_lesson: lesson || null, p_detail: detail || null }).then(function () {}, function () {});
     }
 
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function toast(text, kind) {
+        var host = document.getElementById('ofl-toasts');
+        if (!host) { host = el('div', { id: 'ofl-toasts', class: 'ofl-toasts', role: 'status', 'aria-live': 'polite' }); document.body.appendChild(host); }
+        var t = el('div', { class: 'ofl-toast ofl-toast--' + (kind || 'info') }, el('span', { class: 'ofl-toast__icon', 'aria-hidden': 'true', text: kind === 'success' ? '✓' : kind === 'points' ? '★' : 'i' }), el('span', { text: text }));
+        host.appendChild(t);
+        requestAnimationFrame(function () { t.classList.add('is-in'); });
+        setTimeout(function () { t.classList.remove('is-in'); setTimeout(function () { t.remove(); }, 400); }, 4200);
+    }
+    function celebrate() {
+        if (reduceMotion) return;
+        var c = document.createElement('canvas'), ctx = c.getContext('2d'), W = c.width = innerWidth, H = c.height = innerHeight;
+        c.className = 'ofl-confetti'; c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c);
+        var cols = ['#2453E6', '#3DDC97', '#F5B83D', '#8FA3FF', '#E25C5C'], ps = [];
+        for (var i = 0; i < 140; i++) ps.push({ x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.35, vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 13 - 4, r: Math.random() * 6 + 4, a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.3, c: cols[i % cols.length] });
+        var t0 = performance.now();
+        (function frame(now) {
+            ctx.clearRect(0, 0, W, H);
+            ps.forEach(function (p) { p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+            if (now - t0 < 2600) requestAnimationFrame(frame); else c.remove();
+        })(t0);
+    }
+    // Gentle reveal-on-scroll for cards and sections (skipped when the user prefers less motion)
+    function reveal() {
+        if (reduceMotion || !('IntersectionObserver' in window)) return;
+        var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-shown'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -40px 0px' });
+        function scan() { document.querySelectorAll('.cp-card, .ac-card, .lb-row, .ac-course, .tc-item, .ac-step-card, .ofl-reveal').forEach(function (n) { if (n.dataset.rv) return; n.dataset.rv = '1'; var r = n.getBoundingClientRect(); if (r.top < innerHeight) return; n.classList.add('ofl-rv'); io.observe(n); }); }
+        scan(); new MutationObserver(function () { clearTimeout(scan.t); scan.t = setTimeout(scan, 120); }).observe(document.body, { childList: true, subtree: true });
+    }
+    // Button ripple
+    document.addEventListener('pointerdown', function (e) {
+        if (reduceMotion) return;
+        var b = e.target.closest && e.target.closest('.ac-btn, .ofl-btn'); if (!b || b.disabled) return;
+        var r = b.getBoundingClientRect(), s = document.createElement('span'), d = Math.max(r.width, r.height);
+        s.className = 'ofl-ripple'; s.style.width = s.style.height = d + 'px'; s.style.left = (e.clientX - r.left - d / 2) + 'px'; s.style.top = (e.clientY - r.top - d / 2) + 'px';
+        b.appendChild(s); setTimeout(function () { s.remove(); }, 600);
+    });
+
     window.OFL = {
         sb: sb, el: el, qs: qs, notice: notice, friendlyError: friendlyError,
         getUser: getUser, requireUser: requireUser, isAdmin: isAdmin, formatDate: formatDate,
-        TIKTOK: TIKTOK, track: track
+        TIKTOK: TIKTOK, track: track, toast: toast, celebrate: celebrate
     };
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', navAccount);
-    else navAccount();
+    function boot() { navAccount(); reveal(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
 })();

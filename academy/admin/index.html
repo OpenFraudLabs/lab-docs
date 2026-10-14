@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -322,8 +322,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014b"></script>
-    <script src="/assets/js/academy.js?v=20261014b"></script>
+    <script src="/assets/js/learn.js?v=20261014c"></script>
+    <script src="/assets/js/academy.js?v=20261014c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -1236,6 +1236,17 @@
                     [['none', 'No staff role']].concat(ROLE_OPTS).forEach(function (o) { roleSel.appendChild(el('option', { value: o[0], text: o[1], selected: o[0] === (targetRole || 'none') ? 'selected' : null })); });
                     group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
                         [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
+                }
+                if (can('manage_learners')) {
+                    var enoBox = el('span', { class: 'ac-muted', text: 'Checking\u2026' });
+                    group('Enrollment number', 'Learners get one automatically when they attend onboarding (or pay, or get a scholarship). Issue one here for anyone who missed onboarding for a good reason: their lessons open straight away and they\u2019re emailed.', [enoBox]);
+                    sb.from('enrollment_numbers').select('enrollment_no, basis, issued_at').eq('user_id', r.user_id).maybeSingle().then(function (x) {
+                        enoBox.replaceWith(x.data ? el('b', { class: 'num', text: x.data.enrollment_no + ' (' + ({ attendance: 'attended onboarding', manual: 'issued by staff', paid: 'paid', scholarship: 'scholarship', cohort_offer: 'first lesson' }[x.data.basis] || x.data.basis) + ')' })
+                            : btn('Issue enrollment number', 'primary', async function () {
+                                var why = window.prompt('Why are you issuing this number? (kept in the admin log)', 'Missed onboarding for a good reason'); if (why === null) return;
+                                var y = await sb.rpc('enrollment_issue', { p_user: r.user_id, p_reason: why }); if (y.error) return OFL.notice(document.getElementById('manage-msg'), OFL.friendlyError(y.error), 'error');
+                                OFL.notice(document.getElementById('manage-msg'), 'Issued ' + y.data.enrollment_no + '. They have been emailed.', 'success'); dlg.close(); }));
+                    });
                 }
                 var cert = certs[r.user_id];
                 group('Certificate', cert ? 'Valid certificate ' + cert.id + (cert.award_type === 'awarded' ? ' (awarded by an admin)' : ' (earned by completing the course)') + ', issued ' + dt(cert.issued_at) + '.'

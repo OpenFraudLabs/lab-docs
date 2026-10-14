@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -122,8 +122,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014b"></script>
-    <script src="/assets/js/academy.js?v=20261014b"></script>
+    <script src="/assets/js/learn.js?v=20261014c"></script>
+    <script src="/assets/js/academy.js?v=20261014c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -189,6 +189,46 @@
                 return URL.createObjectURL(new Blob([body], { type: 'text/calendar' }));
             }
             var evDlg = document.getElementById('tc-ev');
+            function attendancePanel(e) {
+                var box = el('div', { class: 'att' }, el('h3', { text: 'Attendance' }));
+                var body = el('div', { class: 'att-body' }, el('p', { class: 'ac-muted ac-small', text: 'Loading\u2026' })); box.appendChild(body);
+                (async function draw() {
+                    var r = await sb.rpc('attendance_list', { p_event: e.id });
+                    body.textContent = '';
+                    if (r.error) { body.appendChild(el('p', { class: 'ac-muted ac-small', text: OFL.friendlyError(r.error) })); return; }
+                    var d = r.data, ev = d.event, people = (d.people || []).filter(function (p) { return !p.staff; }), staffP = (d.people || []).filter(function (p) { return p.staff; });
+                    var open = new Date(ev.starts_at).getTime() - Date.now() <= 3600e3;
+                    if (e.audience === 'cohort') {
+                        var tg = el('input', { type: 'checkbox' }); tg.checked = !!ev.issues_enrollment; tg.disabled = !!ev.released_at;
+                        tg.addEventListener('change', async function () { var x = await sb.rpc('event_set_enrollment', { p_event: e.id, p_on: tg.checked }); if (x.error) { tg.checked = !tg.checked; return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error'); } });
+                        body.appendChild(el('label', { class: 'ap-check att-auto' }, tg, el('span', { text: ev.released_at ? 'Enrollment numbers were released ' + fmtDay(ev.released_at) + ', ' + fmtTime(ev.released_at) + '. Anyone marked present from now gets theirs straight away.' : 'When this meeting ends (' + fmtTime(ev.ends_at || ev.starts_at) + '), give everyone marked present their enrollment number by email. Absent learners don\u2019t get one.' })));
+                    }
+                    if (!open) { body.appendChild(el('p', { class: 'ac-muted ac-small', text: 'You can take attendance from an hour before the meeting starts.' })); return; }
+                    var present = people.filter(function (p) { return p.present; }).length;
+                    var bar = el('div', { class: 'att-bar' }, el('span', { class: 'att-count', text: present + ' of ' + people.length + ' learners present' }),
+                        el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Mark all present', onclick: function () { mark(people.map(function (p) { return p.user_id; }), true); } }));
+                    body.appendChild(bar);
+                    var ul = el('ul', { class: 'att-list' });
+                    people.concat(staffP).forEach(function (p) {
+                        var cb = el('input', { type: 'checkbox', 'aria-label': 'Present: ' + p.name }); cb.checked = !!p.present;
+                        cb.addEventListener('change', function () { mark([p.user_id], cb.checked); });
+                        var right = el('span', { class: 'att-right' });
+                        if (p.enrollment_no) right.appendChild(el('code', { class: 'att-no', text: p.enrollment_no }));
+                        else if (!p.staff && d.can_issue) right.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Issue number', onclick: async function () {
+                            if (!window.confirm('Issue an enrollment number to ' + p.name + ' now? Their lessons open and they\u2019re emailed straight away.')) return;
+                            var x = await sb.rpc('enrollment_issue', { p_user: p.user_id, p_reason: 'Issued from attendance for ' + e.title }); if (x.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error'); draw(); } }));
+                        ul.appendChild(el('li', { class: 'att-row' + (p.present ? ' is-in' : '') }, el('label', {}, cb, el('span', { class: 'att-name', text: p.name }), p.staff ? el('small', { class: 'ac-muted', text: ' team' }) : null), right));
+                    });
+                    body.appendChild(ul);
+                    async function mark(ids, on) {
+                        var x = await sb.rpc('attendance_mark', { p_event: e.id, p_users: ids, p_present: on });
+                        if (x.error) return OFL.notice(document.getElementById('tc-ev-msg'), OFL.friendlyError(x.error), 'error');
+                        if (x.data.issued) OFL.notice(document.getElementById('tc-ev-msg'), x.data.issued + ' enrollment number' + (x.data.issued === 1 ? '' : 's') + ' issued.', 'success');
+                        draw();
+                    }
+                })();
+                return box;
+            }
             function openEvent(e) {
                 var b = document.getElementById('tc-ev-body'); b.textContent = ''; document.getElementById('tc-ev-msg').textContent = '';
                 document.getElementById('tc-ev-title').textContent = e.title;
@@ -210,6 +250,7 @@
                     var ul = el('ul'); e.invitees.forEach(function (p) { ul.appendChild(el('li', {}, el('span', { text: p.name }), e.kind === 'meeting' ? el('small', { class: 'ac-muted', text: ' \u00b7 ' + RESP[p.response] }) : null)); });
                     det.appendChild(ul); b.appendChild(det);
                 }
+                if (canManage && !e.auto && e.id && !e.cancelled_at) b.appendChild(attendancePanel(e));
                 if (!e.cancelled_at) b.appendChild(el('div', { class: 'ofl-actions' },
                     el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: gcal(e), target: '_blank', rel: 'noopener noreferrer', text: 'Add to Google Calendar' }),
                     el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: ics(e), download: 'open-fraud-labs-' + (e.id || 'date') + '.ics', text: 'Download .ics (Outlook, Apple)' })));

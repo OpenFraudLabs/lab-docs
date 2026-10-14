@@ -110,7 +110,7 @@
         box.textContent = '';
 
         var task = el('div', { class: 'lab-task' },
-            el('span', { class: 'lab-eyebrow', text: opts.label || 'Practice · not graded' }),
+            el('span', { class: 'lab-eyebrow', text: opts.label || 'Practice · required before the quiz' }),
             el('h2', { text: practice.title }),
             el('p', { text: practice.prompt }));
         var ed = el('textarea', { class: 'lab-editor', spellcheck: 'false', autocapitalize: 'off', autocomplete: 'off', 'aria-label': 'Python code editor', rows: '14' });
@@ -244,7 +244,7 @@
                 onEvent: function (ev) { if (opts.onEvent) return opts.onEvent(ev, i + 1); },
                 getSolution: opts.getSolution ? function () { return opts.getSolution(i + 1); } : null,
                 getNotebook: opts.getNotebook,
-                label: 'Exercise ' + (i + 1) + ' of ' + exercises.length + ' · practice, not graded',
+                label: 'Exercise ' + (i + 1) + ' of ' + exercises.length + ' · solve all to unlock the quiz',
                 onPass: function () { store(base + i, '1'); paint(i); if (opts.onEvent) opts.onEvent('practice_solved', i + 1); } });
             paint(i);
         }
