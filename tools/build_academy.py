@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261007h"
+V = "20261014a"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -77,9 +77,9 @@ def header(active=""):
             <nav class="ac-nav" aria-label="Academy">
                 {link('/academy/#courses', 'Courses', 'courses')}
                 {link('/academy/dashboard/', 'My learning', 'dashboard')}
-                {link('/verify/', 'Verify a certificate', 'verify')}
+                {link('/academy/leaderboard/', 'Leaderboard', 'leaderboard')}
                 {link('/careers/', 'Careers', 'careers')}
-                <a href="/">Open Fraud Labs</a>
+                {link('/verify/', 'Verify', 'verify')}
             </nav>
             <div class="ac-account" id="ac-account"></div>
             <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -1185,6 +1185,7 @@ dash_script = r"""        (async function () {
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
+            sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
             sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
             document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
@@ -1272,6 +1273,66 @@ dash_script = r"""        (async function () {
 
 page("academy/dashboard", "My learning | Open Fraud Labs Academy", "Your courses, progress and certificates.",
      dash_main, dash_script, active="dashboard", noindex=True)
+
+
+# ============================================================== Leaderboard (public)
+lb_main = """        <div class="ac-wrap lb">
+            <div class="lb-head">
+                <div>
+                    <p class="lb-eyebrow">Data Science from Scratch</p>
+                    <h1>Leaderboard</h1>
+                    <p class="ac-muted">Points for verified progress: every lesson you pass, every practice exercise you solve, every peer review, project and certificate.</p>
+                </div>
+                <div class="ofl-tabs lb-tabs" role="tablist" aria-label="Period">
+                    <button type="button" class="ofl-tab is-active" data-p="week" role="tab" aria-selected="true">This week</button>
+                    <button type="button" class="ofl-tab" data-p="all" role="tab" aria-selected="false">All time</button>
+                </div>
+            </div>
+            <div id="msg"></div>
+            <div id="lb-me" class="lb-me" hidden></div>
+            <ol class="lb-list" id="lb-list" aria-live="polite"></ol>
+            <details class="lb-how">
+                <summary>How points work</summary>
+                <table class="ac-table lb-rules">
+                    <tr><th>You earn</th><th>Points</th></tr>
+                    <tr><td>Passing a lesson</td><td class="num">100</td></tr>
+                    <tr><td>Quiz bonus (your best score on that lesson)</td><td class="num">up to 50</td></tr>
+                    <tr><td>Solving a practice exercise (once each)</td><td class="num">10</td></tr>
+                    <tr><td>Submitting a peer review</td><td class="num">50</td></tr>
+                    <tr><td>An approved project or capstone</td><td class="num">300</td></tr>
+                    <tr><td>Earning your certificate</td><td class="num">200</td></tr>
+                </table>
+                <p class="ac-muted ac-small">The leaderboard shows your first name and last initial only. Staff are not ranked. To leave the leaderboard, untick “Show me on the leaderboard” on your <a href="/account/">Account page</a>.</p>
+            </details>
+        </div>"""
+
+lb_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), period = 'week';
+            var list = document.getElementById('lb-list'), meBox = document.getElementById('lb-me');
+            function medal(r) { return r === 1 ? 'lb-1' : r === 2 ? 'lb-2' : r === 3 ? 'lb-3' : ''; }
+            async function load() {
+                var r = await sb.rpc('leaderboard', { p_course: 'data-science', p_period: period, p_limit: 100 });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                var d = r.data || {}; list.textContent = '';
+                if (!(d.rows || []).length) list.appendChild(el('li', { class: 'lb-empty' }, period === 'week' ? 'No points yet this week. Pass a lesson to be the first on the board.' : 'No points yet. Pass your first lesson to get on the board.'));
+                (d.rows || []).forEach(function (x) {
+                    list.appendChild(el('li', { class: 'lb-row ' + medal(x.rank) + (x.me ? ' is-me' : '') },
+                        el('span', { class: 'lb-rank num', text: String(x.rank) }),
+                        el('span', { class: 'lb-name' }, x.name, x.me ? el('em', { text: ' (you)' }) : null),
+                        el('span', { class: 'lb-meta', text: x.lessons + (x.lessons === 1 ? ' lesson' : ' lessons') + ' · ' + x.exercises + ' exercises' }),
+                        el('b', { class: 'lb-pts num', text: x.points.toLocaleString('en-GB') + ' XP' })));
+                });
+                meBox.textContent = '';
+                if (d.me) { meBox.hidden = false; meBox.append(el('span', { text: 'Your position' }), el('b', { class: 'num', text: '#' + d.me.rank + ' of ' + d.learners }), el('span', { text: d.me.points.toLocaleString('en-GB') + ' XP ' + (period === 'week' ? 'this week' : 'in total') })); }
+                else meBox.hidden = true;
+            }
+            document.querySelectorAll('.lb-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
+                document.querySelectorAll('.lb-tabs .ofl-tab').forEach(function (o) { o.classList.toggle('is-active', o === b); o.setAttribute('aria-selected', String(o === b)); });
+                period = b.dataset.p; load(); }); });
+            load();
+        })();"""
+
+page("academy/leaderboard", "Leaderboard | Open Fraud Labs Academy", "Who is making the most progress in Data Science from Scratch this week and of all time.", lb_main, lb_script, active="leaderboard")
 
 # ============================================================== Ported pages
 def extract(path):
@@ -1414,6 +1475,7 @@ account_main = """        <div class="au">
                             <label class="au-field"><span class="u-sr-only">Full name</span><input name="full_name" required maxlength="120" autocomplete="name"></label>
                             <button class="ac-btn ac-btn--secondary" type="submit">Save name</button>
                         </form>
+                        <label class="au-check au-block"><input type="checkbox" id="lb-show"><span>Show me on the <a href="/academy/leaderboard/">leaderboard</a> (first name and last initial only)</span></label>
                         <p class="au-edit-bg"><a href="/academy/welcome/?next=/account/">Edit your background and goals</a></p>
                         <button class="au-link au-logout" type="button" id="logout">Log out</button>
                     </div>
@@ -1462,7 +1524,9 @@ account_script = r"""        (async function () {
                 authBox.hidden = true; profileBox.hidden = false;
                 document.getElementById('me-email').textContent = user.email;
                 sb.rpc('my_enrollment_no').then(function (r) { var d = r.data; if (d && d.enrollment_no) document.getElementById('me-email').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), el('b', { class: 'num', text: d.enrollment_no }))); });
-                var res = await sb.from('profiles').select('full_name, terms_accepted_at').eq('id', user.id).maybeSingle();
+                var res = await sb.from('profiles').select('full_name, terms_accepted_at, leaderboard_hidden').eq('id', user.id).maybeSingle();
+                var lbBox = document.getElementById('lb-show'); lbBox.checked = !(res.data && res.data.leaderboard_hidden);
+                lbBox.onchange = async function () { var x = await sb.rpc('leaderboard_set_hidden', { p_hidden: !lbBox.checked }); if (x.error) { lbBox.checked = !lbBox.checked; OFL.notice(msg, OFL.friendlyError(x.error), 'error'); } };
                 registeredName = (res.data && res.data.full_name) || '';
                 document.querySelector('#profile-form [name=full_name]').value = registeredName;
                 document.getElementById('me-name').textContent = registeredName || 'Your account';
@@ -2187,7 +2251,7 @@ admin_script = r"""        (async function () {
             var decideBusy = false;
             async function decide(a, action, note) {
                 var text = { shortlist: 'Offer ' + (a.full_name || a.email) + ' a place now' + (a.proof_status !== 'ok' ? ', even though their screenshots aren\u2019t confirmed' : '') + '? They\u2019ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to complete the offer steps.',
-                    waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
+                    withdraw: 'Withdraw the offer to ' + (a.full_name || a.email) + '? Their letter is not signed. They\u2019ll be emailed that the offer was not accepted in time and the place has gone to the next qualified applicant.', waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
                 if (text && !window.confirm(text)) return false;
                 if (decideBusy) return false; decideBusy = true;
                 var btns = document.querySelectorAll('#app-dlg-body button'); btns.forEach(function (x) { x.disabled = true; });
@@ -2276,6 +2340,7 @@ admin_script = r"""        (async function () {
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
                 var acts = el('div', { class: 'ofl-actions' });
                 if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Offer a place', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
+                if (a.status === 'shortlisted' && !a.offer_signed_at) acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Withdraw offer (not signed)', onclick: function () { decide(a, 'withdraw', note.value || null); } }));
                 if (a.status === 'shortlisted' || a.status === 'missed' || a.status === 'rejected') acts.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Move to waitlist', onclick: function () { decide(a, 'waitlist', note.value || null); } }));
                 if (a.status !== 'rejected' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Reject', onclick: function () { decide(a, 'reject', note.value || null); } }));
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { decide(a, 'note', note.value); } }));

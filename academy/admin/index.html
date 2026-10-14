@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261007h">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -40,9 +40,9 @@
             <nav class="ac-nav" aria-label="Academy">
                 <a href="/academy/#courses">Courses</a>
                 <a href="/academy/dashboard/">My learning</a>
-                <a href="/verify/">Verify a certificate</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
                 <a href="/careers/">Careers</a>
-                <a href="/">Open Fraud Labs</a>
+                <a href="/verify/">Verify</a>
             </nav>
             <div class="ac-account" id="ac-account"></div>
             <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -318,8 +318,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261007h"></script>
-    <script src="/assets/js/academy.js?v=20261007h"></script>
+    <script src="/assets/js/learn.js?v=20261014a"></script>
+    <script src="/assets/js/academy.js?v=20261014a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -692,7 +692,7 @@
             var decideBusy = false;
             async function decide(a, action, note) {
                 var text = { shortlist: 'Offer ' + (a.full_name || a.email) + ' a place now' + (a.proof_status !== 'ok' ? ', even though their screenshots aren\u2019t confirmed' : '') + '? They\u2019ll be enrolled, told on the site and by email, and get ' + cur().trial_days + ' days to complete the offer steps.',
-                    waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
+                    withdraw: 'Withdraw the offer to ' + (a.full_name || a.email) + '? Their letter is not signed. They\u2019ll be emailed that the offer was not accepted in time and the place has gone to the next qualified applicant.', waitlist: 'Move ' + (a.full_name || a.email) + ' back to the waitlist? If they’re in a trial, they lose course access.', reject: 'Reject ' + (a.full_name || a.email) + '? They’ll see “not offered a place” on the apply page. No email is sent.' }[action];
                 if (text && !window.confirm(text)) return false;
                 if (decideBusy) return false; decideBusy = true;
                 var btns = document.querySelectorAll('#app-dlg-body button'); btns.forEach(function (x) { x.disabled = true; });
@@ -781,6 +781,7 @@
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
                 var acts = el('div', { class: 'ofl-actions' });
                 if (a.status !== 'shortlisted' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Offer a place', onclick: function () { decide(a, 'shortlist', note.value || null); } }));
+                if (a.status === 'shortlisted' && !a.offer_signed_at) acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Withdraw offer (not signed)', onclick: function () { decide(a, 'withdraw', note.value || null); } }));
                 if (a.status === 'shortlisted' || a.status === 'missed' || a.status === 'rejected') acts.appendChild(el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'button', text: 'Move to waitlist', onclick: function () { decide(a, 'waitlist', note.value || null); } }));
                 if (a.status !== 'rejected' && a.status !== 'completed') acts.appendChild(el('button', { class: 'ac-btn ac-btn--danger ac-btn--sm', type: 'button', text: 'Reject', onclick: function () { decide(a, 'reject', note.value || null); } }));
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { decide(a, 'note', note.value); } }));

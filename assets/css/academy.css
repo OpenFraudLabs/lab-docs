@@ -1336,3 +1336,30 @@ body:has(.au) .ac-footer { margin-top: 0; }
 .doc-tag--team { background: #EAF0FF; color: #1A3DB0; }
 .tc-docs { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 0 1rem; }
 @media (max-width: 560px) { .doc-item { grid-template-columns: 1fr; } .doc-item__acts { grid-row: auto; grid-column: 1; } }
+
+/* Leaderboard */
+.lb { padding-top: 2.5rem; padding-bottom: 4rem; }
+.lb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem 2rem; margin-bottom: 1.5rem; }
+.lb-head h1 { margin: .2rem 0 .4rem; }
+.lb-eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--blue); margin: 0; }
+.lb-me { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; padding: .9rem 1.1rem; margin-bottom: 1rem; border-radius: var(--radius-m); background: var(--navy, #0E1A2B); color: #F3F6FC; }
+.lb-me b { font-size: 1.4rem; }
+.lb-me span { color: #C9D4EA; font-size: .92rem; }
+.lb-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface, #fff); overflow: hidden; }
+.lb-row { display: grid; grid-template-columns: 3rem 1fr auto auto; align-items: center; gap: .5rem 1rem; padding: .75rem 1rem; border-top: 1px solid var(--line); }
+.lb-row:first-child { border-top: 0; }
+.lb-rank { font-weight: 700; color: var(--ink-3); text-align: center; }
+.lb-1 .lb-rank, .lb-2 .lb-rank, .lb-3 .lb-rank { width: 2rem; height: 2rem; line-height: 2rem; border-radius: 50%; justify-self: center; color: #0E1A2B; }
+.lb-1 .lb-rank { background: #F5C84C; } .lb-2 .lb-rank { background: #CBD3DF; } .lb-3 .lb-rank { background: #E3A877; }
+.lb-name { font-weight: 600; }
+.lb-name em { font-style: normal; font-weight: 400; color: var(--ink-3); }
+.lb-meta { font-size: .85rem; color: var(--ink-3); }
+.lb-pts { font-size: 1.05rem; color: var(--blue); }
+.lb-row.is-me { background: var(--blue-wash, #EEF2FF); }
+.lb-empty { padding: 1.5rem; color: var(--ink-3); text-align: center; }
+.lb-how { margin-top: 1.5rem; }
+.lb-how summary { cursor: pointer; font-weight: 600; }
+.lb-rules { margin: .75rem 0; max-width: 34rem; }
+.lb-rules td.num { text-align: right; }
+.ac-enrolno a { font-size: .85rem; }
+@media (max-width: 560px) { .lb-row { grid-template-columns: 2.4rem 1fr auto; } .lb-meta { grid-column: 2; grid-row: 2; } }
