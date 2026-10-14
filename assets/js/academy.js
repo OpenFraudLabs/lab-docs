@@ -131,9 +131,11 @@
         var panel = el('div', { class: 'ac-menu__panel', hidden: true, role: 'menu' },
             el('div', { class: 'ac-menu__who' }, el('strong', { text: p.full_name || 'Your account' }), el('span', { text: user.email })),
             el('a', { href: '/academy/dashboard/', role: 'menuitem', text: 'My learning' }),
+            el('a', { href: '/academy/chat/', role: 'menuitem', text: 'Messages from the team' }),
             el('a', { href: '/account/', role: 'menuitem', text: 'Account settings' }),
             p.staff_role ? el('a', { href: '/academy/admin/', role: 'menuitem', text: 'Staff dashboard' }) : null,
             ['owner', 'finance', 'admin'].indexOf(p.staff_role) >= 0 ? el('a', { href: '/academy/admin/pay/', role: 'menuitem', text: 'Staff pay and leave' }) : null,
+            ['owner', 'admin', 'hr'].indexOf(p.staff_role) >= 0 ? el('a', { href: '/academy/admin/messages/', role: 'menuitem', text: 'Email learners' }) : null,
             el('button', { type: 'button', role: 'menuitem', text: 'Log out', onclick: async function () { await OFL.sb.auth.signOut(); location.href = '/academy/'; } }));
         var btn = el('button', { class: 'ac-avatar', type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-label': 'Account menu', text: initials(p.full_name || user.email) });
         btn.addEventListener('click', function (e) {

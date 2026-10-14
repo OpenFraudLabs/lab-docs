@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }</script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email learners | Open Fraud Labs Academy</title>
+    <meta name="description" content="Send an email to a mailing list from the Academy portal.">
+    <meta property="og:title" content="Email learners | Open Fraud Labs Academy">
+    <meta property="og:description" content="Send an email to a mailing list from the Academy portal.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014f">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/careers/">Careers</a>
+                <a href="/verify/">Verify</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap mm">
+            <div class="ac-dash-head"><div><a class="ac-small" href="/academy/admin/">&larr; Staff dashboard</a><h1>Email learners</h1>
+                <p class="ac-muted">Write once and send to a whole list. Emails come from academy@openfraudlabs.com, replies go to that inbox, and one copy goes to openfraudlabs.academy@gmail.com. Each person also sees the message in their Academy notifications.</p></div>
+                <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/chat/">Open learner chat</a></div></div>
+            <div id="msg"></div>
+            <div id="mm-body" hidden>
+                <div class="mm-grid">
+                    <form class="ac-form mm-form" id="mm-form" novalidate>
+                        <h2 class="pp-h">1. Who should get it?</h2>
+                        <label class="mm-course">Course <select name="course" id="mm-course"><option value="">All courses</option></select></label>
+                        <div class="mm-lists" id="mm-lists" role="radiogroup" aria-label="Mailing list"></div>
+                        <details class="mm-who" id="mm-who"><summary>See who is on this list</summary><ul id="mm-who-list"></ul></details>
+                        <h2 class="pp-h">2. Write the email</h2>
+                        <label>Subject<input name="subject" maxlength="150" required placeholder="e.g. Lesson 2 is due on Sunday"></label>
+                        <label>Message<textarea name="body" rows="10" maxlength="8000" required placeholder="Hi {first_name},&#10;&#10;Write your message here. Leave a blank line between paragraphs."></textarea></label>
+                        <p class="ac-muted ac-small"><code>{first_name}</code> becomes each person's first name. A greeting is added automatically if you don't start with one, and every email ends with a button to open the Academy.</p>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--secondary" type="button" id="mm-test">Send me a test</button><button class="ac-btn ac-btn--primary" type="submit" id="mm-send" disabled>Choose a list</button></div>
+                    </form>
+                    <aside class="mm-preview"><p class="mm-preview__lab">Preview</p>
+                        <div class="mm-mail"><div class="mm-mail__bar">Open Fraud Labs Academy</div><div class="mm-mail__body"><h3 id="mm-pv-subj">Your subject</h3><div id="mm-pv-body"><p class="ac-muted">Your message appears here as learners will see it.</p></div><span class="mm-mail__btn">Open the Academy</span></div></div></aside>
+                </div>
+                <h2 class="pp-h">Sent emails</h2>
+                <div class="ac-table-wrap"><table class="ac-table" id="mm-history"></table></div>
+            </div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261014f"></script>
+    <script src="/assets/js/academy.js?v=20261014f"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/admin/messages/'); if (!user) return;
+            var form = document.getElementById('mm-form'), pick = null, LISTS = [], me = (await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle()).data || {};
+            var LABEL = {};
+            async function loadLists() {
+                var r = await sb.rpc('mail_audiences', { p_course: form.course.value || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                document.getElementById('mm-body').hidden = false;
+                var sel = document.getElementById('mm-course');
+                if (sel.options.length === 1) (r.data.courses || []).forEach(function (c) { sel.appendChild(el('option', { value: c.slug, text: c.title })); });
+                LISTS = r.data.audiences; var box = document.getElementById('mm-lists'); box.textContent = '';
+                LISTS.forEach(function (a) {
+                    LABEL[a.key] = a.label;
+                    var inp = el('input', { type: 'radio', name: 'aud', value: a.key }); if (pick === a.key) inp.checked = true;
+                    inp.addEventListener('change', function () { pick = a.key; sync(); });
+                    box.appendChild(el('label', { class: 'mm-list' + (a.count ? '' : ' is-empty') + (pick === a.key ? ' is-on' : '') }, inp,
+                        el('span', { class: 'mm-list__txt' }, el('b', { text: a.label }), el('small', { text: a.description })), el('span', { class: 'mm-list__n num', text: String(a.count) })));
+                });
+                sync();
+            }
+            function cur() { return LISTS.filter(function (a) { return a.key === pick; })[0]; }
+            async function sync() {
+                document.querySelectorAll('.mm-list').forEach(function (l) { l.classList.toggle('is-on', l.querySelector('input').checked); });
+                var a = cur(), b = document.getElementById('mm-send');
+                b.disabled = !a || !a.count; b.textContent = !a ? 'Choose a list' : a.count ? 'Send to ' + a.count + ' ' + (a.count === 1 ? 'person' : 'people') : 'Nobody on this list';
+                var ul = document.getElementById('mm-who-list'); ul.textContent = '';
+                if (!a) return;
+                var r = await sb.rpc('mail_preview', { p_audience: a.key, p_course: form.course.value || null });
+                (r.data || []).forEach(function (p) { ul.appendChild(el('li', {}, el('b', { text: p.name }), ' ', el('span', { class: 'ac-muted', text: p.email }))); });
+                if (!(r.data || []).length) ul.appendChild(el('li', { class: 'ac-muted', text: 'Nobody yet.' }));
+            }
+            form.course.addEventListener('change', loadLists);
+            function preview() {
+                var first = (me.full_name || 'Ada').split(' ')[0];
+                document.getElementById('mm-pv-subj').textContent = form.subject.value || 'Your subject';
+                var body = (form.body.value || '').replace(/\{first_name\}/g, first).replace(/\{name\}/g, me.full_name || first), pv = document.getElementById('mm-pv-body'); pv.textContent = '';
+                if (!body.trim()) return pv.appendChild(el('p', { class: 'ac-muted', text: 'Your message appears here as learners will see it.' }));
+                if (!/^(Dear |Hi |Hello )/.test(body)) pv.appendChild(el('p', { text: 'Hi ' + first + ',' }));
+                body.split(/\n\s*\n/).forEach(function (para) { if (para.trim()) { var p = el('p'); para.split('\n').forEach(function (line, i) { if (i) p.appendChild(el('br')); p.appendChild(document.createTextNode(line)); }); pv.appendChild(p); } });
+            }
+            form.subject.addEventListener('input', preview); form.body.addEventListener('input', preview);
+            async function send(test) {
+                var a = cur();
+                if (!test && !a) return OFL.notice(msg, 'Choose who should get the email.', 'error');
+                if (!form.subject.value.trim() || form.body.value.trim().length < 10) return OFL.notice(msg, 'Add a subject and a message first.', 'error');
+                if (!test && !window.confirm('Send “' + form.subject.value.trim() + '” to ' + a.count + ' ' + (a.count === 1 ? 'person' : 'people') + ' on the list “' + a.label + '”?\n\nThis can’t be undone.')) return;
+                var b = document.getElementById(test ? 'mm-test' : 'mm-send'); b.disabled = true;
+                var r = await sb.rpc('mail_send', { p_audience: a ? a.key : 'team', p_course: form.course.value || null, p_subject: form.subject.value, p_body: form.body.value, p_test: !!test });
+                b.disabled = false;
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                msg.textContent = '';
+                if (test) OFL.toast('Test sent to your email. It arrives within a minute.', 'success');
+                else { OFL.toast('Sending to ' + r.data.recipients + ' people. It takes about a second per person.', 'success'); form.reset(); pick = null; preview(); loadLists(); }
+                loadHistory(); setTimeout(loadHistory, 15000); setTimeout(loadHistory, 45000);
+            }
+            document.getElementById('mm-test').addEventListener('click', function () { send(true); });
+            form.addEventListener('submit', function (e) { e.preventDefault(); send(false); });
+            async function loadHistory() {
+                var r = await sb.rpc('mail_history'); var t = document.getElementById('mm-history'); t.textContent = '';
+                var hr = el('tr'); ['Sent', 'Subject', 'List', 'By', 'Delivered'].forEach(function (h) { hr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody'); t.appendChild(tb);
+                if (!(r.data || []).length) return tb.appendChild(el('tr', {}, el('td', { colspan: '5', class: 'ac-muted', text: 'Nothing sent yet.' })));
+                r.data.forEach(function (x) {
+                    var det = el('details', { class: 'mm-hist' }, el('summary', { text: x.subject + (x.is_test ? ' (test)' : '') }), el('p', { class: 'mm-hist__body', text: x.body }));
+                    tb.appendChild(el('tr', {}, el('td', { class: 'ac-small', text: new Date(x.created_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }),
+                        el('td', {}, det), el('td', { class: 'ac-small', text: x.is_test ? 'Test to self' : (LABEL[x.audience] || x.audience) }), el('td', { class: 'ac-small', text: x.by }),
+                        el('td', {}, el('span', { class: 'sp-pill' + (x.waiting ? '' : x.failed ? ' sp-pill--late' : ' sp-pill--paid'), text: x.sent + ' of ' + x.recipients + (x.waiting ? ' (sending…)' : '') + (x.failed ? ', ' + x.failed + ' failed' : '') }))));
+                });
+            }
+            loadLists(); loadHistory(); preview();
+        })();
+    </script>
+</body>
+</html>

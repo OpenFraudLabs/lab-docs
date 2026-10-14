@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014e"
+V = "20261014f"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1194,6 +1194,17 @@ dash_script = r"""        (async function () {
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
             sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('dash-chips').prepend(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
+            sb.rpc('chat_list', { p_limit: 40 }).then(function (r) {
+                var d = r.data; if (!d || !d.allowed) return;
+                var top = (d.messages || []).filter(function (m) { return !m.parent_id && !m.hidden && m.is_staff; }).sort(function (a, b) { return (b.pinned - a.pinned) || (b.id - a.id); });
+                var seen = 0; try { seen = +localStorage.getItem('ofl-chat-seen') || 0; } catch (e) {}
+                var fresh = top.filter(function (m) { return m.id > seen; }).length, m = top[0];
+                var card = el('a', { class: 'ac-teammsg' + (fresh ? ' has-new' : ''), href: '/academy/chat/' },
+                    el('span', { class: 'ac-teammsg__head' }, el('b', { text: 'Messages from the team' }), fresh ? el('span', { class: 'ac-teammsg__n', text: fresh + ' new' }) : null),
+                    el('span', { class: 'ac-teammsg__txt', text: m ? m.author + ': ' + (m.body.length > 140 ? m.body.slice(0, 140) + '\u2026' : m.body) : 'No messages yet. Updates from the team appear here.' }),
+                    el('span', { class: 'ac-teammsg__go', text: m ? 'Read and reply \u2192' : 'Open \u2192' }));
+                var chips = document.getElementById('dash-chips'); chips.parentNode.insertBefore(card, chips.nextSibling);
+            });
             sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }), d.team ? el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/staff/', text: 'Pay and leave' }) : null)); });
             document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
@@ -1878,6 +1889,10 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <h3 class="ac-admin__sub">Recent payments</h3>
                     <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
                 </section>
+                <section class="ac-admin__sec" id="mail-sec" data-cap="send_messages">
+                    <div class="ac-admin__head"><h2>Email and messages</h2><p class="ac-muted">Email a mailing list (current learners, learners falling behind, withdrawn, signed up only and more) straight from the portal, or post to the learner chat.</p></div>
+                    <div class="ofl-actions"><a class="ac-btn ac-btn--primary" href="/academy/admin/messages/">Email learners</a><a class="ac-btn ac-btn--secondary" href="/academy/chat/">Open learner chat</a></div>
+                </section>
                 <section class="ac-admin__sec" id="pay-sec" data-cap="pay_or_leave">
                     <div class="ac-admin__head"><h2>Staff pay and leave</h2><p class="ac-muted">Salaries and allowances, monthly payments and leave for staff and interns now have their own page.</p></div>
                     <a class="ac-btn ac-btn--primary" href="/academy/admin/pay/">Open Staff pay and leave</a>
@@ -1970,7 +1985,7 @@ admin_script = r"""        (async function () {
             var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
                 manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
-                manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'],
+                manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'], send_messages: ['owner', 'admin', 'hr'],
                 view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
@@ -4689,6 +4704,189 @@ pay_script = r"""        (async function () {
         })();"""
 
 page("academy/admin/pay", "Staff pay and leave | Open Fraud Labs Academy", "Salaries, allowances, payments and leave for the Open Fraud Labs team.", pay_main, pay_script, noindex=True)
+
+
+# ============================================================== Admin: email lists from the portal
+mail_main = """        <div class="ac-wrap mm">
+            <div class="ac-dash-head"><div><a class="ac-small" href="/academy/admin/">&larr; Staff dashboard</a><h1>Email learners</h1>
+                <p class="ac-muted">Write once and send to a whole list. Emails come from academy@openfraudlabs.com, replies go to that inbox, and one copy goes to openfraudlabs.academy@gmail.com. Each person also sees the message in their Academy notifications.</p></div>
+                <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/chat/">Open learner chat</a></div></div>
+            <div id="msg"></div>
+            <div id="mm-body" hidden>
+                <div class="mm-grid">
+                    <form class="ac-form mm-form" id="mm-form" novalidate>
+                        <h2 class="pp-h">1. Who should get it?</h2>
+                        <label class="mm-course">Course <select name="course" id="mm-course"><option value="">All courses</option></select></label>
+                        <div class="mm-lists" id="mm-lists" role="radiogroup" aria-label="Mailing list"></div>
+                        <details class="mm-who" id="mm-who"><summary>See who is on this list</summary><ul id="mm-who-list"></ul></details>
+                        <h2 class="pp-h">2. Write the email</h2>
+                        <label>Subject<input name="subject" maxlength="150" required placeholder="e.g. Lesson 2 is due on Sunday"></label>
+                        <label>Message<textarea name="body" rows="10" maxlength="8000" required placeholder="Hi {first_name},&#10;&#10;Write your message here. Leave a blank line between paragraphs."></textarea></label>
+                        <p class="ac-muted ac-small"><code>{first_name}</code> becomes each person's first name. A greeting is added automatically if you don't start with one, and every email ends with a button to open the Academy.</p>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--secondary" type="button" id="mm-test">Send me a test</button><button class="ac-btn ac-btn--primary" type="submit" id="mm-send" disabled>Choose a list</button></div>
+                    </form>
+                    <aside class="mm-preview"><p class="mm-preview__lab">Preview</p>
+                        <div class="mm-mail"><div class="mm-mail__bar">Open Fraud Labs Academy</div><div class="mm-mail__body"><h3 id="mm-pv-subj">Your subject</h3><div id="mm-pv-body"><p class="ac-muted">Your message appears here as learners will see it.</p></div><span class="mm-mail__btn">Open the Academy</span></div></div></aside>
+                </div>
+                <h2 class="pp-h">Sent emails</h2>
+                <div class="ac-table-wrap"><table class="ac-table" id="mm-history"></table></div>
+            </div>
+        </div>"""
+
+mail_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/admin/messages/'); if (!user) return;
+            var form = document.getElementById('mm-form'), pick = null, LISTS = [], me = (await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle()).data || {};
+            var LABEL = {};
+            async function loadLists() {
+                var r = await sb.rpc('mail_audiences', { p_course: form.course.value || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                document.getElementById('mm-body').hidden = false;
+                var sel = document.getElementById('mm-course');
+                if (sel.options.length === 1) (r.data.courses || []).forEach(function (c) { sel.appendChild(el('option', { value: c.slug, text: c.title })); });
+                LISTS = r.data.audiences; var box = document.getElementById('mm-lists'); box.textContent = '';
+                LISTS.forEach(function (a) {
+                    LABEL[a.key] = a.label;
+                    var inp = el('input', { type: 'radio', name: 'aud', value: a.key }); if (pick === a.key) inp.checked = true;
+                    inp.addEventListener('change', function () { pick = a.key; sync(); });
+                    box.appendChild(el('label', { class: 'mm-list' + (a.count ? '' : ' is-empty') + (pick === a.key ? ' is-on' : '') }, inp,
+                        el('span', { class: 'mm-list__txt' }, el('b', { text: a.label }), el('small', { text: a.description })), el('span', { class: 'mm-list__n num', text: String(a.count) })));
+                });
+                sync();
+            }
+            function cur() { return LISTS.filter(function (a) { return a.key === pick; })[0]; }
+            async function sync() {
+                document.querySelectorAll('.mm-list').forEach(function (l) { l.classList.toggle('is-on', l.querySelector('input').checked); });
+                var a = cur(), b = document.getElementById('mm-send');
+                b.disabled = !a || !a.count; b.textContent = !a ? 'Choose a list' : a.count ? 'Send to ' + a.count + ' ' + (a.count === 1 ? 'person' : 'people') : 'Nobody on this list';
+                var ul = document.getElementById('mm-who-list'); ul.textContent = '';
+                if (!a) return;
+                var r = await sb.rpc('mail_preview', { p_audience: a.key, p_course: form.course.value || null });
+                (r.data || []).forEach(function (p) { ul.appendChild(el('li', {}, el('b', { text: p.name }), ' ', el('span', { class: 'ac-muted', text: p.email }))); });
+                if (!(r.data || []).length) ul.appendChild(el('li', { class: 'ac-muted', text: 'Nobody yet.' }));
+            }
+            form.course.addEventListener('change', loadLists);
+            function preview() {
+                var first = (me.full_name || 'Ada').split(' ')[0];
+                document.getElementById('mm-pv-subj').textContent = form.subject.value || 'Your subject';
+                var body = (form.body.value || '').replace(/\{first_name\}/g, first).replace(/\{name\}/g, me.full_name || first), pv = document.getElementById('mm-pv-body'); pv.textContent = '';
+                if (!body.trim()) return pv.appendChild(el('p', { class: 'ac-muted', text: 'Your message appears here as learners will see it.' }));
+                if (!/^(Dear |Hi |Hello )/.test(body)) pv.appendChild(el('p', { text: 'Hi ' + first + ',' }));
+                body.split(/\n\s*\n/).forEach(function (para) { if (para.trim()) { var p = el('p'); para.split('\n').forEach(function (line, i) { if (i) p.appendChild(el('br')); p.appendChild(document.createTextNode(line)); }); pv.appendChild(p); } });
+            }
+            form.subject.addEventListener('input', preview); form.body.addEventListener('input', preview);
+            async function send(test) {
+                var a = cur();
+                if (!test && !a) return OFL.notice(msg, 'Choose who should get the email.', 'error');
+                if (!form.subject.value.trim() || form.body.value.trim().length < 10) return OFL.notice(msg, 'Add a subject and a message first.', 'error');
+                if (!test && !window.confirm('Send “' + form.subject.value.trim() + '” to ' + a.count + ' ' + (a.count === 1 ? 'person' : 'people') + ' on the list “' + a.label + '”?\n\nThis can’t be undone.')) return;
+                var b = document.getElementById(test ? 'mm-test' : 'mm-send'); b.disabled = true;
+                var r = await sb.rpc('mail_send', { p_audience: a ? a.key : 'team', p_course: form.course.value || null, p_subject: form.subject.value, p_body: form.body.value, p_test: !!test });
+                b.disabled = false;
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                msg.textContent = '';
+                if (test) OFL.toast('Test sent to your email. It arrives within a minute.', 'success');
+                else { OFL.toast('Sending to ' + r.data.recipients + ' people. It takes about a second per person.', 'success'); form.reset(); pick = null; preview(); loadLists(); }
+                loadHistory(); setTimeout(loadHistory, 15000); setTimeout(loadHistory, 45000);
+            }
+            document.getElementById('mm-test').addEventListener('click', function () { send(true); });
+            form.addEventListener('submit', function (e) { e.preventDefault(); send(false); });
+            async function loadHistory() {
+                var r = await sb.rpc('mail_history'); var t = document.getElementById('mm-history'); t.textContent = '';
+                var hr = el('tr'); ['Sent', 'Subject', 'List', 'By', 'Delivered'].forEach(function (h) { hr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody'); t.appendChild(tb);
+                if (!(r.data || []).length) return tb.appendChild(el('tr', {}, el('td', { colspan: '5', class: 'ac-muted', text: 'Nothing sent yet.' })));
+                r.data.forEach(function (x) {
+                    var det = el('details', { class: 'mm-hist' }, el('summary', { text: x.subject + (x.is_test ? ' (test)' : '') }), el('p', { class: 'mm-hist__body', text: x.body }));
+                    tb.appendChild(el('tr', {}, el('td', { class: 'ac-small', text: new Date(x.created_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }),
+                        el('td', {}, det), el('td', { class: 'ac-small', text: x.is_test ? 'Test to self' : (LABEL[x.audience] || x.audience) }), el('td', { class: 'ac-small', text: x.by }),
+                        el('td', {}, el('span', { class: 'sp-pill' + (x.waiting ? '' : x.failed ? ' sp-pill--late' : ' sp-pill--paid'), text: x.sent + ' of ' + x.recipients + (x.waiting ? ' (sending…)' : '') + (x.failed ? ', ' + x.failed + ' failed' : '') }))));
+                });
+            }
+            loadLists(); loadHistory(); preview();
+        })();"""
+
+page("academy/admin/messages", "Email learners | Open Fraud Labs Academy", "Send an email to a mailing list from the Academy portal.", mail_main, mail_script, noindex=True)
+
+# ============================================================== Learner chat (staff announcements and learner replies)
+chat_main = """        <div class="ac-wrap ch">
+            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post to ask a question everyone can see. For anything private, email academy@openfraudlabs.com.</p></div></div>
+            <div id="msg"></div>
+            <div id="ch-body" hidden>
+                <form class="ch-compose" id="ch-compose" hidden novalidate>
+                    <textarea name="body" rows="3" maxlength="2000" placeholder="Write an announcement for all learners…" required></textarea>
+                    <div class="ch-compose__bar"><label class="ap-check"><input type="checkbox" name="pin"> Pin to the top</label><span class="ac-muted ac-small" id="ch-count">0 / 2000</span><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Post to all learners</button></div>
+                </form>
+                <div class="ch-feed" id="ch-feed" aria-live="polite"></div>
+            </div>
+        </div>"""
+
+chat_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/chat/'); if (!user) return;
+            var D = null, open = {}, lastTop = 0, timer = null;
+            function ago(t) { var s = (Date.now() - new Date(t)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago'; if (s < 86400) return Math.floor(s / 3600) + ' h ago'; return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + new Date(t).toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit' }); }
+            function initials(n) { return (n || '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+            function textBody(t) { var d = el('div', { class: 'ch-text' }); String(t || '').split('\n').forEach(function (line, i) { if (i) d.appendChild(el('br')); line.split(/(https?:\/\/[^\s]+)/g).forEach(function (part) { d.appendChild(/^https?:\/\//.test(part) ? el('a', { href: part, target: '_blank', rel: 'noopener noreferrer', text: part }) : document.createTextNode(part)); }); }); return d; }
+            async function load(quiet) {
+                var r = await sb.rpc('chat_list', { p_limit: 200 });
+                if (r.error) return quiet ? null : OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                D = r.data;
+                if (!D.allowed) return OFL.notice(msg, 'Messages from the team are for enrolled learners and cohort members. Once you’re enrolled, you’ll see them here.', 'info');
+                document.getElementById('ch-body').hidden = false;
+                document.getElementById('ch-compose').hidden = !D.is_staff;
+                if (D.is_staff) document.getElementById('ch-sub').textContent = 'Post announcements every learner and cohort member can see. Learners can reply under each post. Hide anything that shouldn’t be there.';
+                draw();
+                try { var top = D.messages.filter(function (m) { return !m.parent_id; }).map(function (m) { return m.id; }); if (top.length) localStorage.setItem('ofl-chat-seen', String(Math.max.apply(null, top))); } catch (e) {}
+            }
+            function msgEl(m, isReply) {
+                var acts = el('span', { class: 'ch-acts' });
+                if (!m.hidden && (m.mine || D.can_moderate)) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: 'Hide', onclick: function () { mod(m.id, 'hide'); } }));
+                if (m.hidden && D.can_moderate) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: 'Show again', onclick: function () { mod(m.id, 'unhide'); } }));
+                if (!isReply && D.can_moderate && !m.hidden) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: m.pinned ? 'Unpin' : 'Pin', onclick: function () { mod(m.id, m.pinned ? 'unpin' : 'pin'); } }));
+                return el('div', { class: 'ch-msg' + (m.is_staff ? ' is-staff' : '') + (isReply ? ' is-reply' : '') + (m.hidden ? ' is-hidden' : '') },
+                    el('span', { class: 'ch-av', 'aria-hidden': 'true', text: initials(m.author) }),
+                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null, el('small', { text: ago(m.created_at) }), acts),
+                        m.hidden ? el('p', { class: 'ac-muted ac-small', text: 'This message was hidden.' + (D.can_moderate && m.body ? ' (' + m.body + ')' : '') }) : textBody(m.body)));
+            }
+            function draw() {
+                var feed = document.getElementById('ch-feed'); feed.textContent = '';
+                var top = D.messages.filter(function (m) { return !m.parent_id; }), byParent = {};
+                D.messages.forEach(function (m) { if (m.parent_id) (byParent[m.parent_id] = byParent[m.parent_id] || []).push(m); });
+                top.sort(function (a, b) { return (b.pinned - a.pinned) || (b.id - a.id); });
+                if (!top.length) feed.appendChild(el('p', { class: 'ac-muted ch-empty', text: D.is_staff ? 'No posts yet. Write the first announcement above.' : 'No messages yet. The team will post updates here.' }));
+                top.forEach(function (m) {
+                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') }, msgEl(m, false));
+                    var rbox = el('div', { class: 'ch-replies' }); replies.forEach(function (x) { rbox.appendChild(msgEl(x, true)); });
+                    card.appendChild(rbox);
+                    if (!m.hidden) {
+                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
+                        f.body.addEventListener('input', function () { open[m.id] = f.body.value; });
+                        f.addEventListener('submit', async function (e) {
+                            e.preventDefault(); if (!f.body.value.trim()) return;
+                            var r = await sb.rpc('chat_post', { p_body: f.body.value, p_parent: m.id });
+                            if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                            open[m.id] = ''; msg.textContent = ''; load(true);
+                        });
+                        card.appendChild(f);
+                    }
+                    feed.appendChild(card);
+                });
+            }
+            async function mod(id, action) { var r = await sb.rpc('chat_moderate', { p_id: id, p_action: action }); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); load(true); }
+            var comp = document.getElementById('ch-compose');
+            comp.body.addEventListener('input', function () { document.getElementById('ch-count').textContent = comp.body.value.length + ' / 2000'; });
+            comp.addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!comp.body.value.trim()) return;
+                var r = await sb.rpc('chat_post', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                comp.reset(); document.getElementById('ch-count').textContent = '0 / 2000'; OFL.toast('Posted. Learners see it on their dashboard and here.', 'success'); load(true);
+            });
+            await load();
+            timer = setInterval(function () { if (!document.hidden && !document.activeElement.closest('.ch-reply, .ch-compose')) load(true); }, 20000);
+        })();"""
+
+page("academy/chat", "Messages from the team | Open Fraud Labs Academy", "Announcements from the Open Fraud Labs team, with replies.", chat_main, chat_script, noindex=True)
 
 
 # ============================================================== Redirects from old URLs

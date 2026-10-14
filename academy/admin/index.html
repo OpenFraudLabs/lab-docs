@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -265,6 +265,10 @@
                     <h3 class="ac-admin__sub">Recent payments</h3>
                     <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
                 </section>
+                <section class="ac-admin__sec" id="mail-sec" data-cap="send_messages">
+                    <div class="ac-admin__head"><h2>Email and messages</h2><p class="ac-muted">Email a mailing list (current learners, learners falling behind, withdrawn, signed up only and more) straight from the portal, or post to the learner chat.</p></div>
+                    <div class="ofl-actions"><a class="ac-btn ac-btn--primary" href="/academy/admin/messages/">Email learners</a><a class="ac-btn ac-btn--secondary" href="/academy/chat/">Open learner chat</a></div>
+                </section>
                 <section class="ac-admin__sec" id="pay-sec" data-cap="pay_or_leave">
                     <div class="ac-admin__head"><h2>Staff pay and leave</h2><p class="ac-muted">Salaries and allowances, monthly payments and leave for staff and interns now have their own page.</p></div>
                     <a class="ac-btn ac-btn--primary" href="/academy/admin/pay/">Open Staff pay and leave</a>
@@ -326,8 +330,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014e"></script>
-    <script src="/assets/js/academy.js?v=20261014e"></script>
+    <script src="/assets/js/learn.js?v=20261014f"></script>
+    <script src="/assets/js/academy.js?v=20261014f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -389,7 +393,7 @@
             var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
                 manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
-                manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'],
+                manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'], send_messages: ['owner', 'admin', 'hr'],
                 view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };

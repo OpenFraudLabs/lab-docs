@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }</script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages from the team | Open Fraud Labs Academy</title>
+    <meta name="description" content="Announcements from the Open Fraud Labs team, with replies.">
+    <meta property="og:title" content="Messages from the team | Open Fraud Labs Academy">
+    <meta property="og:description" content="Announcements from the Open Fraud Labs team, with replies.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014f">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/careers/">Careers</a>
+                <a href="/verify/">Verify</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap ch">
+            <div class="ac-dash-head"><div><h1>Messages from the team</h1><p class="ac-muted" id="ch-sub">Announcements from the Open Fraud Labs team. Reply under a post to ask a question everyone can see. For anything private, email academy@openfraudlabs.com.</p></div></div>
+            <div id="msg"></div>
+            <div id="ch-body" hidden>
+                <form class="ch-compose" id="ch-compose" hidden novalidate>
+                    <textarea name="body" rows="3" maxlength="2000" placeholder="Write an announcement for all learners…" required></textarea>
+                    <div class="ch-compose__bar"><label class="ap-check"><input type="checkbox" name="pin"> Pin to the top</label><span class="ac-muted ac-small" id="ch-count">0 / 2000</span><button class="ac-btn ac-btn--primary ac-btn--sm" type="submit">Post to all learners</button></div>
+                </form>
+                <div class="ch-feed" id="ch-feed" aria-live="polite"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261014f"></script>
+    <script src="/assets/js/academy.js?v=20261014f"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/chat/'); if (!user) return;
+            var D = null, open = {}, lastTop = 0, timer = null;
+            function ago(t) { var s = (Date.now() - new Date(t)) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago'; if (s < 86400) return Math.floor(s / 3600) + ' h ago'; return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + new Date(t).toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit' }); }
+            function initials(n) { return (n || '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+            function textBody(t) { var d = el('div', { class: 'ch-text' }); String(t || '').split('\n').forEach(function (line, i) { if (i) d.appendChild(el('br')); line.split(/(https?:\/\/[^\s]+)/g).forEach(function (part) { d.appendChild(/^https?:\/\//.test(part) ? el('a', { href: part, target: '_blank', rel: 'noopener noreferrer', text: part }) : document.createTextNode(part)); }); }); return d; }
+            async function load(quiet) {
+                var r = await sb.rpc('chat_list', { p_limit: 200 });
+                if (r.error) return quiet ? null : OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                D = r.data;
+                if (!D.allowed) return OFL.notice(msg, 'Messages from the team are for enrolled learners and cohort members. Once you’re enrolled, you’ll see them here.', 'info');
+                document.getElementById('ch-body').hidden = false;
+                document.getElementById('ch-compose').hidden = !D.is_staff;
+                if (D.is_staff) document.getElementById('ch-sub').textContent = 'Post announcements every learner and cohort member can see. Learners can reply under each post. Hide anything that shouldn’t be there.';
+                draw();
+                try { var top = D.messages.filter(function (m) { return !m.parent_id; }).map(function (m) { return m.id; }); if (top.length) localStorage.setItem('ofl-chat-seen', String(Math.max.apply(null, top))); } catch (e) {}
+            }
+            function msgEl(m, isReply) {
+                var acts = el('span', { class: 'ch-acts' });
+                if (!m.hidden && (m.mine || D.can_moderate)) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: 'Hide', onclick: function () { mod(m.id, 'hide'); } }));
+                if (m.hidden && D.can_moderate) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: 'Show again', onclick: function () { mod(m.id, 'unhide'); } }));
+                if (!isReply && D.can_moderate && !m.hidden) acts.appendChild(el('button', { type: 'button', class: 'au-link', text: m.pinned ? 'Unpin' : 'Pin', onclick: function () { mod(m.id, m.pinned ? 'unpin' : 'pin'); } }));
+                return el('div', { class: 'ch-msg' + (m.is_staff ? ' is-staff' : '') + (isReply ? ' is-reply' : '') + (m.hidden ? ' is-hidden' : '') },
+                    el('span', { class: 'ch-av', 'aria-hidden': 'true', text: initials(m.author) }),
+                    el('div', { class: 'ch-main' }, el('div', { class: 'ch-meta' }, el('b', { text: m.author }), m.role ? el('span', { class: 'ch-role', text: m.role }) : null, m.pinned ? el('span', { class: 'ch-pin', text: 'Pinned' }) : null, el('small', { text: ago(m.created_at) }), acts),
+                        m.hidden ? el('p', { class: 'ac-muted ac-small', text: 'This message was hidden.' + (D.can_moderate && m.body ? ' (' + m.body + ')' : '') }) : textBody(m.body)));
+            }
+            function draw() {
+                var feed = document.getElementById('ch-feed'); feed.textContent = '';
+                var top = D.messages.filter(function (m) { return !m.parent_id; }), byParent = {};
+                D.messages.forEach(function (m) { if (m.parent_id) (byParent[m.parent_id] = byParent[m.parent_id] || []).push(m); });
+                top.sort(function (a, b) { return (b.pinned - a.pinned) || (b.id - a.id); });
+                if (!top.length) feed.appendChild(el('p', { class: 'ac-muted ch-empty', text: D.is_staff ? 'No posts yet. Write the first announcement above.' : 'No messages yet. The team will post updates here.' }));
+                top.forEach(function (m) {
+                    var replies = byParent[m.id] || [], card = el('article', { class: 'ch-thread' + (m.pinned ? ' is-pinned' : '') }, msgEl(m, false));
+                    var rbox = el('div', { class: 'ch-replies' }); replies.forEach(function (x) { rbox.appendChild(msgEl(x, true)); });
+                    card.appendChild(rbox);
+                    if (!m.hidden) {
+                        var f = el('form', { class: 'ch-reply', novalidate: 'novalidate' }, el('input', { name: 'body', maxlength: '2000', placeholder: replies.length ? 'Reply…' : 'Ask a question or say thanks…', 'aria-label': 'Reply', value: open[m.id] || '' }), el('button', { class: 'ac-btn ac-btn--secondary ac-btn--sm', type: 'submit', text: 'Reply' }));
+                        f.body.addEventListener('input', function () { open[m.id] = f.body.value; });
+                        f.addEventListener('submit', async function (e) {
+                            e.preventDefault(); if (!f.body.value.trim()) return;
+                            var r = await sb.rpc('chat_post', { p_body: f.body.value, p_parent: m.id });
+                            if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                            open[m.id] = ''; msg.textContent = ''; load(true);
+                        });
+                        card.appendChild(f);
+                    }
+                    feed.appendChild(card);
+                });
+            }
+            async function mod(id, action) { var r = await sb.rpc('chat_moderate', { p_id: id, p_action: action }); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); load(true); }
+            var comp = document.getElementById('ch-compose');
+            comp.body.addEventListener('input', function () { document.getElementById('ch-count').textContent = comp.body.value.length + ' / 2000'; });
+            comp.addEventListener('submit', async function (e) {
+                e.preventDefault(); if (!comp.body.value.trim()) return;
+                var r = await sb.rpc('chat_post', { p_body: comp.body.value, p_parent: null, p_pin: comp.pin.checked });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                comp.reset(); document.getElementById('ch-count').textContent = '0 / 2000'; OFL.toast('Posted. Learners see it on their dashboard and here.', 'success'); load(true);
+            });
+            await load();
+            timer = setInterval(function () { if (!document.hidden && !document.activeElement.closest('.ch-reply, .ch-compose')) load(true); }, 20000);
+        })();
+    </script>
+</body>
+</html>
