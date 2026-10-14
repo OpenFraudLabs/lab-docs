@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014c"
+V = "20261014d"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -176,7 +176,7 @@ COMING = [("Data Analysis", "Spreadsheets, SQL and dashboards that turn raw data
           ("Live classes", "Live sessions with Q&A for the Academy community.")]
 coming_html = "\n".join(f'<li><strong>{esc(t)}</strong><span>{esc(d)}</span><em>In preparation</em></li>' for t, d in COMING)
 
-home_main = f"""        <a class="ap-banner" id="ap-banner" href="/academy/apply/" hidden><span class="ap-banner__tag">Pre-launch</span><span id="ap-banner-text">Applications are open for the free Founding Cohort</span><span aria-hidden="true">&rarr;</span></a>
+home_main = f"""        <a class="ap-banner" id="ap-banner" href="/academy/apply/" hidden><span class="ap-banner__tag">Pre&#8209;launch</span><span id="ap-banner-text">Applications are open for the free Founding Cohort</span><span aria-hidden="true">&rarr;</span></a>
         <section class="lp-hero">
             <div class="ac-wrap lp-hero__grid">
                 <div class="lp-hero__copy">
@@ -1432,23 +1432,20 @@ account_main = """        <div class="au">
                                 <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
                             <label class="au-field"><span>Password</span>
                                 <span class="au-pw"><input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"><button type="button" class="au-pw__toggle" aria-label="Show password">Show</button></span></label>
-                            <fieldset class="au-sign">
-                                <legend>Sign the Terms of Service</legend>
-                                <p>Read the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>, then type your full name exactly as above to sign.</p>
-                                <label class="au-field"><span class="u-sr-only">Signature (your full name)</span>
-                                    <input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input au-sign__input" placeholder="Type your full name"></label>
-                                <p class="ofl-sign__status" aria-live="polite"></p>
-                                <label class="au-check"><input type="checkbox" name="agree" required>
-                                    <span>I agree to the Terms of Service and Privacy Policy, and I'm at least 18 or have a parent or guardian's permission.</span></label>
-                            </fieldset>
+                            <label class="au-check au-agree"><input type="checkbox" name="agree" required>
+                                <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>, and I'm at least 18 or have a parent or guardian's permission. <em class="au-signas" id="au-signas">Ticking this signs the terms in your full name.</em></span></label>
                             <button class="ac-btn ac-btn--primary au-submit" type="submit">Create free account</button>
+                            <p class="au-alt">Already have an account? <button class="au-link" type="button" data-go="login">Log in</button></p>
                         </form>
                         <form id="login-form" class="au-form" data-panel="login" hidden novalidate>
                             <label class="au-field"><span>Email</span>
                                 <input name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
                             <label class="au-field"><span class="au-field__row">Password <button class="au-link" type="button" id="forgot">Forgot password?</button></span>
                                 <span class="au-pw"><input name="password" type="password" required autocomplete="current-password"><button type="button" class="au-pw__toggle" aria-label="Show password">Show</button></span></label>
+                            <p class="au-caps" hidden>Caps Lock is on</p>
                             <button class="ac-btn ac-btn--primary au-submit" type="submit">Log in</button>
+                            <div id="au-resend" hidden></div>
+                            <p class="au-alt">New here? <button class="au-link" type="button" data-go="signup">Create a free account</button></p>
                         </form>
                         <form id="forgot-form" class="au-form" data-panel="forgot" hidden novalidate>
                             <label class="au-field"><span>Email</span>
@@ -1466,10 +1463,8 @@ account_main = """        <div class="au">
                     </form>
                     <form id="terms-form" class="au-form au-block" hidden novalidate>
                         <h2>One more step: sign the Terms of Service</h2>
-                        <p class="au-sub">Before taking quizzes or sharing projects, read the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and sign by typing your registered full name: <strong id="terms-name"></strong></p>
-                        <label class="au-field"><span class="u-sr-only">Signature (your full name)</span><input name="signature" required maxlength="120" autocomplete="off" class="ofl-sign__input au-sign__input" placeholder="Type your full name"></label>
-                        <p class="ofl-sign__status" aria-live="polite"></p>
-                        <label class="au-check"><input type="checkbox" name="agree" required><span>I have read and agree to the Terms of Service and Privacy Policy.</span></label>
+                        <p class="au-sub">Before taking quizzes or sharing projects, please read the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+                        <label class="au-check"><input type="checkbox" name="agree" required><span>I have read and agree to the Terms of Service and Privacy Policy, and I sign them as <strong id="terms-name"></strong>.</span></label>
                         <button class="ac-btn ac-btn--primary au-submit" type="submit">Sign and continue</button>
                     </form>
                     <div id="profile-box" hidden>
@@ -1492,7 +1487,7 @@ account_main = """        <div class="au">
         </div>"""
 
 account_script = r"""        (async function () {
-            var sb = OFL.sb, msg = document.getElementById('msg');
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
             var next = OFL.qs('next') || '/academy/dashboard/';
             if (!next.startsWith('/') || next.startsWith('//')) next = '/academy/dashboard/';
             var authBox = document.getElementById('auth-box'), profileBox = document.getElementById('profile-box'), resetForm = document.getElementById('reset-form');
@@ -1524,7 +1519,7 @@ account_script = r"""        (async function () {
                 var bad = Array.prototype.filter.call(form.querySelectorAll('input[required]'), function (i) { return !i.checkValidity(); });
                 bad.forEach(function (i) { i.classList.add('is-invalid'); });
                 if (!bad.length) return true;
-                var i = bad[0], t = i.type === 'checkbox' ? 'Please tick the box to agree to the terms.' : i.name === 'email' ? 'Please enter a valid email address.' : i.name === 'password' ? 'Your password needs at least 8 characters.' : i.name === 'signature' ? 'Type your full name to sign.' : 'Please fill in every field.';
+                var i = bad[0], t = i.type === 'checkbox' ? 'Please tick the box to agree to the terms.' : i.name === 'email' ? 'Please enter a valid email address.' : i.name === 'password' ? 'Your password needs at least 8 characters.' : i.name === 'full_name' ? 'Please enter your full name.' : 'Please fill in every field.';
                 OFL.notice(msg, t, 'error'); i.focus();
                 return false;
             }
@@ -1558,9 +1553,23 @@ account_script = r"""        (async function () {
                 form.addEventListener('input', function (e) { if (e.target !== input && input.value) check(); });
                 return check;
             }
-            var signupCheck = wireSignature(document.getElementById('signup-form'), function () { return document.querySelector('#signup-form [name=full_name]').value; });
             var registeredName = '';
-            var termsCheck = wireSignature(document.getElementById('terms-form'), function () { return registeredName; });
+            var suName = document.querySelector('#signup-form [name=full_name]'), signAs = document.getElementById('au-signas');
+            suName.addEventListener('input', function () { var n = suName.value.trim(); signAs.textContent = n ? 'Ticking this signs the terms as \u201c' + n + '\u201d.' : 'Ticking this signs the terms in your full name.'; });
+            document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { msg.textContent = ''; var em = document.querySelector('[data-panel]:not([hidden]) [name=email]'); show(b.getAttribute('data-go')); var to = document.querySelector('[data-panel="' + b.getAttribute('data-go') + '"] [name=email]'); if (em && to && !to.value) to.value = em.value; }); });
+            document.querySelectorAll('input[type=password]').forEach(function (i) {
+                function caps(e) { var c = i.closest('form').querySelector('.au-caps'); if (c && e.getModifierState) c.hidden = !e.getModifierState('CapsLock'); }
+                i.addEventListener('keyup', caps); i.addEventListener('keydown', caps);
+            });
+            function resendBox(email) {
+                var box = document.getElementById('au-resend'); box.hidden = false; box.textContent = '';
+                box.appendChild(el('p', { class: 'au-sub', text: 'You need to confirm your email before you can log in. We sent a link to ' + email + ' when you signed up (check spam too).' }));
+                var b = el('button', { type: 'button', class: 'ac-btn ac-btn--secondary', text: 'Send the confirmation link again', onclick: async function () {
+                    b.disabled = true; var r = await sb.auth.resend({ type: 'signup', email: email, options: { emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) } });
+                    if (r.error) { b.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                    b.textContent = 'Sent. Check your inbox'; } });
+                box.appendChild(b);
+            }
 
             var recovering = /type=recovery/.test(location.hash) || OFL.qs('reset') === '1';
             sb.auth.onAuthStateChange(function (event) {
@@ -1582,11 +1591,10 @@ account_script = r"""        (async function () {
             document.getElementById('signup-form').addEventListener('submit', async function (e) {
                 e.preventDefault();
                 var f = e.target; if (!valid(f)) return;
-                if (!signupCheck()) { f.signature.classList.add('is-invalid'); return OFL.notice(msg, 'Your signature must match your full name exactly.', 'error'); }
                 var btn = f.querySelector('button[type=submit]'); busy(btn, true, 'Creating your account…');
                 var res = await sb.auth.signUp({
                     email: f.email.value.trim(), password: f.password.value,
-                    options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.signature.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
+                    options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.full_name.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
                 });
                 busy(btn, false);
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
@@ -1595,7 +1603,11 @@ account_script = r"""        (async function () {
                 var email = f.email.value.trim(); f.reset();
                 document.getElementById('signup-form').hidden = true; sw.hidden = true;
                 title.textContent = 'Check your email';
-                sub.textContent = 'We’ve sent a confirmation link to ' + email + '. Click it to activate your account. If it isn’t in your inbox within a few minutes, check your spam folder.';
+                sub.textContent = 'We’ve sent a confirmation link to ' + email + '. Click it to activate your account, and you’ll come straight back here. If it isn’t in your inbox within a few minutes, check your spam folder.';
+                var after = el('div', { class: 'au-after' },
+                    el('button', { type: 'button', class: 'ac-btn ac-btn--secondary', text: 'Send the link again', onclick: async function (ev) { var b = ev.currentTarget; b.disabled = true; var r = await sb.auth.resend({ type: 'signup', email: email, options: { emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) } }); if (r.error) { b.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); } b.textContent = 'Sent again'; } }),
+                    el('button', { type: 'button', class: 'au-link', text: 'Wrong email? Start again', onclick: function () { location.reload(); } }));
+                sub.after(after);
             });
             document.getElementById('login-form').addEventListener('submit', async function (e) {
                 e.preventDefault();
@@ -1603,7 +1615,12 @@ account_script = r"""        (async function () {
                 var btn = f.querySelector('button[type=submit]'); busy(btn, true, 'Logging in…');
                 var res = await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value });
                 busy(btn, false);
-                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                document.getElementById('au-resend').hidden = true;
+                if (res.error) {
+                    if (/not confirmed/i.test(res.error.message || '')) { resendBox(f.email.value.trim()); return OFL.notice(msg, 'Please confirm your email address first.', 'error'); }
+                    if (/invalid login credentials/i.test(res.error.message || '')) return OFL.notice(msg, 'That email and password don’t match an account. Check for typos, use “Forgot password?”, or create a free account if you’re new.', 'error');
+                    return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                }
                 try { localStorage.setItem('ofl-has-account', '1'); } catch (x) {}
                 location.href = next;
             });
@@ -1626,8 +1643,8 @@ account_script = r"""        (async function () {
             });
             document.getElementById('terms-form').addEventListener('submit', async function (e) {
                 e.preventDefault(); if (!valid(e.target)) return;
-                if (!termsCheck()) return OFL.notice(msg, 'Your signature must match your registered full name exactly.', 'error');
-                var res = await sb.rpc('accept_terms', { p_version: TERMS_VERSION, p_signature: e.target.signature.value.trim() });
+                if (!registeredName) return OFL.notice(msg, 'Add your full name under “Name on your certificates” first, then sign.', 'error');
+                var res = await sb.rpc('accept_terms', { p_version: TERMS_VERSION, p_signature: registeredName });
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
                 e.target.hidden = true;
                 OFL.notice(msg, 'Thank you. Your signed acceptance has been recorded.', 'success');

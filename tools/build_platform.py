@@ -5,7 +5,7 @@ Pages reuse the homepage <head>, header and footer so they match the site.
 """
 import os, re
 
-CSSV = "20261014c"
+CSSV = "20261014d"
 S = open("index.html").read()
 
 def head(title, desc):
@@ -37,7 +37,12 @@ SCRIPTS = '''    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
     <script src="/assets/js/learn.js?v=''' + CSSV + '''"></script>
 '''
 
+# These URLs are now built by tools/build_academy.py (new pages or redirects). Never overwrite them here.
+ACADEMY_OWNED = {"account", "verify", "my-learning", "admin", "learn/quiz", "learn/capstone"}
+
 def page(path, title, desc, body, script="", noindex=False):
+    if path in ACADEMY_OWNED:
+        return
     h = head(title, desc)
     if noindex:
         h = h.replace("</head>", '    <meta name="robots" content="noindex">\n</head>')

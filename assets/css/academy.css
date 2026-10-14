@@ -475,7 +475,7 @@ a.ac-row:hover { background: #F5F7FB; }
     .ac-account { gap: 0.25rem; }
     .ac-account .ac-btn--sm { padding: 0.4rem 0.6rem; font-size: 0.85rem; min-height: 36px; }
 }
-@media (max-width: 420px) { .ac-account .ac-btn--ghost { display: none; } }
+@media (max-width: 420px) { .ac-hide-sm { display: none; } .ac-brand strong { font-size: .9rem; } .ac-account .ac-btn--sm { padding: .35rem .55rem; font-size: .82rem; } }
 /* Saved quiz review */
 .ac-review .ac-result { margin-bottom: 1rem; }
 .ac-review .ac-q { margin-bottom: 0.85rem; }
@@ -1470,3 +1470,21 @@ a,button,input,select,textarea{-webkit-tap-highlight-color:transparent}
 
 .sp-card fieldset{border:0;padding:0;margin:0;display:grid;gap:.75rem}.sp-card legend{font-weight:700;margin-bottom:.4rem}
 .sp-card .ac-form :is(input,select,textarea):focus-visible{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+
+/* ---- account page and header auth ---- */
+.ac-nav__auth{display:none}
+@media (max-width: 900px){.ac-nav.is-open .ac-nav__auth{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)}}
+.ac-login{background:var(--surface)}
+.au-agree{margin:.25rem 0 .5rem;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#F7F9FC;transition:border-color .15s}
+.au-agree:hover{border-color:#8FA3FF}
+.au-agree:has(input:checked){border-color:#1f9d64;background:#F1FAF5}
+.au-signas{display:block;font-style:normal;color:var(--ink-3);font-size:.82rem;margin-top:4px}
+.au-alt{text-align:center;margin:.9rem 0 0;color:var(--ink-3);font-size:.92rem}
+.au-alt .au-link{font-weight:600}
+.au-caps{margin:-.25rem 0 .25rem;color:#8a5a00;font-size:.85rem;font-weight:600}
+.au-after{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-top:1rem}
+#au-resend{margin-top:.9rem;padding:12px 14px;border-radius:12px;background:#FFF4DB}
+#au-resend .au-sub{margin:0 0 .6rem;color:#5c4300}
+.au-switch__btn{transition:background-color .15s,color .15s,box-shadow .15s}
+.au-switch__btn:not(.is-active):hover{color:var(--ink)}
+.ap-banner__tag{white-space:nowrap}

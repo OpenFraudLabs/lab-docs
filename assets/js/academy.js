@@ -116,9 +116,15 @@
         var user = await OFL.getUser();
         slot.textContent = '';
         if (!user) {
+            // On the account page itself the form has its own Log in / Create account switch, so the header stays quiet.
+            if (/^\/account\/?$/.test(location.pathname)) return;
             var next = encodeURIComponent(location.pathname + location.search);
-            slot.appendChild(el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: '/account/?mode=login&next=' + next, text: 'Log in' }));
-            slot.appendChild(el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: '/account/?next=' + next, text: 'Sign up free' }));
+            var login = '/account/?mode=login&next=' + next, signup = '/account/?mode=signup&next=' + next;
+            slot.appendChild(el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm ac-login', href: login, text: 'Log in' }));
+            var su = el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: signup }, 'Sign up', el('span', { class: 'ac-hide-sm', text: ' free' }));
+            slot.appendChild(su);
+            if (nav && !nav.querySelector('.ac-nav__auth')) nav.appendChild(el('div', { class: 'ac-nav__auth' },
+                el('a', { class: 'ac-btn ac-btn--secondary', href: login, text: 'Log in' }), el('a', { class: 'ac-btn ac-btn--primary', href: signup, text: 'Sign up free' })));
             return;
         }
         var p = (await OFL.sb.from('profiles').select('full_name, is_admin, staff_role').eq('id', user.id).maybeSingle()).data || {};
