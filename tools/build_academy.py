@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014a"
+V = "20261014b"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -38,6 +38,9 @@ def head(title, desc, noindex=False, path=None):
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) {{ try {{ window.top.location = window.self.location.href; }} catch (e) {{ document.documentElement.style.display = 'none'; }} }}</script>
 {GTM_HEAD}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
