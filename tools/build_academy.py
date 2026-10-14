@@ -1194,7 +1194,7 @@ dash_script = r"""        (async function () {
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
             sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('dash-chips').prepend(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
-            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
+            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }), d.team ? el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/staff/', text: 'Pay and leave' }) : null)); });
             document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
                 : el('em', { text: 'Issued when you attend onboarding' })));
@@ -1861,6 +1861,36 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <h3 class="ac-admin__sub">Recent payments</h3>
                     <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
                 </section>
+                <section class="ac-admin__sec" id="pay-sec" data-cap="pay_or_leave">
+                    <div class="ac-admin__head"><h2>Staff pay and leave</h2><p class="ac-muted">Salaries and allowances for staff and interns, their payment details, monthly payments and leave. Payments are created automatically each month and are due on the last working day. Pay each one, then click Mark paid: the staff member is emailed straight away.</p></div>
+                    <div class="ac-kpis" id="pay-kpis"></div>
+                    <div id="pay-list"></div>
+                </section>
+                <dialog class="ac-dialog" id="comp-dlg" aria-labelledby="comp-title">
+                    <div class="ac-dialog__head"><h2 id="comp-title">Pay item</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="comp-msg"></div>
+                    <form class="ac-form" id="comp-form" novalidate>
+                        <div class="co-two"><label>Type<select name="item"><option value="salary">Salary</option><option value="stipend">Stipend</option><option value="data">Data allowance</option><option value="airtime">Airtime allowance</option><option value="transport">Transport allowance</option><option value="other">Other allowance</option></select></label>
+                        <label>Name shown to them<input name="label" maxlength="60" required placeholder="e.g. Data allowance"></label></div>
+                        <label>Amount each month (₦)<input name="amount" type="number" min="0" step="1" required placeholder="15000"></label>
+                        <div class="co-two"><label>Starts<input name="starts" type="date" required></label><label>Ends <em class="ac-muted">(optional)</em><input name="ends" type="date"></label></div>
+                        <label class="ap-check"><input type="checkbox" name="prorate" checked> Pay only for the days worked in the first and last month</label>
+                        <label class="ap-check"><input type="checkbox" name="active" checked> Active (untick to stop future payments)</label>
+                        <label>Note <em class="ac-muted">(only staff with pay access see this)</em><input name="note" maxlength="300"></label>
+                        <p class="ac-muted ac-small" id="comp-preview"></p>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save pay item</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
+                <dialog class="ac-dialog" id="lpol-dlg" aria-labelledby="lpol-title">
+                    <div class="ac-dialog__head"><h2 id="lpol-title">Leave allowance</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                    <div id="lpol-msg"></div>
+                    <form class="ac-form" id="lpol-form" novalidate>
+                        <label>Working days of leave<input name="days" type="number" min="0" max="60" step="0.5" required></label>
+                        <div class="co-two"><label>Can be taken from<input name="from" type="date" required></label><label>Until<input name="to" type="date" required></label></div>
+                        <label>Note shown to them <em class="ac-muted">(optional)</em><input name="note" maxlength="300"></label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save leave allowance</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                    </form>
+                </dialog>
                 <section class="ac-admin__sec" id="staff-sec" data-cap="view_staff">
                     <div class="ac-admin__head"><h2>Staff and roles</h2><p class="ac-muted" id="staff-note">Who can use this page and what they can do. Only the owner can give or remove roles, and nobody can change the owner.</p></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="staff-table"></table></div>
@@ -1949,6 +1979,7 @@ admin_script = r"""        (async function () {
             var CAPS = { manage_roles: ['owner'], manage_learners: ['owner', 'admin'], review: ['owner', 'admin', 'reviewer', 'instructor'],
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
                 manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
+                manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'],
                 view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
             function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
@@ -2643,6 +2674,142 @@ admin_script = r"""        (async function () {
                 if (r.error) return OFL.notice(m, OFL.friendlyError(r.error), 'error');
                 docDlg.close(); OFL.notice(msg, 'Document saved.', 'success'); loadDocs();
             });
+            // ---- Staff pay and leave
+            var PAY = null, compUser = null, compEdit = null, lpolUser = null;
+            function money(m) { return '₦' + Math.round(m / 100).toLocaleString('en-NG'); }
+            function pday(d) { return new Date(d + (String(d).length === 10 ? 'T12:00:00Z' : '')).toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', year: 'numeric' }); }
+            function pmonth(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); }
+            function pnum(x) { x = +x; return x % 1 ? x.toFixed(1) : String(x); }
+            async function loadPay() {
+                if (!can('pay_or_leave')) return;
+                var r = await sb.rpc('payroll_overview');
+                var list = document.getElementById('pay-list');
+                if (r.error) return OFL.notice(list, OFL.friendlyError(r.error), 'error');
+                PAY = r.data; list.textContent = '';
+                var due = 0, dueN = 0, paid = 0, pend = 0, thisMonth = PAY.today.slice(0, 7);
+                PAY.staff.forEach(function (s) {
+                    (s.payments || []).forEach(function (p) { if (p.status === 'due') { due += p.amount_minor; dueN++; } else if (p.status === 'paid' && p.period.slice(0, 7) === thisMonth) paid += p.amount_minor; });
+                    (s.leave || []).forEach(function (l) { if (l.status === 'pending') pend++; });
+                });
+                var k = document.getElementById('pay-kpis'); k.textContent = '';
+                (PAY.can_pay ? [['To pay (' + dueN + ')', money(due)], ['Paid this month', money(paid)], ['Leave requests waiting', String(pend)]] : [['Leave requests waiting', String(pend)]])
+                    .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: x[1] }), el('span', { text: x[0] }))); });
+                if (!PAY.staff.length) return list.appendChild(el('p', { class: 'ac-muted', text: 'Nobody on the team yet. Staff and hired interns appear here automatically.' }));
+                PAY.staff.forEach(function (s) { list.appendChild(payCard(s)); });
+            }
+            function payCard(s) {
+                var card = el('article', { class: 'pay-card' });
+                card.appendChild(el('header', { class: 'pay-card__head' }, el('div', {}, el('h3', { text: s.name }), el('p', { class: 'ac-muted ac-small', text: [s.role_title || (s.staff_role ? ROLE_NAME[s.staff_role] : ''), s.email].filter(Boolean).join(' · ') }))));
+                if (PAY.can_pay) {
+                    // payout preference
+                    var p = s.payout, pv = el('div', { class: 'pay-payout' + (p ? '' : ' is-missing') });
+                    if (!p) pv.appendChild(el('span', { text: 'No payment details yet. They choose cash or top-up on their Pay and leave page.' }));
+                    else if (p.method === 'cash') pv.append(el('b', { text: 'Cash reimbursement' }), ' · ' + p.bank_name + ' · ', copyable(p.account_number), ' · ' + p.account_name);
+                    else pv.append(el('b', { text: 'Data and airtime top-up' }), ' · ' + p.network + ' · ', copyable(p.phone));
+                    if (p) pv.appendChild(el('small', { class: 'ac-muted', text: ' (updated ' + pday(p.updated_at) + ')' }));
+                    card.appendChild(pv);
+                    // pay items
+                    var items = el('div', { class: 'pay-items' });
+                    (s.comp || []).forEach(function (c) {
+                        items.appendChild(el('button', { type: 'button', class: 'pay-item' + (c.active ? '' : ' is-off'), title: 'Edit', onclick: function () { openComp(s, c); } },
+                            el('span', { text: c.label }), el('b', { class: 'num', text: money(c.amount_minor) + '/mo' }),
+                            el('small', { text: pday(c.starts_on) + (c.ends_on ? ' – ' + pday(c.ends_on) : '') + (c.active ? '' : ' · stopped') })));
+                    });
+                    items.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: '+ Add salary or allowance', onclick: function () { openComp(s, null); } }));
+                    card.appendChild(items);
+                    // payments
+                    var pays = (s.payments || []);
+                    if (pays.length) {
+                        var t = el('table', { class: 'ac-table pay-table' }), hr = el('tr');
+                        ['Month', 'Item', 'Amount', 'Due', 'Status', ''].forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+                        t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                        pays.forEach(function (x) {
+                            var late = x.status === 'due' && x.due_on < PAY.today;
+                            tb.appendChild(el('tr', { class: x.status === 'paid' ? 'is-paid' : '' }, el('td', { text: pmonth(x.period) }), el('td', { text: x.label }),
+                                el('td', { class: 'num' }, money(x.amount_minor), x.prorated_days < x.period_days ? el('small', { class: 'ac-muted', text: ' (' + x.prorated_days + '/' + x.period_days + ' days)' }) : null),
+                                el('td', { text: pday(x.due_on) }),
+                                el('td', {}, x.status === 'paid' ? el('span', { class: 'sp-pill sp-pill--paid', text: 'Paid ' + pday(x.paid_at) }) : el('span', { class: 'sp-pill' + (late ? ' sp-pill--late' : ''), text: late ? 'Overdue' : 'Due' }),
+                                    x.reference ? el('small', { class: 'ac-muted', text: ' ref ' + x.reference }) : null),
+                                el('td', {}, x.status === 'paid'
+                                    ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Undo', onclick: function () { markPay(x, false); } })
+                                    : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Mark paid', onclick: function () { markPay(x, true, s); } }))));
+                        });
+                        card.appendChild(el('div', { class: 'ac-table-wrap' }, t));
+                    }
+                }
+                // leave
+                var lv = el('div', { class: 'pay-leave' }), pol = s.leave_policy;
+                lv.appendChild(el('h4', { text: 'Leave' }));
+                lv.appendChild(el('p', { class: 'ac-small' }, pol ? (pnum(pol.days_entitled) + ' working days between ' + pday(pol.usable_from) + ' and ' + pday(pol.usable_to) + ' · ' + pnum(s.leave_used) + ' taken · ' + pnum(s.leave_pending) + ' waiting · ' + pnum(pol.days_entitled - s.leave_used - s.leave_pending) + ' left') : 'No leave allowance set.',
+                    PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: pol ? 'Change' : 'Set leave allowance', onclick: function () { openLpol(s); } }) : null));
+                var SN = { pending: 'Waiting', approved: 'Approved', declined: 'Declined', cancelled: 'Cancelled' };
+                (s.leave || []).forEach(function (l) {
+                    lv.appendChild(el('div', { class: 'pay-lreq' }, el('span', {}, el('b', { text: pday(l.starts_on) + (l.ends_on !== l.starts_on ? ' – ' + pday(l.ends_on) : '') }), ' · ' + l.working_days + ' day' + (l.working_days === 1 ? '' : 's') + ' · ' + (l.reason || '')),
+                        el('span', { class: 'sp-right' }, el('span', { class: 'sp-pill sp-pill--' + l.status, text: SN[l.status] }),
+                            l.status === 'pending' && PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Approve', onclick: function () { decideLeave(l, true); } }) : null,
+                            l.status === 'pending' && PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Decline', onclick: function () { decideLeave(l, false); } }) : null)));
+                });
+                card.appendChild(lv);
+                return card;
+            }
+            function copyable(v) { return el('button', { type: 'button', class: 'pay-copy', title: 'Copy', text: v, onclick: function (e) { navigator.clipboard && navigator.clipboard.writeText(v).then(function () { OFL.toast('Copied ' + v); }); } }); }
+            async function markPay(x, paid, s) {
+                var ref = null;
+                if (paid) {
+                    var to = s && s.payout ? (s.payout.method === 'cash' ? 'by bank transfer to ' + s.payout.bank_name + ' ' + s.payout.account_number : 'as ' + s.payout.network + ' top-up to ' + s.payout.phone) : '(no payment details saved yet)';
+                    ref = window.prompt('Mark ' + money(x.amount_minor) + ' ' + x.label.toLowerCase() + ' for ' + pmonth(x.period) + ' as paid ' + to + '?\n\nAdd a transfer or top-up reference if you have one (optional). They will be emailed.', '');
+                    if (ref === null) return;
+                } else if (!window.confirm('Mark this payment as not paid? No email is sent.')) return;
+                var r = await sb.rpc('payment_mark', { p_id: x.id, p_paid: paid, p_reference: ref || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.toast(paid ? 'Marked paid. They have been emailed.' : 'Marked as not paid.', 'success'); loadPay();
+            }
+            async function decideLeave(l, ok) {
+                var note = window.prompt((ok ? 'Approve' : 'Decline') + ' this leave? Add a note for them (optional).', ''); if (note === null) return;
+                var r = await sb.rpc('leave_decide', { p_id: l.id, p_approve: ok, p_note: note || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.toast('Leave ' + (ok ? 'approved' : 'declined') + '. They have been emailed.', 'success'); loadPay();
+            }
+            var compDlg = document.getElementById('comp-dlg'), compForm = document.getElementById('comp-form');
+            var ITEM_LABEL = { salary: 'Salary', stipend: 'Stipend', data: 'Data allowance', airtime: 'Airtime allowance', transport: 'Transport allowance', other: 'Allowance' };
+            compForm.item.addEventListener('change', function () { if (!compEdit) compForm.label.value = ITEM_LABEL[compForm.item.value]; compPreview(); });
+            ['amount', 'starts', 'ends', 'prorate'].forEach(function (n) { compForm[n].addEventListener('input', compPreview); compForm[n].addEventListener('change', compPreview); });
+            function compPreview() {
+                var p = document.getElementById('comp-preview'), a = +compForm.amount.value, s = compForm.starts.value;
+                if (!a || !s) { p.textContent = ''; return; }
+                var d = new Date(s + 'T12:00:00Z'), dim = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(), days = dim - d.getUTCDate() + 1;
+                var first = compForm.prorate.checked && days < dim ? Math.round(a * days / dim) : a;
+                p.textContent = 'First payment (' + d.toLocaleDateString('en-GB', { month: 'long' }) + '): ₦' + first.toLocaleString('en-NG') + (first !== a ? ' for ' + days + ' of ' + dim + ' days' : '') + '. Then ₦' + a.toLocaleString('en-NG') + ' each month, due on the last working day.';
+            }
+            function openComp(s, c) {
+                compUser = s; compEdit = c; document.getElementById('comp-msg').textContent = '';
+                document.getElementById('comp-title').textContent = (c ? 'Edit ' + c.label.toLowerCase() : 'Add salary or allowance') + ': ' + s.name;
+                compForm.item.value = c ? c.item : 'data'; compForm.label.value = c ? c.label : 'Data allowance'; compForm.item.disabled = !!c; compForm.label.readOnly = !!c;
+                compForm.amount.value = c ? Math.round(c.amount_minor / 100) : ''; compForm.starts.value = c ? c.starts_on : PAY.today; compForm.ends.value = c && c.ends_on || '';
+                compForm.prorate.checked = c ? c.prorate_first : true; compForm.active.checked = c ? c.active : true; compForm.note.value = c && c.note || '';
+                compPreview(); compDlg.showModal();
+            }
+            compForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var r = await sb.rpc('comp_save', { p_user: compUser.user_id, p_item: compForm.item.value, p_label: compForm.label.value, p_amount: compForm.amount.value === '' ? null : +compForm.amount.value,
+                    p_starts: compForm.starts.value || null, p_ends: compForm.ends.value || null, p_prorate: compForm.prorate.checked, p_active: compForm.active.checked, p_note: compForm.note.value });
+                if (r.error) return OFL.notice(document.getElementById('comp-msg'), OFL.friendlyError(r.error), 'error');
+                compDlg.close(); OFL.toast('Pay item saved. This month’s payment has been updated.', 'success'); loadPay();
+            });
+            var lpolDlg = document.getElementById('lpol-dlg'), lpolForm = document.getElementById('lpol-form');
+            function openLpol(s) {
+                lpolUser = s; var p = s.leave_policy; document.getElementById('lpol-msg').textContent = '';
+                document.getElementById('lpol-title').textContent = 'Leave allowance: ' + s.name;
+                lpolForm.days.value = p ? pnum(p.days_entitled) : 3; lpolForm.from.value = p ? p.usable_from : PAY.today; lpolForm.to.value = p ? p.usable_to : ''; lpolForm.note.value = p && p.note || '';
+                lpolDlg.showModal();
+            }
+            lpolForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var r = await sb.rpc('leave_policy_set', { p_user: lpolUser.user_id, p_days: +lpolForm.days.value, p_from: lpolForm.from.value || null, p_to: lpolForm.to.value || null, p_note: lpolForm.note.value });
+                if (r.error) return OFL.notice(document.getElementById('lpol-msg'), OFL.friendlyError(r.error), 'error');
+                lpolDlg.close(); OFL.toast('Leave allowance saved.', 'success'); loadPay();
+            });
+            loadPay();
             if (can('view_stats')) loadDocs();
             await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles(); loadIncomplete();
             var staffRoles = {};
@@ -4005,7 +4172,7 @@ page("academy/admin", "Admin | Open Fraud Labs Academy", "Academy admin.", admin
 team_main = """        <div class="ac-wrap tc">
             <div class="ac-dash-head tc-head">
                 <div><h1 id="tc-h1">Calendar</h1><p class="ac-muted" id="tc-sub">Meetings, activities and deadlines. All times are Lagos time (WAT).</p></div>
-                <div class="tc-tools" id="tc-tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
+                <div class="tc-tools" id="tc-tools"><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/staff/" id="tc-pay" hidden>Pay and leave</a><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
             </div>
             <div id="msg"></div>
             <div id="tc-body" hidden>
@@ -4059,7 +4226,7 @@ team_script = r"""        (async function () {
             async function fetchRange(from, to) {
                 var r = await sb.rpc('team_calendar', { p_from: from.toISOString(), p_to: to.toISOString() });
                 if (r.error) throw r.error;
-                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage; info = r.data;
+                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage; info = r.data; document.getElementById('tc-pay').hidden = !info.is_team;
                 (r.data.events || []).forEach(function (e) { cache[e.id || ('auto-' + e.title)] = e; });
                 return r.data.events || [];
             }
@@ -4256,6 +4423,168 @@ team_script = r"""        (async function () {
 
 page("academy/team", "Team calendar | Open Fraud Labs Academy", "Meetings, activities and deadlines for the Open Fraud Labs team.", team_main, team_script, noindex=True)
 page("academy/calendar", "Your calendar | Open Fraud Labs Academy", "Your onboarding meeting, weekly deadlines, office hours and meetings.", team_main, team_script, noindex=True)
+
+
+# ============================================================== Staff: pay and leave (team members)
+staff_main = """        <div class="ac-wrap sp">
+            <div class="ac-dash-head"><div><h1>Pay and leave</h1><p class="ac-muted" id="sp-sub">Your allowances, how you'd like to be paid, your payments and your leave.</p></div>
+                <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/team/">Team calendar</a></div></div>
+            <div id="msg"></div>
+            <div id="sp-body" hidden>
+                <div class="sp-grid">
+                    <section class="sp-card" id="sp-comp-card"><h2>Your allowances</h2><div id="sp-comp"></div></section>
+                    <section class="sp-card" id="sp-leave-sum"><h2>Your leave</h2><div id="sp-leave-chips"></div></section>
+                </div>
+                <section class="sp-card" id="sp-payout-card">
+                    <h2>How would you like to be paid?</h2>
+                    <p class="ac-muted" id="sp-payout-state">Choose one. You can change it at any time before a payment is made.</p>
+                    <div id="sp-payout-msg"></div>
+                    <form class="ac-form" id="sp-payout" novalidate>
+                        <div class="sp-choice">
+                            <label class="sp-opt"><input type="radio" name="method" value="cash"><span><b>Cash reimbursement</b><small>We send the money to your bank account and you buy your own data and airtime.</small></span></label>
+                            <label class="sp-opt"><input type="radio" name="method" value="topup"><span><b>Data and airtime top-up</b><small>We load the data and airtime straight onto your phone number.</small></span></label>
+                        </div>
+                        <fieldset id="sp-cash" hidden><legend>Your bank details</legend>
+                            <div class="co-two"><label>Bank<input name="bank_name" maxlength="80" placeholder="e.g. GTBank, Access, Opay, Kuda" autocomplete="off"></label>
+                            <label>Account number (10 digits)<input name="account_number" inputmode="numeric" maxlength="10" autocomplete="off"></label></div>
+                            <label>Name on the account<input name="account_name" maxlength="120" autocomplete="name"></label>
+                            <p class="ac-muted ac-small">Only you and the founder can see these details. They're used only to pay you.</p>
+                        </fieldset>
+                        <fieldset id="sp-topup" hidden><legend>Your phone number</legend>
+                            <div class="co-two"><label>Phone number<input name="phone" inputmode="tel" maxlength="16" placeholder="0803 123 4567" autocomplete="tel"></label>
+                            <label>Network<select name="network"><option value="">Choose your network</option><option>MTN</option><option>Airtel</option><option>Glo</option><option>9mobile</option></select></label></div>
+                        </fieldset>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="sp-payout-save" disabled>Save my payment details</button></div>
+                    </form>
+                </section>
+                <section class="sp-card"><h2>Your payments</h2><p class="ac-muted ac-small">Payments are made on the last working day of each month. You get an email when each one is paid.</p>
+                    <div class="ac-table-wrap"><table class="ac-table" id="sp-pay"></table></div></section>
+                <section class="sp-card" id="sp-leave-card"><h2>Request leave</h2>
+                    <p class="ac-muted" id="sp-leave-rule"></p>
+                    <div id="sp-leave-msg"></div>
+                    <form class="ac-form" id="sp-leave" novalidate>
+                        <div class="co-two"><label>First day off<input type="date" name="start" required></label><label>Last day off<input type="date" name="end" required></label></div>
+                        <p class="sp-days" id="sp-days" aria-live="polite"></p>
+                        <label>Reason<textarea name="reason" rows="2" maxlength="500" required placeholder="e.g. Family event, exam, travel"></textarea></label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Send leave request</button></div>
+                    </form>
+                    <h3 class="ac-admin__sub">Your leave requests</h3><ul class="sp-leave-list" id="sp-leave-list"></ul>
+                </section>
+            </div>
+        </div>"""
+
+staff_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/staff/'); if (!user) return;
+            var TZ = 'Africa/Lagos', D = null;
+            function money(m) { return '₦' + Math.round(m / 100).toLocaleString('en-NG'); }
+            function day(d, opt) { return new Date(d + (String(d).length === 10 ? 'T12:00:00Z' : '')).toLocaleDateString('en-GB', Object.assign({ timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric' }, opt || {})); }
+            function month(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+            function num(x) { x = +x; return x % 1 ? x.toFixed(1) : String(x); }
+            function workdays(a, b) { var n = 0, d = new Date(a + 'T12:00:00Z'), e = new Date(b + 'T12:00:00Z'); while (d <= e) { var w = d.getUTCDay(); if (w && w < 6) n++; d.setUTCDate(d.getUTCDate() + 1); } return n; }
+            async function load() {
+                var r = await sb.rpc('staff_mine');
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                D = r.data;
+                if (!D.team) return OFL.notice(msg, 'This page is for Open Fraud Labs staff and interns. If you have just joined the team, sign your offer first.', 'info');
+                document.getElementById('sp-body').hidden = false;
+                if (D.name) document.getElementById('sp-sub').textContent = 'Hi ' + D.name.split(' ')[0] + '. Your allowances, how you’d like to be paid, your payments and your leave.';
+                drawComp(); drawPayout(); drawPay(); drawLeave();
+            }
+            function drawComp() {
+                var b = document.getElementById('sp-comp'); b.textContent = '';
+                if (!D.comp.length) { b.appendChild(el('p', { class: 'ac-muted', text: 'No salary or allowance is set up for you. If you think this is wrong, message the founder.' })); return; }
+                var ul = el('ul', { class: 'sp-comp' }); var total = 0;
+                D.comp.forEach(function (c) { total += c.amount_minor; ul.appendChild(el('li', {}, el('span', { text: c.label }), el('b', { class: 'num', text: money(c.amount_minor) + ' a month' }))); });
+                b.appendChild(ul);
+                var c0 = D.comp[0];
+                b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'From ' + day(c0.starts_on) + (c0.ends_on ? ' to ' + day(c0.ends_on) : '') + '. ' + (c0.prorate_first ? 'Your first month is paid for the days you worked that month. ' : '') + 'Paid on the last working day of each month.' }));
+            }
+            var form = document.getElementById('sp-payout');
+            function syncMethod() {
+                var m = (form.querySelector('[name=method]:checked') || {}).value;
+                document.getElementById('sp-cash').hidden = m !== 'cash'; document.getElementById('sp-topup').hidden = m !== 'topup';
+                document.getElementById('sp-payout-save').disabled = !m;
+                form.querySelectorAll('.sp-opt').forEach(function (o) { o.classList.toggle('is-on', o.querySelector('input').checked); });
+            }
+            form.querySelectorAll('[name=method]').forEach(function (r) { r.addEventListener('change', syncMethod); });
+            function drawPayout() {
+                var p = D.payout, st = document.getElementById('sp-payout-state');
+                if (p) {
+                    form.querySelector('[name=method][value=' + p.method + ']').checked = true;
+                    ['bank_name', 'account_name', 'account_number', 'phone'].forEach(function (k) { if (p[k]) form[k].value = p[k]; });
+                    if (p.network) form.network.value = p.network;
+                    st.textContent = '';
+                    st.appendChild(el('span', { class: 'sp-saved', text: '✓ Saved' })); st.append(' ' + (p.method === 'cash' ? 'Cash reimbursement to ' + p.bank_name + ', account ending ' + p.account_number.slice(-4) + '.' : p.network + ' data and airtime top-up to ' + p.phone + '.') + ' You can change it below.');
+                } else st.textContent = 'Please choose one and save it before your first payment. You can change it at any time before a payment is made.';
+                syncMethod();
+            }
+            form.account_number.addEventListener('input', function () { form.account_number.value = form.account_number.value.replace(/\D/g, '').slice(0, 10); });
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = (form.querySelector('[name=method]:checked') || {}).value, box = document.getElementById('sp-payout-msg');
+                var btn = document.getElementById('sp-payout-save'); btn.disabled = true;
+                var r = await sb.rpc('payout_submit', { p_method: m, p_bank_name: form.bank_name.value, p_account_name: form.account_name.value, p_account_number: form.account_number.value, p_phone: form.phone.value, p_network: form.network.value || null });
+                btn.disabled = false;
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                box.textContent = ''; OFL.toast('Payment details saved. The founder has been told.', 'success'); load();
+            });
+            function drawPay() {
+                var t = document.getElementById('sp-pay'); t.textContent = '';
+                var hr = el('tr'); ['Month', 'Item', 'Amount', 'Status'].forEach(function (h) { hr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody'); t.appendChild(tb);
+                if (!D.payments.length) { tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'No payments yet.' }))); return; }
+                D.payments.forEach(function (p) {
+                    var part = p.prorated_days < p.period_days ? el('small', { class: 'ac-muted', text: ' (' + p.prorated_days + ' of ' + p.period_days + ' days)' }) : null;
+                    tb.appendChild(el('tr', {}, el('td', { text: month(p.period) }), el('td', { text: p.label }), el('td', { class: 'num' }, money(p.amount_minor), part),
+                        el('td', {}, p.status === 'paid' ? el('span', { class: 'sp-pill sp-pill--paid', text: 'Paid ' + day(p.paid_at, { year: undefined }) }) : el('span', { class: 'sp-pill', text: 'Due ' + day(p.due_on, { year: undefined }) }),
+                            p.status === 'paid' && p.paid_to ? el('small', { class: 'ac-muted sp-to', text: p.paid_to + (p.reference ? ' · ref ' + p.reference : '') }) : null)));
+                });
+            }
+            var lf = document.getElementById('sp-leave');
+            function drawLeave() {
+                var pol = D.leave_policy, chips = document.getElementById('sp-leave-chips'); chips.textContent = '';
+                if (!pol) { chips.appendChild(el('p', { class: 'ac-muted', text: 'No leave allowance is set up for you yet.' })); document.getElementById('sp-leave-card').hidden = true; return; }
+                var left = pol.days_entitled - D.leave_used - D.leave_pending;
+                var row = el('div', { class: 'sp-chips' });
+                [['Allowance', num(pol.days_entitled)], ['Taken or booked', num(D.leave_used)], ['Waiting for a decision', num(D.leave_pending)], ['Left', num(left)]].forEach(function (x, i) {
+                    row.appendChild(el('div', { class: 'sp-chip' + (i === 3 ? ' sp-chip--left' : '') }, el('b', { class: 'num', text: x[1] }), el('span', { text: x[0] })));
+                });
+                chips.appendChild(row);
+                chips.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Working days (Monday to Friday) you can take between ' + day(pol.usable_from) + ' and ' + day(pol.usable_to) + '.' + (pol.note ? ' ' + pol.note : '') }));
+                document.getElementById('sp-leave-rule').textContent = 'You have ' + num(left) + ' working day' + (left === 1 ? '' : 's') + ' left. Pick dates between ' + day(pol.usable_from) + ' and ' + day(pol.usable_to) + '. Weekends aren’t counted. The founder approves each request and you get an email either way.';
+                lf.start.min = lf.end.min = [pol.usable_from, D.today].sort().pop(); lf.start.max = lf.end.max = pol.usable_to;
+                var ul = document.getElementById('sp-leave-list'); ul.textContent = '';
+                if (!D.leave.length) ul.appendChild(el('li', { class: 'ac-muted', text: 'No leave requests yet.' }));
+                var SN = { pending: 'Waiting for a decision', approved: 'Approved', declined: 'Declined', cancelled: 'Cancelled' };
+                D.leave.forEach(function (r) {
+                    var can = (r.status === 'pending' || r.status === 'approved') && r.starts_on > D.today;
+                    ul.appendChild(el('li', { class: 'sp-leave sp-leave--' + r.status },
+                        el('div', {}, el('b', { text: day(r.starts_on, { year: undefined, weekday: 'short' }) + (r.ends_on !== r.starts_on ? ' – ' + day(r.ends_on, { year: undefined, weekday: 'short' }) : '') }),
+                            el('small', { text: ' · ' + r.working_days + ' working day' + (r.working_days === 1 ? '' : 's') + ' · ' + r.reason }),
+                            r.decision_note ? el('small', { class: 'ac-muted', text: ' · Note: ' + r.decision_note }) : null),
+                        el('span', { class: 'sp-right' }, el('span', { class: 'sp-pill sp-pill--' + r.status, text: SN[r.status] }),
+                            can ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Cancel', onclick: async function () {
+                                if (!window.confirm('Cancel this leave request?')) return; var x = await sb.rpc('leave_cancel', { p_id: r.id }); if (x.error) return OFL.notice(document.getElementById('sp-leave-msg'), OFL.friendlyError(x.error), 'error'); OFL.toast('Leave request cancelled.'); load(); } }) : null)));
+                });
+            }
+            function showDays() {
+                var p = document.getElementById('sp-days');
+                if (!lf.start.value || !lf.end.value) { p.textContent = ''; return; }
+                if (lf.end.value < lf.start.value) { p.textContent = 'The last day is before the first day.'; return; }
+                var n = workdays(lf.start.value, lf.end.value); p.textContent = n + ' working day' + (n === 1 ? '' : 's') + ' of leave';
+            }
+            lf.start.addEventListener('change', function () { if (!lf.end.value || lf.end.value < lf.start.value) lf.end.value = lf.start.value; showDays(); });
+            lf.end.addEventListener('change', showDays);
+            lf.addEventListener('submit', async function (e) {
+                e.preventDefault(); var box = document.getElementById('sp-leave-msg');
+                var r = await sb.rpc('leave_apply', { p_start: lf.start.value || null, p_end: lf.end.value || null, p_reason: lf.reason.value });
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                box.textContent = ''; lf.reset(); showDays(); OFL.toast('Leave request sent. You’ll get an email when it’s decided.', 'success'); load();
+            });
+            load();
+        })();"""
+
+page("academy/staff", "Pay and leave | Open Fraud Labs Academy", "Your allowances, payment details, payments and leave.", staff_main, staff_script, noindex=True)
 
 
 # ============================================================== Redirects from old URLs

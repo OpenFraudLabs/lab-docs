@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }</script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay and leave | Open Fraud Labs Academy</title>
+    <meta name="description" content="Your allowances, payment details, payments and leave.">
+    <meta property="og:title" content="Pay and leave | Open Fraud Labs Academy">
+    <meta property="og:description" content="Your allowances, payment details, payments and leave.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014c">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/careers/">Careers</a>
+                <a href="/verify/">Verify</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap sp">
+            <div class="ac-dash-head"><div><h1>Pay and leave</h1><p class="ac-muted" id="sp-sub">Your allowances, how you'd like to be paid, your payments and your leave.</p></div>
+                <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/team/">Team calendar</a></div></div>
+            <div id="msg"></div>
+            <div id="sp-body" hidden>
+                <div class="sp-grid">
+                    <section class="sp-card" id="sp-comp-card"><h2>Your allowances</h2><div id="sp-comp"></div></section>
+                    <section class="sp-card" id="sp-leave-sum"><h2>Your leave</h2><div id="sp-leave-chips"></div></section>
+                </div>
+                <section class="sp-card" id="sp-payout-card">
+                    <h2>How would you like to be paid?</h2>
+                    <p class="ac-muted" id="sp-payout-state">Choose one. You can change it at any time before a payment is made.</p>
+                    <div id="sp-payout-msg"></div>
+                    <form class="ac-form" id="sp-payout" novalidate>
+                        <div class="sp-choice">
+                            <label class="sp-opt"><input type="radio" name="method" value="cash"><span><b>Cash reimbursement</b><small>We send the money to your bank account and you buy your own data and airtime.</small></span></label>
+                            <label class="sp-opt"><input type="radio" name="method" value="topup"><span><b>Data and airtime top-up</b><small>We load the data and airtime straight onto your phone number.</small></span></label>
+                        </div>
+                        <fieldset id="sp-cash" hidden><legend>Your bank details</legend>
+                            <div class="co-two"><label>Bank<input name="bank_name" maxlength="80" placeholder="e.g. GTBank, Access, Opay, Kuda" autocomplete="off"></label>
+                            <label>Account number (10 digits)<input name="account_number" inputmode="numeric" maxlength="10" autocomplete="off"></label></div>
+                            <label>Name on the account<input name="account_name" maxlength="120" autocomplete="name"></label>
+                            <p class="ac-muted ac-small">Only you and the founder can see these details. They're used only to pay you.</p>
+                        </fieldset>
+                        <fieldset id="sp-topup" hidden><legend>Your phone number</legend>
+                            <div class="co-two"><label>Phone number<input name="phone" inputmode="tel" maxlength="16" placeholder="0803 123 4567" autocomplete="tel"></label>
+                            <label>Network<select name="network"><option value="">Choose your network</option><option>MTN</option><option>Airtel</option><option>Glo</option><option>9mobile</option></select></label></div>
+                        </fieldset>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="sp-payout-save" disabled>Save my payment details</button></div>
+                    </form>
+                </section>
+                <section class="sp-card"><h2>Your payments</h2><p class="ac-muted ac-small">Payments are made on the last working day of each month. You get an email when each one is paid.</p>
+                    <div class="ac-table-wrap"><table class="ac-table" id="sp-pay"></table></div></section>
+                <section class="sp-card" id="sp-leave-card"><h2>Request leave</h2>
+                    <p class="ac-muted" id="sp-leave-rule"></p>
+                    <div id="sp-leave-msg"></div>
+                    <form class="ac-form" id="sp-leave" novalidate>
+                        <div class="co-two"><label>First day off<input type="date" name="start" required></label><label>Last day off<input type="date" name="end" required></label></div>
+                        <p class="sp-days" id="sp-days" aria-live="polite"></p>
+                        <label>Reason<textarea name="reason" rows="2" maxlength="500" required placeholder="e.g. Family event, exam, travel"></textarea></label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Send leave request</button></div>
+                    </form>
+                    <h3 class="ac-admin__sub">Your leave requests</h3><ul class="sp-leave-list" id="sp-leave-list"></ul>
+                </section>
+            </div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261014c"></script>
+    <script src="/assets/js/academy.js?v=20261014c"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/staff/'); if (!user) return;
+            var TZ = 'Africa/Lagos', D = null;
+            function money(m) { return '₦' + Math.round(m / 100).toLocaleString('en-NG'); }
+            function day(d, opt) { return new Date(d + (String(d).length === 10 ? 'T12:00:00Z' : '')).toLocaleDateString('en-GB', Object.assign({ timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric' }, opt || {})); }
+            function month(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+            function num(x) { x = +x; return x % 1 ? x.toFixed(1) : String(x); }
+            function workdays(a, b) { var n = 0, d = new Date(a + 'T12:00:00Z'), e = new Date(b + 'T12:00:00Z'); while (d <= e) { var w = d.getUTCDay(); if (w && w < 6) n++; d.setUTCDate(d.getUTCDate() + 1); } return n; }
+            async function load() {
+                var r = await sb.rpc('staff_mine');
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                D = r.data;
+                if (!D.team) return OFL.notice(msg, 'This page is for Open Fraud Labs staff and interns. If you have just joined the team, sign your offer first.', 'info');
+                document.getElementById('sp-body').hidden = false;
+                if (D.name) document.getElementById('sp-sub').textContent = 'Hi ' + D.name.split(' ')[0] + '. Your allowances, how you’d like to be paid, your payments and your leave.';
+                drawComp(); drawPayout(); drawPay(); drawLeave();
+            }
+            function drawComp() {
+                var b = document.getElementById('sp-comp'); b.textContent = '';
+                if (!D.comp.length) { b.appendChild(el('p', { class: 'ac-muted', text: 'No salary or allowance is set up for you. If you think this is wrong, message the founder.' })); return; }
+                var ul = el('ul', { class: 'sp-comp' }); var total = 0;
+                D.comp.forEach(function (c) { total += c.amount_minor; ul.appendChild(el('li', {}, el('span', { text: c.label }), el('b', { class: 'num', text: money(c.amount_minor) + ' a month' }))); });
+                b.appendChild(ul);
+                var c0 = D.comp[0];
+                b.appendChild(el('p', { class: 'ac-muted ac-small', text: 'From ' + day(c0.starts_on) + (c0.ends_on ? ' to ' + day(c0.ends_on) : '') + '. ' + (c0.prorate_first ? 'Your first month is paid for the days you worked that month. ' : '') + 'Paid on the last working day of each month.' }));
+            }
+            var form = document.getElementById('sp-payout');
+            function syncMethod() {
+                var m = (form.querySelector('[name=method]:checked') || {}).value;
+                document.getElementById('sp-cash').hidden = m !== 'cash'; document.getElementById('sp-topup').hidden = m !== 'topup';
+                document.getElementById('sp-payout-save').disabled = !m;
+                form.querySelectorAll('.sp-opt').forEach(function (o) { o.classList.toggle('is-on', o.querySelector('input').checked); });
+            }
+            form.querySelectorAll('[name=method]').forEach(function (r) { r.addEventListener('change', syncMethod); });
+            function drawPayout() {
+                var p = D.payout, st = document.getElementById('sp-payout-state');
+                if (p) {
+                    form.querySelector('[name=method][value=' + p.method + ']').checked = true;
+                    ['bank_name', 'account_name', 'account_number', 'phone'].forEach(function (k) { if (p[k]) form[k].value = p[k]; });
+                    if (p.network) form.network.value = p.network;
+                    st.textContent = '';
+                    st.appendChild(el('span', { class: 'sp-saved', text: '✓ Saved' })); st.append(' ' + (p.method === 'cash' ? 'Cash reimbursement to ' + p.bank_name + ', account ending ' + p.account_number.slice(-4) + '.' : p.network + ' data and airtime top-up to ' + p.phone + '.') + ' You can change it below.');
+                } else st.textContent = 'Please choose one and save it before your first payment. You can change it at any time before a payment is made.';
+                syncMethod();
+            }
+            form.account_number.addEventListener('input', function () { form.account_number.value = form.account_number.value.replace(/\D/g, '').slice(0, 10); });
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault(); var m = (form.querySelector('[name=method]:checked') || {}).value, box = document.getElementById('sp-payout-msg');
+                var btn = document.getElementById('sp-payout-save'); btn.disabled = true;
+                var r = await sb.rpc('payout_submit', { p_method: m, p_bank_name: form.bank_name.value, p_account_name: form.account_name.value, p_account_number: form.account_number.value, p_phone: form.phone.value, p_network: form.network.value || null });
+                btn.disabled = false;
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                box.textContent = ''; OFL.toast('Payment details saved. The founder has been told.', 'success'); load();
+            });
+            function drawPay() {
+                var t = document.getElementById('sp-pay'); t.textContent = '';
+                var hr = el('tr'); ['Month', 'Item', 'Amount', 'Status'].forEach(function (h) { hr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, hr));
+                var tb = el('tbody'); t.appendChild(tb);
+                if (!D.payments.length) { tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'No payments yet.' }))); return; }
+                D.payments.forEach(function (p) {
+                    var part = p.prorated_days < p.period_days ? el('small', { class: 'ac-muted', text: ' (' + p.prorated_days + ' of ' + p.period_days + ' days)' }) : null;
+                    tb.appendChild(el('tr', {}, el('td', { text: month(p.period) }), el('td', { text: p.label }), el('td', { class: 'num' }, money(p.amount_minor), part),
+                        el('td', {}, p.status === 'paid' ? el('span', { class: 'sp-pill sp-pill--paid', text: 'Paid ' + day(p.paid_at, { year: undefined }) }) : el('span', { class: 'sp-pill', text: 'Due ' + day(p.due_on, { year: undefined }) }),
+                            p.status === 'paid' && p.paid_to ? el('small', { class: 'ac-muted sp-to', text: p.paid_to + (p.reference ? ' · ref ' + p.reference : '') }) : null)));
+                });
+            }
+            var lf = document.getElementById('sp-leave');
+            function drawLeave() {
+                var pol = D.leave_policy, chips = document.getElementById('sp-leave-chips'); chips.textContent = '';
+                if (!pol) { chips.appendChild(el('p', { class: 'ac-muted', text: 'No leave allowance is set up for you yet.' })); document.getElementById('sp-leave-card').hidden = true; return; }
+                var left = pol.days_entitled - D.leave_used - D.leave_pending;
+                var row = el('div', { class: 'sp-chips' });
+                [['Allowance', num(pol.days_entitled)], ['Taken or booked', num(D.leave_used)], ['Waiting for a decision', num(D.leave_pending)], ['Left', num(left)]].forEach(function (x, i) {
+                    row.appendChild(el('div', { class: 'sp-chip' + (i === 3 ? ' sp-chip--left' : '') }, el('b', { class: 'num', text: x[1] }), el('span', { text: x[0] })));
+                });
+                chips.appendChild(row);
+                chips.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Working days (Monday to Friday) you can take between ' + day(pol.usable_from) + ' and ' + day(pol.usable_to) + '.' + (pol.note ? ' ' + pol.note : '') }));
+                document.getElementById('sp-leave-rule').textContent = 'You have ' + num(left) + ' working day' + (left === 1 ? '' : 's') + ' left. Pick dates between ' + day(pol.usable_from) + ' and ' + day(pol.usable_to) + '. Weekends aren’t counted. The founder approves each request and you get an email either way.';
+                lf.start.min = lf.end.min = [pol.usable_from, D.today].sort().pop(); lf.start.max = lf.end.max = pol.usable_to;
+                var ul = document.getElementById('sp-leave-list'); ul.textContent = '';
+                if (!D.leave.length) ul.appendChild(el('li', { class: 'ac-muted', text: 'No leave requests yet.' }));
+                var SN = { pending: 'Waiting for a decision', approved: 'Approved', declined: 'Declined', cancelled: 'Cancelled' };
+                D.leave.forEach(function (r) {
+                    var can = (r.status === 'pending' || r.status === 'approved') && r.starts_on > D.today;
+                    ul.appendChild(el('li', { class: 'sp-leave sp-leave--' + r.status },
+                        el('div', {}, el('b', { text: day(r.starts_on, { year: undefined, weekday: 'short' }) + (r.ends_on !== r.starts_on ? ' – ' + day(r.ends_on, { year: undefined, weekday: 'short' }) : '') }),
+                            el('small', { text: ' · ' + r.working_days + ' working day' + (r.working_days === 1 ? '' : 's') + ' · ' + r.reason }),
+                            r.decision_note ? el('small', { class: 'ac-muted', text: ' · Note: ' + r.decision_note }) : null),
+                        el('span', { class: 'sp-right' }, el('span', { class: 'sp-pill sp-pill--' + r.status, text: SN[r.status] }),
+                            can ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Cancel', onclick: async function () {
+                                if (!window.confirm('Cancel this leave request?')) return; var x = await sb.rpc('leave_cancel', { p_id: r.id }); if (x.error) return OFL.notice(document.getElementById('sp-leave-msg'), OFL.friendlyError(x.error), 'error'); OFL.toast('Leave request cancelled.'); load(); } }) : null)));
+                });
+            }
+            function showDays() {
+                var p = document.getElementById('sp-days');
+                if (!lf.start.value || !lf.end.value) { p.textContent = ''; return; }
+                if (lf.end.value < lf.start.value) { p.textContent = 'The last day is before the first day.'; return; }
+                var n = workdays(lf.start.value, lf.end.value); p.textContent = n + ' working day' + (n === 1 ? '' : 's') + ' of leave';
+            }
+            lf.start.addEventListener('change', function () { if (!lf.end.value || lf.end.value < lf.start.value) lf.end.value = lf.start.value; showDays(); });
+            lf.end.addEventListener('change', showDays);
+            lf.addEventListener('submit', async function (e) {
+                e.preventDefault(); var box = document.getElementById('sp-leave-msg');
+                var r = await sb.rpc('leave_apply', { p_start: lf.start.value || null, p_end: lf.end.value || null, p_reason: lf.reason.value });
+                if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                box.textContent = ''; lf.reset(); showDays(); OFL.toast('Leave request sent. You’ll get an email when it’s decided.', 'success'); load();
+            });
+            load();
+        })();
+    </script>
+</body>
+</html>

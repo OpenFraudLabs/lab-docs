@@ -55,7 +55,7 @@
         <div class="ac-wrap tc">
             <div class="ac-dash-head tc-head">
                 <div><h1 id="tc-h1">Calendar</h1><p class="ac-muted" id="tc-sub">Meetings, activities and deadlines. All times are Lagos time (WAT).</p></div>
-                <div class="tc-tools" id="tc-tools"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
+                <div class="tc-tools" id="tc-tools"><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/staff/" id="tc-pay" hidden>Pay and leave</a><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="tc-add" hidden>Add to calendar</button></div>
             </div>
             <div id="msg"></div>
             <div id="tc-body" hidden>
@@ -141,7 +141,7 @@
             async function fetchRange(from, to) {
                 var r = await sb.rpc('team_calendar', { p_from: from.toISOString(), p_to: to.toISOString() });
                 if (r.error) throw r.error;
-                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage; info = r.data;
+                canManage = !!r.data.can_manage; document.getElementById('tc-add').hidden = !canManage; info = r.data; document.getElementById('tc-pay').hidden = !info.is_team;
                 (r.data.events || []).forEach(function (e) { cache[e.id || ('auto-' + e.title)] = e; });
                 return r.data.events || [];
             }
