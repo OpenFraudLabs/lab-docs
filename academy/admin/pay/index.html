@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }</script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff pay and leave | Open Fraud Labs Academy</title>
+    <meta name="description" content="Salaries, allowances, payments and leave for the Open Fraud Labs team.">
+    <meta property="og:title" content="Staff pay and leave | Open Fraud Labs Academy">
+    <meta property="og:description" content="Salaries, allowances, payments and leave for the Open Fraud Labs team.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014e">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/careers/">Careers</a>
+                <a href="/verify/">Verify</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap pp">
+            <div class="ac-dash-head"><div><a class="ac-small" href="/academy/admin/">&larr; Staff dashboard</a><h1>Staff pay and leave</h1>
+                <p class="ac-muted" id="pp-sub">Salaries and allowances, monthly payments and leave for everyone on the team. All amounts in naira, Lagos time.</p></div></div>
+            <div id="msg"></div>
+            <div id="pp-body" hidden>
+                <div class="ofl-tabs pp-tabs" role="tablist">
+                    <button type="button" class="ofl-tab is-active" data-t="pay" role="tab" aria-selected="true">Salaries and allowances</button>
+                    <button type="button" class="ofl-tab" data-t="leave" role="tab" aria-selected="false">Leave</button>
+                </div>
+                <section data-p="pay">
+                    <div class="ac-kpis" id="pp-pay-kpis"></div>
+                    <h2 class="pp-h">This month at a glance <small class="ac-muted" id="pp-month"></small></h2>
+                    <div class="ac-table-wrap"><table class="ac-table pp-sum" id="pp-pay-sum"></table></div>
+                    <h2 class="pp-h">Each person</h2>
+                    <div id="pp-pay-list"></div>
+                </section>
+                <section data-p="leave" hidden>
+                    <div class="ac-kpis" id="pp-leave-kpis"></div>
+                    <h2 class="pp-h">Leave balances</h2>
+                    <div class="ac-table-wrap"><table class="ac-table pp-sum" id="pp-leave-sum"></table></div>
+                    <h2 class="pp-h">Requests</h2>
+                    <div id="pp-leave-reqs"></div>
+                </section>
+            </div>
+            <dialog class="ac-dialog" id="comp-dlg" aria-labelledby="comp-title">
+                <div class="ac-dialog__head"><h2 id="comp-title">Pay item</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                <div id="comp-msg"></div>
+                <form class="ac-form" id="comp-form" novalidate>
+                    <div class="co-two"><label>Type<select name="item"><option value="salary">Salary</option><option value="stipend">Stipend</option><option value="data">Data allowance</option><option value="airtime">Airtime allowance</option><option value="transport">Transport allowance</option><option value="other">Other allowance</option></select></label>
+                    <label>Name shown to them<input name="label" maxlength="60" required placeholder="e.g. Data allowance"></label></div>
+                    <label>Amount each month (₦)<input name="amount" type="number" min="0" step="1" required placeholder="15000"></label>
+                    <div class="co-two"><label>Starts<input name="starts" type="date" required></label><label>Ends <em class="ac-muted">(optional)</em><input name="ends" type="date"></label></div>
+                    <label class="ap-check"><input type="checkbox" name="prorate" checked> Pay only for the days worked in the first and last month</label>
+                    <label class="ap-check"><input type="checkbox" name="active" checked> Active (untick to stop future payments)</label>
+                    <label>Note <em class="ac-muted">(only staff with pay access see this)</em><input name="note" maxlength="300"></label>
+                    <p class="ac-muted ac-small" id="comp-preview"></p>
+                    <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save pay item</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                </form>
+            </dialog>
+            <dialog class="ac-dialog" id="lpol-dlg" aria-labelledby="lpol-title">
+                <div class="ac-dialog__head"><h2 id="lpol-title">Leave allowance</h2><button class="ac-btn ac-btn--ghost ac-btn--sm" type="button" data-close aria-label="Close">Close</button></div>
+                <div id="lpol-msg"></div>
+                <form class="ac-form" id="lpol-form" novalidate>
+                    <label>Working days of leave<input name="days" type="number" min="0" max="60" step="0.5" required></label>
+                    <div class="co-two"><label>Can be taken from<input name="from" type="date" required></label><label>Until<input name="to" type="date" required></label></div>
+                    <label>Note shown to them <em class="ac-muted">(optional)</em><input name="note" maxlength="300"></label>
+                    <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit">Save leave allowance</button><button class="ac-btn ac-btn--ghost" type="button" data-close>Cancel</button></div>
+                </form>
+            </dialog>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261014e"></script>
+    <script src="/assets/js/academy.js?v=20261014e"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/admin/pay/'); if (!user) return;
+            var PAY = null, compUser = null, compEdit = null, lpolUser = null, ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
+            function money(m) { return '₦' + Math.round((m || 0) / 100).toLocaleString('en-NG'); }
+            function pday(d) { return new Date(d + (String(d).length === 10 ? 'T12:00:00Z' : '')).toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', year: 'numeric' }); }
+            function pmonth(d) { return new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+            function pnum(x) { x = +x; return x % 1 ? x.toFixed(1) : String(x); }
+            document.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+            var tab = (location.hash || '').replace('#', '') === 'leave' ? 'leave' : 'pay';
+            function showTab(t) {
+                tab = t; document.querySelectorAll('.pp-tabs .ofl-tab').forEach(function (b) { var on = b.getAttribute('data-t') === t; b.classList.toggle('is-active', on); b.setAttribute('aria-selected', String(on)); });
+                document.querySelectorAll('[data-p]').forEach(function (s) { s.hidden = s.getAttribute('data-p') !== t; });
+                try { history.replaceState(null, '', '#' + t); } catch (e) {}
+            }
+            document.querySelectorAll('.pp-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () { showTab(b.getAttribute('data-t')); }); });
+            function kpis(id, rows) { var k = document.getElementById(id); k.textContent = ''; rows.forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' + (x[2] ? ' ' + x[2] : '') }, el('strong', { class: 'num', text: x[1] }), el('span', { text: x[0] }))); }); }
+            function th(t, cols) { var hr = el('tr'); cols.forEach(function (h) { hr.appendChild(el('th', { text: h })); }); t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb); return tb; }
+            function sums(s) {
+                var m = PAY.today.slice(0, 7), o = { ent: 0, paidM: 0, paidAll: 0, due: 0, monthly: 0 };
+                (s.comp || []).forEach(function (c) { if (c.active) o.monthly += c.amount_minor; });
+                (s.payments || []).forEach(function (p) {
+                    if (p.period.slice(0, 7) === m) { o.ent += p.amount_minor; if (p.status === 'paid') o.paidM += p.amount_minor; }
+                    if (p.status === 'paid') o.paidAll += p.amount_minor; else if (p.status === 'due') o.due += p.amount_minor;
+                });
+                return o;
+            }
+            async function load() {
+                var r = await sb.rpc('payroll_overview');
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                PAY = r.data; document.getElementById('pp-body').hidden = false;
+                if (!PAY.can_pay) { document.querySelector('[data-t=pay]').hidden = true; tab = 'leave'; }
+                document.getElementById('pp-month').textContent = '(' + pmonth(PAY.today.slice(0, 8) + '01') + ')';
+                if (PAY.can_pay) drawPay(); drawLeave(); showTab(tab);
+            }
+            // ---------------- Salaries and allowances
+            function drawPay() {
+                var T = { ent: 0, paidM: 0, paidAll: 0, due: 0 };
+                PAY.staff.forEach(function (s) { var o = sums(s); ['ent', 'paidM', 'paidAll', 'due'].forEach(function (k) { T[k] += o[k]; }); });
+                kpis('pp-pay-kpis', [['Due this month', money(T.ent)], ['Paid this month', money(T.paidM), 'is-good'], ['Still to pay', money(T.due), T.due ? 'is-warn' : ''], ['Paid so far (all time)', money(T.paidAll)]]);
+                var tb = th(document.getElementById('pp-pay-sum'), ['Person', 'Paid by', 'Monthly', 'Due this month', 'Paid this month', 'Paid so far', 'Still to pay']);
+                var withPay = PAY.staff.filter(function (s) { return (s.comp || []).length; });
+                if (!withPay.length) tb.appendChild(el('tr', {}, el('td', { colspan: '7', class: 'ac-muted', text: 'No salaries or allowances set yet. Add one for a person below.' })));
+                withPay.forEach(function (s) {
+                    var o = sums(s), p = s.payout;
+                    tb.appendChild(el('tr', { class: 'pp-row', onclick: function () { var c = document.getElementById('pc-' + s.user_id); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'start' }); c.classList.add('is-flash'); setTimeout(function () { c.classList.remove('is-flash'); }, 1200); } } },
+                        el('td', {}, el('b', { text: s.name })), el('td', { text: p ? (p.method === 'cash' ? 'Bank transfer' : p.network + ' top-up') : 'Not chosen yet' }),
+                        el('td', { class: 'num', text: money(o.monthly) }), el('td', { class: 'num', text: money(o.ent) }), el('td', { class: 'num', text: money(o.paidM) }),
+                        el('td', { class: 'num', text: money(o.paidAll) }), el('td', { class: 'num' + (o.due ? ' pp-due' : ''), text: money(o.due) })));
+                });
+                var list = document.getElementById('pp-pay-list'); list.textContent = '';
+                if (!PAY.staff.length) return list.appendChild(el('p', { class: 'ac-muted', text: 'Nobody on the team yet. Staff and hired interns appear here automatically.' }));
+                PAY.staff.forEach(function (s) { list.appendChild(payCard(s)); });
+            }
+            function payCard(s) {
+                var card = el('article', { class: 'pay-card', id: 'pc-' + s.user_id });
+                card.appendChild(el('header', { class: 'pay-card__head' }, el('div', {}, el('h3', { text: s.name }), el('p', { class: 'ac-muted ac-small', text: [s.role_title || (s.staff_role ? ROLE_NAME[s.staff_role] : ''), s.email].filter(Boolean).join(' · ') }))));
+                var p = s.payout, pv = el('div', { class: 'pay-payout' + (p ? '' : ' is-missing') });
+                if (!p) pv.appendChild(el('span', { text: 'No payment details yet. They choose cash or top-up on their Pay and leave page.' }));
+                else if (p.method === 'cash') pv.append(el('b', { text: 'Cash reimbursement' }), ' · ' + p.bank_name + ' · ', copyable(p.account_number), ' · ' + p.account_name);
+                else pv.append(el('b', { text: 'Data and airtime top-up' }), ' · ' + p.network + ' · ', copyable(p.phone));
+                if (p) pv.appendChild(el('small', { class: 'ac-muted', text: ' (updated ' + pday(p.updated_at) + ')' }));
+                card.appendChild(pv);
+                var items = el('div', { class: 'pay-items' });
+                (s.comp || []).forEach(function (c) {
+                    items.appendChild(el('button', { type: 'button', class: 'pay-item' + (c.active ? '' : ' is-off'), title: 'Edit', onclick: function () { openComp(s, c); } },
+                        el('span', { text: c.label }), el('b', { class: 'num', text: money(c.amount_minor) + '/mo' }),
+                        el('small', { text: pday(c.starts_on) + (c.ends_on ? ' – ' + pday(c.ends_on) : '') + (c.active ? '' : ' · stopped') })));
+                });
+                items.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: '+ Add salary or allowance', onclick: function () { openComp(s, null); } }));
+                card.appendChild(items);
+                var pays = s.payments || [];
+                if (pays.length) {
+                    var t = el('table', { class: 'ac-table pay-table' }), tb = th(t, ['Month', 'Item', 'Amount', 'Due', 'Status', '']);
+                    pays.forEach(function (x) {
+                        var late = x.status === 'due' && x.due_on < PAY.today;
+                        tb.appendChild(el('tr', { class: x.status === 'paid' ? 'is-paid' : '' }, el('td', { text: pmonth(x.period) }), el('td', { text: x.label }),
+                            el('td', { class: 'num' }, money(x.amount_minor), x.prorated_days < x.period_days ? el('small', { class: 'ac-muted', text: ' (' + x.prorated_days + '/' + x.period_days + ' days)' }) : null),
+                            el('td', { text: pday(x.due_on) }),
+                            el('td', {}, x.status === 'paid' ? el('span', { class: 'sp-pill sp-pill--paid', text: 'Paid ' + pday(x.paid_at) }) : el('span', { class: 'sp-pill' + (late ? ' sp-pill--late' : ''), text: late ? 'Overdue' : 'Due' }),
+                                x.reference ? el('small', { class: 'ac-muted', text: ' ref ' + x.reference }) : null),
+                            el('td', {}, x.status === 'paid'
+                                ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Undo', onclick: function () { markPay(x, false); } })
+                                : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Mark paid', onclick: function () { markPay(x, true, s); } }))));
+                    });
+                    card.appendChild(el('div', { class: 'ac-table-wrap' }, t));
+                }
+                return card;
+            }
+            function copyable(v) { return el('button', { type: 'button', class: 'pay-copy', title: 'Copy', text: v, onclick: function () { navigator.clipboard && navigator.clipboard.writeText(v).then(function () { OFL.toast('Copied ' + v); }); } }); }
+            async function markPay(x, paid, s) {
+                var ref = null;
+                if (paid) {
+                    var to = s && s.payout ? (s.payout.method === 'cash' ? 'by bank transfer to ' + s.payout.bank_name + ' ' + s.payout.account_number : 'as ' + s.payout.network + ' top-up to ' + s.payout.phone) : '(no payment details saved yet)';
+                    ref = window.prompt('Mark ' + money(x.amount_minor) + ' ' + x.label.toLowerCase() + ' for ' + pmonth(x.period) + ' as paid ' + to + '?\n\nAdd a transfer or top-up reference if you have one (optional). They will be emailed, with a copy to the Academy inbox.', '');
+                    if (ref === null) return;
+                } else if (!window.confirm('Mark this payment as not paid? No email is sent.')) return;
+                var r = await sb.rpc('payment_mark', { p_id: x.id, p_paid: paid, p_reference: ref || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.toast(paid ? 'Marked paid. They have been emailed.' : 'Marked as not paid.', 'success'); load();
+            }
+            // ---------------- Leave
+            function lsum(s) {
+                var o = { taken: 0, booked: 0, wait: 0 };
+                (s.leave || []).forEach(function (l) { if (l.status === 'approved') { if (l.starts_on <= PAY.today) o.taken += l.working_days; else o.booked += l.working_days; } else if (l.status === 'pending') o.wait += l.working_days; });
+                o.ent = s.leave_policy ? +s.leave_policy.days_entitled : 0; o.left = o.ent - o.taken - o.booked - o.wait; return o;
+            }
+            function drawLeave() {
+                var waiting = [], T = { ent: 0, taken: 0, booked: 0 };
+                PAY.staff.forEach(function (s) { var o = lsum(s); T.ent += o.ent; T.taken += o.taken; T.booked += o.booked; (s.leave || []).forEach(function (l) { if (l.status === 'pending') waiting.push([s, l]); }); });
+                kpis('pp-leave-kpis', [['Requests waiting', String(waiting.length), waiting.length ? 'is-warn' : ''], ['Days taken so far', pnum(T.taken)], ['Days booked ahead', pnum(T.booked)], ['Days allowed in total', pnum(T.ent)]]);
+                var tb = th(document.getElementById('pp-leave-sum'), ['Person', 'Allowed', 'Taken', 'Booked', 'Waiting', 'Left', 'Can be taken', '']);
+                PAY.staff.forEach(function (s) {
+                    var o = lsum(s), pol = s.leave_policy;
+                    tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: s.name })),
+                        el('td', { class: 'num', text: pol ? pnum(o.ent) : '–' }), el('td', { class: 'num', text: pnum(o.taken) }), el('td', { class: 'num', text: pnum(o.booked) }),
+                        el('td', { class: 'num', text: pnum(o.wait) }), el('td', { class: 'num pp-left', text: pol ? pnum(o.left) : '–' }),
+                        el('td', { class: 'ac-small', text: pol ? pday(pol.usable_from) + ' – ' + pday(pol.usable_to) : 'No allowance set' }),
+                        el('td', {}, PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: pol ? 'Change' : 'Set allowance', onclick: function () { openLpol(s); } }) : null)));
+                });
+                var box = document.getElementById('pp-leave-reqs'); box.textContent = '';
+                var all = []; PAY.staff.forEach(function (s) { (s.leave || []).forEach(function (l) { all.push([s, l]); }); });
+                all.sort(function (a, b) { return (a[1].status === 'pending' ? 0 : 1) - (b[1].status === 'pending' ? 0 : 1) || (a[1].starts_on < b[1].starts_on ? 1 : -1); });
+                if (!all.length) return box.appendChild(el('p', { class: 'ac-muted', text: 'No leave requests yet. Staff request leave on their Pay and leave page, and you get an email.' }));
+                var SN = { pending: 'Waiting', approved: 'Approved', declined: 'Declined', cancelled: 'Cancelled' };
+                all.forEach(function (x) {
+                    var s = x[0], l = x[1];
+                    box.appendChild(el('div', { class: 'pay-lreq pp-req pp-req--' + l.status }, el('span', {}, el('b', { text: s.name + ': ' }), el('b', { text: pday(l.starts_on) + (l.ends_on !== l.starts_on ? ' – ' + pday(l.ends_on) : '') }), ' · ' + l.working_days + ' working day' + (l.working_days === 1 ? '' : 's') + ' · ' + (l.reason || ''), l.decision_note ? el('small', { class: 'ac-muted', text: ' · Note: ' + l.decision_note }) : null),
+                        el('span', { class: 'sp-right' }, el('span', { class: 'sp-pill sp-pill--' + l.status, text: SN[l.status] }),
+                            l.status === 'pending' && PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Approve', onclick: function () { decideLeave(l, true); } }) : null,
+                            l.status === 'pending' && PAY.can_leave ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Decline', onclick: function () { decideLeave(l, false); } }) : null)));
+                });
+            }
+            async function decideLeave(l, ok) {
+                var note = window.prompt((ok ? 'Approve' : 'Decline') + ' this leave? Add a note for them (optional).', ''); if (note === null) return;
+                var r = await sb.rpc('leave_decide', { p_id: l.id, p_approve: ok, p_note: note || null });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.toast('Leave ' + (ok ? 'approved' : 'declined') + '. They have been emailed.', 'success'); load();
+            }
+            // ---------------- dialogs
+            var compDlg = document.getElementById('comp-dlg'), compForm = document.getElementById('comp-form');
+            var ITEM_LABEL = { salary: 'Salary', stipend: 'Stipend', data: 'Data allowance', airtime: 'Airtime allowance', transport: 'Transport allowance', other: 'Allowance' };
+            compForm.item.addEventListener('change', function () { if (!compEdit) compForm.label.value = ITEM_LABEL[compForm.item.value]; compPreview(); });
+            ['amount', 'starts', 'ends', 'prorate'].forEach(function (n) { compForm[n].addEventListener('input', compPreview); compForm[n].addEventListener('change', compPreview); });
+            function compPreview() {
+                var p = document.getElementById('comp-preview'), a = +compForm.amount.value, s = compForm.starts.value;
+                if (!a || !s) { p.textContent = ''; return; }
+                var d = new Date(s + 'T12:00:00Z'), dim = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(), days = dim - d.getUTCDate() + 1;
+                var first = compForm.prorate.checked && days < dim ? Math.round(a * days / dim) : a;
+                p.textContent = 'First payment (' + d.toLocaleDateString('en-GB', { month: 'long' }) + '): ₦' + first.toLocaleString('en-NG') + (first !== a ? ' for ' + days + ' of ' + dim + ' days' : '') + '. Then ₦' + a.toLocaleString('en-NG') + ' each month, due on the last working day.';
+            }
+            function openComp(s, c) {
+                compUser = s; compEdit = c; document.getElementById('comp-msg').textContent = '';
+                document.getElementById('comp-title').textContent = (c ? 'Edit ' + c.label.toLowerCase() : 'Add salary or allowance') + ': ' + s.name;
+                compForm.item.value = c ? c.item : 'data'; compForm.label.value = c ? c.label : 'Data allowance'; compForm.item.disabled = !!c; compForm.label.readOnly = !!c;
+                compForm.amount.value = c ? Math.round(c.amount_minor / 100) : ''; compForm.starts.value = c ? c.starts_on : PAY.today; compForm.ends.value = c && c.ends_on || '';
+                compForm.prorate.checked = c ? c.prorate_first : true; compForm.active.checked = c ? c.active : true; compForm.note.value = c && c.note || '';
+                compPreview(); compDlg.showModal();
+            }
+            compForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var r = await sb.rpc('comp_save', { p_user: compUser.user_id, p_item: compForm.item.value, p_label: compForm.label.value, p_amount: compForm.amount.value === '' ? null : +compForm.amount.value,
+                    p_starts: compForm.starts.value || null, p_ends: compForm.ends.value || null, p_prorate: compForm.prorate.checked, p_active: compForm.active.checked, p_note: compForm.note.value });
+                if (r.error) return OFL.notice(document.getElementById('comp-msg'), OFL.friendlyError(r.error), 'error');
+                compDlg.close(); OFL.toast('Pay item saved. This month’s payment has been updated.', 'success'); load();
+            });
+            var lpolDlg = document.getElementById('lpol-dlg'), lpolForm = document.getElementById('lpol-form');
+            function openLpol(s) {
+                lpolUser = s; var p = s.leave_policy; document.getElementById('lpol-msg').textContent = '';
+                document.getElementById('lpol-title').textContent = 'Leave allowance: ' + s.name;
+                lpolForm.days.value = p ? pnum(p.days_entitled) : 3; lpolForm.from.value = p ? p.usable_from : PAY.today; lpolForm.to.value = p ? p.usable_to : ''; lpolForm.note.value = p && p.note || '';
+                lpolDlg.showModal();
+            }
+            lpolForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var r = await sb.rpc('leave_policy_set', { p_user: lpolUser.user_id, p_days: +lpolForm.days.value, p_from: lpolForm.from.value || null, p_to: lpolForm.to.value || null, p_note: lpolForm.note.value });
+                if (r.error) return OFL.notice(document.getElementById('lpol-msg'), OFL.friendlyError(r.error), 'error');
+                lpolDlg.close(); OFL.toast('Leave allowance saved.', 'success'); load();
+            });
+            load();
+        })();
+    </script>
+</body>
+</html>

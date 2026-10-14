@@ -133,6 +133,7 @@
             el('a', { href: '/academy/dashboard/', role: 'menuitem', text: 'My learning' }),
             el('a', { href: '/account/', role: 'menuitem', text: 'Account settings' }),
             p.staff_role ? el('a', { href: '/academy/admin/', role: 'menuitem', text: 'Staff dashboard' }) : null,
+            ['owner', 'finance', 'admin'].indexOf(p.staff_role) >= 0 ? el('a', { href: '/academy/admin/pay/', role: 'menuitem', text: 'Staff pay and leave' }) : null,
             el('button', { type: 'button', role: 'menuitem', text: 'Log out', onclick: async function () { await OFL.sb.auth.signOut(); location.href = '/academy/'; } }));
         var btn = el('button', { class: 'ac-avatar', type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-label': 'Account menu', text: initials(p.full_name || user.email) });
         btn.addEventListener('click', function (e) {

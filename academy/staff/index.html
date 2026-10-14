@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014d">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014e">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -57,10 +57,8 @@
                 <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/team/">Team calendar</a></div></div>
             <div id="msg"></div>
             <div id="sp-body" hidden>
-                <div class="sp-grid">
-                    <section class="sp-card" id="sp-comp-card"><h2>Your allowances</h2><div id="sp-comp"></div></section>
-                    <section class="sp-card" id="sp-leave-sum"><h2>Your leave</h2><div id="sp-leave-chips"></div></section>
-                </div>
+                <section class="sp-card" id="sp-comp-card"><h2>Your pay <small class="ac-muted" id="sp-month"></small></h2><div id="sp-pay-chips"></div><div id="sp-comp"></div></section>
+                <section class="sp-card" id="sp-leave-sum"><h2>Your leave</h2><div id="sp-leave-chips"></div></section>
                 <section class="sp-card" id="sp-payout-card">
                     <h2>How would you like to be paid?</h2>
                     <p class="ac-muted" id="sp-payout-state">Choose one. You can change it at any time before a payment is made.</p>
@@ -128,8 +126,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014d"></script>
-    <script src="/assets/js/academy.js?v=20261014d"></script>
+    <script src="/assets/js/learn.js?v=20261014e"></script>
+    <script src="/assets/js/academy.js?v=20261014e"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -150,8 +148,21 @@
                 drawComp(); drawPayout(); drawPay(); drawLeave();
             }
             function drawComp() {
+                var m = D.today.slice(0, 7), ent = 0, recM = 0, recAll = 0, due = 0, mlabel = month(D.today.slice(0, 8) + '01');
+                D.payments.forEach(function (p) { if (p.period.slice(0, 7) === m) { ent += p.amount_minor; if (p.status === 'paid') recM += p.amount_minor; } if (p.status === 'paid') recAll += p.amount_minor; else if (p.status === 'due') due += p.amount_minor; });
+                document.getElementById('sp-month').textContent = '(' + mlabel + ')';
+                var dueDay = (D.payments.filter(function (p) { return p.period.slice(0, 7) === m; })[0] || {}).due_on;
+                var pc = document.getElementById('sp-pay-chips'); pc.textContent = '';
+                if (D.comp.length || D.payments.length) {
+                    var row = el('div', { class: 'sp-chips' });
+                    [['Due to you this month', money(ent), dueDay ? 'Paid on ' + day(dueDay, { year: undefined }) : ''], ['Received this month', money(recM), ''], ['Received so far', money(recAll), 'Since you joined'], ['Still to come', money(due), 'Including this month']].forEach(function (x, i) {
+                        row.appendChild(el('div', { class: 'sp-chip' + (i === 1 || i === 2 ? ' sp-chip--left' : '') }, el('b', { class: 'num', text: x[1] }), el('span', { text: x[0] }), x[2] ? el('small', { text: x[2] }) : null));
+                    });
+                    pc.appendChild(row);
+                }
                 var b = document.getElementById('sp-comp'); b.textContent = '';
                 if (!D.comp.length) { b.appendChild(el('p', { class: 'ac-muted', text: 'No salary or allowance is set up for you. If you think this is wrong, message the founder.' })); return; }
+                b.appendChild(el('h3', { class: 'ac-admin__sub', text: 'What you are entitled to each month' }));
                 var ul = el('ul', { class: 'sp-comp' }); var total = 0;
                 D.comp.forEach(function (c) { total += c.amount_minor; ul.appendChild(el('li', {}, el('span', { text: c.label }), el('b', { class: 'num', text: money(c.amount_minor) + ' a month' }))); });
                 b.appendChild(ul);
@@ -202,10 +213,11 @@
             function drawLeave() {
                 var pol = D.leave_policy, chips = document.getElementById('sp-leave-chips'); chips.textContent = '';
                 if (!pol) { chips.appendChild(el('p', { class: 'ac-muted', text: 'No leave allowance is set up for you yet.' })); document.getElementById('sp-leave-card').hidden = true; return; }
-                var left = pol.days_entitled - D.leave_used - D.leave_pending;
-                var row = el('div', { class: 'sp-chips' });
-                [['Allowance', num(pol.days_entitled)], ['Taken or booked', num(D.leave_used)], ['Waiting for a decision', num(D.leave_pending)], ['Left', num(left)]].forEach(function (x, i) {
-                    row.appendChild(el('div', { class: 'sp-chip' + (i === 3 ? ' sp-chip--left' : '') }, el('b', { class: 'num', text: x[1] }), el('span', { text: x[0] })));
+                var left = pol.days_entitled - D.leave_used - D.leave_pending, taken = 0, booked = 0;
+                D.leave.forEach(function (r) { if (r.status === 'approved') { if (r.starts_on <= D.today) taken += r.working_days; else booked += r.working_days; } });
+                var row = el('div', { class: 'sp-chips sp-chips--5' });
+                [['Entitled', num(pol.days_entitled)], ['Taken so far', num(taken)], ['Booked ahead', num(booked)], ['Waiting for a decision', num(D.leave_pending)], ['Left', num(left)]].forEach(function (x, i) {
+                    row.appendChild(el('div', { class: 'sp-chip' + (i === 4 ? ' sp-chip--left' : '') }, el('b', { class: 'num', text: x[1] }), el('span', { text: x[0] })));
                 });
                 chips.appendChild(row);
                 chips.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Working days (Monday to Friday) you can take between ' + day(pol.usable_from) + ' and ' + day(pol.usable_to) + '.' + (pol.note ? ' ' + pol.note : '') }));

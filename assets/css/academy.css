@@ -1488,3 +1488,17 @@ a,button,input,select,textarea{-webkit-tap-highlight-color:transparent}
 .au-switch__btn{transition:background-color .15s,color .15s,box-shadow .15s}
 .au-switch__btn:not(.is-active):hover{color:var(--ink)}
 .ap-banner__tag{white-space:nowrap}
+
+.sp-chip small{display:block;font-size:.72rem;color:var(--ink-3,#6b7689);margin-top:2px}
+.sp-chips--5{grid-template-columns:repeat(5,1fr)}
+@media (max-width:720px){.sp-chips--5{grid-template-columns:repeat(2,1fr)}}
+.pp-tabs{margin:4px 0 16px}
+.pp-h{font-size:1.1rem;margin:22px 0 10px}
+.pp-sum td.num,.pp-sum th{white-space:nowrap}
+.pp-row{cursor:pointer;transition:background .15s}.pp-row:hover{background:#F2F5FB}
+.pp-due{color:#8a5a00;font-weight:700}
+.pp-left{color:#1f6b47;font-weight:700}
+.ac-kpi.is-good strong{color:#1f6b47}.ac-kpi.is-warn strong{color:#8a5a00}
+.pay-card.is-flash{box-shadow:0 0 0 3px rgba(36,83,230,.35);transition:box-shadow .3s}
+.pay-card{scroll-margin-top:90px}
+.pp-req--pending{background:#FFFBF0;border-radius:10px;padding:10px 12px;border-bottom:0;margin-bottom:6px}
