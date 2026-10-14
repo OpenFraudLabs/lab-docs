@@ -52,6 +52,7 @@
         <div class="ac-wrap">
             <div class="ac-dash-head">
                 <h1 id="hello">My learning</h1>
+                <div class="ac-dash-chips" id="dash-chips"></div>
                 <div id="msg"></div>
             </div>
             <div id="next"></div>
@@ -114,9 +115,9 @@
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
-            sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
-            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
-            document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
+            sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('dash-chips').prepend(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
+            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
+            document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
                 : el('em', { text: 'Issued when you start your first lesson' })));
             var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
@@ -179,7 +180,7 @@
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
-            otherCourses(next, 'More courses');
+            otherCourses(document.querySelector('.ac-two').parentNode.appendChild(el('div', { class: 'ac-more-wrap' })), 'More courses');
             var list = document.getElementById('checklist');
             function item(isDone, text, link) {
                 list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));

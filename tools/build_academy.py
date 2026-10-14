@@ -1155,6 +1155,7 @@ page("academy/lesson", "Lesson | Open Fraud Labs Academy", "Watch, read, practis
 dash_main = """        <div class="ac-wrap">
             <div class="ac-dash-head">
                 <h1 id="hello">My learning</h1>
+                <div class="ac-dash-chips" id="dash-chips"></div>
                 <div id="msg"></div>
             </div>
             <div id="next"></div>
@@ -1185,9 +1186,9 @@ dash_script = r"""        (async function () {
             if (!prof.terms_accepted_at) { location.href = '/account/?next=/academy/dashboard/'; return; }
             document.getElementById('hello').textContent = prof.full_name ? 'Welcome back, ' + prof.full_name.split(' ')[0] : 'My learning';
             var eno = (await sb.rpc('my_enrollment_no')).data;
-            sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
-            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('hello').after(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
-            document.getElementById('hello').after(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
+            sb.rpc('leaderboard', { p_course: 'data-science', p_period: 'all', p_limit: 1 }).then(function (r) { var me = r.data && r.data.me; if (me) document.getElementById('dash-chips').prepend(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Points' }), el('b', { class: 'num', text: me.points.toLocaleString('en-GB') + ' XP' }), el('a', { href: '/academy/leaderboard/', text: 'Rank #' + me.rank + ' on the leaderboard' }))); });
+            sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }))); });
+            document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
                 : el('em', { text: 'Issued when you start your first lesson' })));
             var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
@@ -1250,7 +1251,7 @@ dash_script = r"""        (async function () {
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
-            otherCourses(next, 'More courses');
+            otherCourses(document.querySelector('.ac-two').parentNode.appendChild(el('div', { class: 'ac-more-wrap' })), 'More courses');
             var list = document.getElementById('checklist');
             function item(isDone, text, link) {
                 list.appendChild(el('li', { class: isDone ? 'is-done' : '' }, el('span', { class: 'ac-dot' }), el('span', { text: text }), link || el('span')));
@@ -1648,6 +1649,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
             </div>
             <div id="admin-body" hidden>
                 <div class="ac-kpis" id="kpis"></div>
+                <nav class="adm-jump" id="adm-jump" aria-label="Sections"></nav>
                 <section class="ac-admin__sec" data-cap="view_stats" id="doc-sec">
                     <div class="ac-admin__head"><h2>Documents</h2><p class="ac-muted">Every Academy document and page in one place: the orientation document, policies, calendars, application pages and banners. “Who can see it” controls whether interns and cohort learners also see it on their calendar.</p>
                         <div class="ac-admin__tools"><input type="search" id="doc-q" placeholder="Search documents" aria-label="Search documents"><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="doc-add" hidden>Add document</button></div></div>
@@ -1673,7 +1675,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                             <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-fill">Fill open places now</button>
                             <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="app-csv">Download CSV</button></div></div>
                     <p class="app-line" id="app-line"></p>
-                    <div class="ac-kpis ac-kpis--sm" id="app-kpis"></div>
+                    <p class="app-line ac-muted" id="app-kpis"></p>
                     <div class="app-pipe" id="app-pipe" hidden></div>
                     <div class="app-filter"><div class="ofl-tabs" id="app-tabs">
                         <button type="button" class="ofl-tab is-active" data-f="all">All</button>
@@ -1733,7 +1735,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                         <p class="ac-muted ac-small">Screenshots are only needed to check eligibility. <button type="button" class="au-link" id="co-del-proofs">Delete all screenshots for this cohort</button> once you've finished checking.</p>
                     </form>
                 </dialog>
-                <section class="ac-admin__sec" data-cap="view_people">
+                <section class="ac-admin__sec" id="learners-sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Learners</h2><div class="ac-admin__tools"><input type="search" id="q" placeholder="Search name, email or enrollment no." aria-label="Search learners"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="csv">Download CSV</button></div></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="learners"></table></div>
                 </section>
@@ -1830,17 +1832,17 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <p class="ac-muted ac-small">Rename lessons, add new ones, and release or hide them. A hidden lesson stays in the outline as &ldquo;Coming soon&rdquo; and can't be opened. Notes, quiz and video for each lesson are uploaded with the content import tool.</p>
                     <div class="ac-table-wrap"><table class="ac-table cm-lessons" id="lessons-table"></table></div>
                 </dialog>
-                <section class="ac-admin__sec" data-cap="view_stats">
+                <section class="ac-admin__sec" id="funnel-sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Lesson funnel: Data Science from Scratch</h2></div>
                     <p class="ac-muted">Learners at each step of every released lesson. Video and notes counts start from 1 October 2026, when the step-by-step rules began.</p>
                     <div class="ac-table-wrap"><table class="ac-table" id="funnel"></table></div>
                 </section>
-                <section class="ac-admin__sec" data-cap="view_stats">
+                <section class="ac-admin__sec" id="who-sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Who's learning</h2><p class="ac-muted" id="bg-note">Answers from the About you step. Totals only; use the download for your own analysis.</p>
                         <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="bg-csv">Download answers (CSV)</button></div>
                     <div class="bg-grid" id="bg-grid"><p class="ac-muted">Loading…</p></div>
                 </section>
-                <section class="ac-admin__sec" data-cap="view_people">
+                <section class="ac-admin__sec" id="activity-sec" data-cap="view_people">
                     <div class="ac-admin__head"><h2>Recent activity</h2><p class="ac-muted">Enrolments, completed courses, certificates and project results, newest first. Learners get the same messages on the site and by email.</p></div>
                     <ul class="ac-activity" id="activity"><li class="ac-muted">Loading…</li></ul>
                 </section>
@@ -1852,7 +1854,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                     <h3 class="ac-admin__sub">Recent payments</h3>
                     <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
                 </section>
-                <section class="ac-admin__sec" data-cap="view_staff">
+                <section class="ac-admin__sec" id="staff-sec" data-cap="view_staff">
                     <div class="ac-admin__head"><h2>Staff and roles</h2><p class="ac-muted" id="staff-note">Who can use this page and what they can do. Only the owner can give or remove roles, and nobody can change the owner.</p></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="staff-table"></table></div>
                     <details class="ac-roles"><summary>What each role can do</summary>
@@ -1868,7 +1870,7 @@ admin_main = """        <div class="ac-wrap ac-admin">
                         </ul>
                     </details>
                 </section>
-                <section class="ac-admin__sec" data-cap="review">
+                <section class="ac-admin__sec" id="reviews-sec" data-cap="review">
                     <div class="ac-admin__head"><h2>Project and capstone reviews</h2><p class="ac-muted">Peer review grades these automatically; approve or request changes here to step in at any time.</p></div>
                     <div class="ofl-tabs" id="filters">
                         <button type="button" class="ofl-tab is-active" data-status="submitted">Waiting for review</button>
@@ -1945,6 +1947,13 @@ admin_script = r"""        (async function () {
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
             var ROLE_OPTS = [['admin', 'Admin'], ['instructor', 'Instructor'], ['reviewer', 'Reviewer'], ['scholarship', 'Scholarship officer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']];
             document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
+            (function jump() {
+                var nav = document.getElementById('adm-jump'); nav.textContent = '';
+                document.querySelectorAll('section.ac-admin__sec').forEach(function (sec) {
+                    if (sec.hidden || !sec.id) return; var h = sec.querySelector('h2'); if (!h) return;
+                    nav.appendChild(el('a', { href: '#' + sec.id, text: h.textContent.replace(/:.*$/, '').replace('Signed up but didn’t apply', 'Not applied yet') }));
+                });
+            })();
             if (!can('view_people')) document.getElementById('bg-csv').hidden = true;
             document.getElementById('admin-sub').prepend(el('span', { class: 'ac-rolebadge', text: 'Your role: ' + ROLE_NAME[role] }), ' ');
             document.getElementById('admin-body').hidden = false;
@@ -2193,10 +2202,9 @@ admin_script = r"""        (async function () {
                     el('a', { href: '/academy/apply/?c=' + c.slug, target: '_blank', rel: 'noopener', text: 'Apply page' }));
                 var n = function (s) { return apps.filter(function (a) { return a.status === s; }).length; };
                 var trialsEnded = n('completed') + n('missed');
-                var k = document.getElementById('app-kpis'); k.textContent = '';
-                [['Applied', apps.length], ['To check', apps.filter(function (a) { return a.status === 'waitlisted' && a.proof_status === 'pending'; }).length], ['Offered', n('shortlisted')], ['Confirmed', n('completed')], ['Missed deadline', n('missed')], ['Waitlist', n('waitlisted')],
-                 ['Places left', Math.max(0, c.capacity - n('shortlisted') - n('completed'))], ['Offers accepted', trialsEnded ? Math.round(100 * n('completed') / trialsEnded) + '%' : '—']]
-                    .forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); });
+                var cnt = { all: apps.length, check: apps.filter(function (a) { return a.status === 'waitlisted' && a.proof_status === 'pending'; }).length, shortlisted: n('shortlisted'), completed: n('completed'), waitlisted: n('waitlisted'), missed: n('missed'), rejected: n('rejected') };
+                document.querySelectorAll('#app-tabs .ofl-tab').forEach(function (b) { var base = b.dataset.label || (b.dataset.label = b.textContent); b.textContent = base + ' (' + (cnt[b.dataset.f] || 0) + ')'; });
+                document.getElementById('app-kpis').textContent = Math.max(0, c.capacity - n('shortlisted') - n('completed')) + ' of ' + c.capacity + ' places left' + (trialsEnded ? ' · ' + Math.round(100 * n('completed') / trialsEnded) + '% of finished offers accepted' : '');
                 drawApps();
             }
             function drawApps() {
@@ -2591,7 +2599,7 @@ admin_script = r"""        (async function () {
             docDlg.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { docDlg.close(); }); });
             async function loadDocs() {
                 var r = await sb.rpc('documents_list'); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                docs = r.data.documents || []; var mg = !!r.data.can_manage; document.getElementById('doc-add').hidden = !mg;
+                docs = (r.data && r.data.documents) || []; var mg = !!(r.data && r.data.can_manage); document.getElementById('doc-add').hidden = !mg;
                 var q = document.getElementById('doc-q').value.trim().toLowerCase(), box = document.getElementById('doc-list'); box.textContent = '';
                 var groups = {}; docs.filter(function (d) { return !q || (d.title + ' ' + d.category + ' ' + (d.notes || '')).toLowerCase().indexOf(q) >= 0; })
                     .forEach(function (d) { (groups[d.category] = groups[d.category] || []).push(d); });
