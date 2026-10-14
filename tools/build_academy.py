@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261014h"
+V = "20261014j"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1688,7 +1688,14 @@ admin_main = """        <div class="ac-wrap ac-admin adm-shell" id="adm-shell">
             <div id="admin-body" hidden>
                 <section class="ac-admin__sec" id="overview-sec" data-cap="view_stats">
                     <div class="ac-admin__head"><h2>Overview</h2><p class="ac-muted">Where the Academy stands today, and what needs a decision from the team.</p></div>
-                    <div class="adm-attn" id="adm-attn"></div>
+                    <div class="adm-ov">
+                        <div class="adm-ov__col">
+                            <h3 class="adm-ov__h">Needs a decision</h3><div class="adm-attn" id="adm-attn"></div>
+                            <h3 class="adm-ov__h">Coming up</h3><ul class="adm-next" id="adm-next"><li class="ac-muted">Loading the calendar…</li></ul>
+                        </div>
+                        <div class="adm-ov__col adm-ov__col--quick"><h3 class="adm-ov__h">Quick actions</h3><div class="adm-quick" id="adm-quick"></div></div>
+                    </div>
+                    <h3 class="adm-ov__h">Academy in numbers</h3>
                     <div class="ac-kpis adm-kpis" id="kpis"></div>
                 </section>
                 <section class="ac-admin__sec" data-cap="view_stats" id="doc-sec">
@@ -2000,6 +2007,32 @@ admin_script = r"""        (async function () {
             document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
             (function shell() {
                 var rail = document.getElementById('adm-rail'), shellEl = document.getElementById('adm-shell');
+                document.body.classList.add('is-console');
+                (async function overviewExtras() {
+                    var hr = +new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', hour12: false });
+                    var nm = ((await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle()).data || {}).full_name || '';
+                    var t = document.getElementById('adm-title'); t.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + nm.split(' ')[0] : '');
+                    var sub = document.getElementById('admin-sub'); var dl = el('span', { class: 'adm-date', text: new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Lagos time' });
+                    var plain = [].slice.call(sub.childNodes).filter(function (n) { return n.nodeType === 3; }); plain.forEach(function (n) { n.remove(); }); sub.appendChild(dl);
+                    var Q = [['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
+                             ['Review applications', '#app-sec', 'manage_applications'], ['Staff pay and leave', '/academy/admin/pay/', 'pay_or_leave'], ['Add a document', '#doc-sec', 'manage_applications'], ['Give a scholarship', '#sch-sec', 'manage_scholarships']];
+                    var qb = document.getElementById('adm-quick');
+                    Q.filter(function (q) { return can(q[2]); }).forEach(function (q) { qb.appendChild(el('a', { class: 'adm-quick__btn', href: q[1], text: q[0] })); });
+                    var nx = document.getElementById('adm-next');
+                    try {
+                        var now = new Date(), r = await sb.rpc('team_calendar', { p_from: new Date(now.getTime() - 3 * 3600e3).toISOString(), p_to: new Date(now.getTime() + 21 * 864e5).toISOString() });
+                        var evs = ((r.data && r.data.events) || []).filter(function (e) { return !e.cancelled_at && new Date(e.ends_at || e.starts_at) > now; }).slice(0, 4);
+                        nx.textContent = '';
+                        if (!evs.length) nx.appendChild(el('li', { class: 'ac-muted', text: 'Nothing on the calendar in the next three weeks.' }));
+                        evs.forEach(function (e) {
+                            var s = new Date(e.starts_at), soon = s - now < 3 * 3600e3, live = s <= now;
+                            var day = s.toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short' }), tm = s.toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit' });
+                            var cta = e.id && !e.auto ? el('a', { class: 'ac-btn ac-btn--' + (soon ? 'primary' : 'secondary') + ' ac-btn--sm', href: '/academy/team/?e=' + e.id, text: e.audience === 'cohort' && e.kind === 'meeting' && soon ? 'Take attendance' : 'Open' }) : null;
+                            nx.appendChild(el('li', { class: 'adm-next__item' + (soon ? ' is-soon' : '') }, el('span', { class: 'adm-next__when' }, el('b', { text: live ? 'Now' : day }), el('small', { text: tm })),
+                                el('span', { class: 'adm-next__what' }, el('b', { text: e.title }), el('small', { text: (e.audience === 'cohort' ? 'Learners' : 'Team') + (e.location ? ' · Google Meet' : '') })), cta));
+                        });
+                    } catch (x) { nx.textContent = ''; }
+                })();
                 var GROUPS = [
                     ['Today', [['overview-sec', 'Overview']]],
                     ['Founding Cohort', [['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
