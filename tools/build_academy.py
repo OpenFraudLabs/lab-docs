@@ -5051,6 +5051,40 @@ ORIENT_SLIDES = [
   <div class="o-card o-card--mint"><em>Your certificate</em><p class="o-mid">In your registered name, with a unique ID anyone can verify online</p></div>
 </div>""",
  "Projects pass with a median peer score of 70% against the published rubric. You review other learners' work in return. The certificate is a certificate of course completion, not an accredited qualification."),
+("path", "light", """<p class="o-eyebrow">After the course</p><h2 class="o-h2">Your data science path</h2>
+<div class="o-ladder">
+  <div class="o-rung"><i>1</i><h3>Foundations</h3><p>This course: Python, statistics, SQL, machine learning and explainable AI</p><em>Now &ndash; Dec 2026</em></div>
+  <div class="o-rung"><i>2</i><h3>Proof of skill</h3><p>Three peer-reviewed projects, your capstone and a verifiable certificate</p><em>Your portfolio</em></div>
+  <div class="o-rung"><i>3</i><h3>First paid work</h3><p>Junior data analyst roles, freelance projects, AI training and evaluation work</p><em>Entry level</em></div>
+  <div class="o-rung"><i>4</i><h3>Data scientist</h3><p>Build models that drive decisions in finance, health, retail, energy and tech</p><em>Mid level</em></div>
+  <div class="o-rung o-rung--hi"><i>5</i><h3>Specialise or lead</h3><p>Machine learning engineer, data engineer, AI evaluation, fraud and risk analytics, analytics lead</p><em>Senior</em></div>
+</div>
+<p class="o-foot">Every step needs practice beyond this course. What the course gives you is a real start: skills, projects to show and a certificate anyone can check.</p>""",
+ "There is no fixed timeline: people move between steps at different speeds depending on practice, portfolio and opportunities. Encourage learners to keep building after the cohort, for example on Kaggle and GitHub."),
+("demand", "dark", """<p class="o-eyebrow o-eyebrow--light">Recognised worldwide</p><h2 class="o-h2 o-h2--light">A skill the world is hiring for</h2>
+<div class="o-cards o-cards--3 o-cards--glass">
+  <div class="o-card"><em>World Economic Forum, 2025</em><p class="o-kpi">Top 3</p><p>Big data specialists and AI and machine learning specialists are among the three fastest-growing jobs to 2030</p></div>
+  <div class="o-card"><em>US Bureau of Labor Statistics</em><p class="o-kpi">35%</p><p>projected growth in data scientist jobs from 2025 to 2035, much faster than average</p></div>
+  <div class="o-card"><em>US Bureau of Labor Statistics</em><p class="o-kpi">$57.80</p><p>median hourly pay for data scientists in the US (May 2025)</p></div>
+</div>
+<p class="o-foot o-foot--light">The same skills are used by banks, fintechs, telcos, health and energy companies across Nigeria and Africa. Sources: WEF Future of Jobs Report 2025; BLS Occupational Outlook Handbook.</p><div class="o-grid-bg"></div>""",
+ "These are global and US figures, shown to illustrate demand, not a promise of what any learner will earn. US pay figures are for full-time US-based roles. Sources: weforum.org Future of Jobs Report 2025 (fastest-growing jobs); bls.gov Occupational Outlook Handbook, Data Scientists."),
+("remote", "light", """<div class="o-split o-split--remote">
+  <div><p class="o-eyebrow">Remote work</p><h2 class="o-h2">Work from Nigeria for clients anywhere</h2>
+    <div class="o-rates">
+      <div class="o-rate"><b>$30<small>/hr</small></b><span>median rate for data analysts on Upwork<br><small>typical range $20&ndash;$50</small></span></div>
+      <div class="o-rate"><b>$50<small>/hr</small></b><span>median rate for data scientists on Upwork<br><small>typical range $35&ndash;$250</small></span></div>
+    </div>
+    <p class="o-small">Source: Upwork hiring guides. Rates depend on experience and the client; beginners usually start at the lower end, and a strong portfolio helps you move up. Not a promise of income.</p>
+  </div>
+  <div class="o-stack">
+    <div class="o-panel"><p class="o-tag">Freelance marketplaces</p><p class="o-mid"><b>Upwork</b>, <b>Toptal</b> (selective, for experienced talent)</p></div>
+    <div class="o-panel"><p class="o-tag">Remote placement</p><p class="o-mid"><b>Andela</b> (started in Lagos), <b>Turing</b>: matched with global companies</p></div>
+    <div class="o-panel"><p class="o-tag">AI training and evaluation</p><p class="o-mid"><b>Mindrift</b>, <b>Turing</b> and similar platforms pay experts to check and improve AI outputs</p></div>
+    <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">Get noticed</p><p class="o-big">Kaggle competitions, a GitHub portfolio and LinkedIn, with your Academy certificate</p></div>
+  </div>
+</div>""",
+ "Availability of projects on each platform varies by country and changes over time, so learners should check each platform's current terms. Never pay anyone to get a remote job. Sources: upwork.com/hire/data-analysts/cost and upwork.com/hire/data-scientists/cost."),
 ("next", "blue", """<div class="o-split">
   <div><p class="o-eyebrow o-eyebrow--light">After this meeting</p><h2 class="o-h2 o-h2--light">Your next steps</h2><p class="o-lead o-lead--light">Finish them by Wednesday 21 October, 8:30 pm, to keep your place.</p></div>
   <ol class="o-todo">
@@ -5149,6 +5183,23 @@ def build_orientation():
 .o-flow__step b{font:700 34px/1 'Space Grotesk',system-ui,sans-serif;color:var(--peri)}.o-flow__step h3{font:700 48px/1.05 'Space Grotesk',system-ui,sans-serif;margin:0;color:#fff}.o-flow__step p{font-size:28px;line-height:1.4;color:#C9D4EA;margin:0}
 .o-flow__step--hi{background:var(--mint);border-color:var(--mint)}.o-flow__step--hi b,.o-flow__step--hi h3{color:#062A1B}.o-flow__step--hi p{color:#0D3D27}
 .o-flow__arrow{align-self:center;font-size:56px;color:var(--peri)}
+.o-ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;align-items:end}
+.o-rung{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 28px;display:flex;flex-direction:column;gap:10px;position:relative}
+.o-rung:nth-child(1){min-height:330px}.o-rung:nth-child(2){min-height:380px}.o-rung:nth-child(3){min-height:430px}.o-rung:nth-child(4){min-height:480px}.o-rung:nth-child(5){min-height:530px}
+.o-rung i{font:700 28px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--blue);background:#E8EDFF;width:60px;height:60px;border-radius:50%;display:grid;place-items:center}
+.o-rung h3{font:700 36px/1.1 'Space Grotesk',system-ui,sans-serif;margin:6px 0 0}.o-rung p{font-size:24px;line-height:1.4;color:#4A5568;margin:0}
+.o-rung em{margin-top:auto;font:600 22px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+.o-rung--hi{background:linear-gradient(160deg,#2453E6,#1838A8);border:0;color:#fff}.o-rung--hi p{color:#E4EAFF}.o-rung--hi i{background:rgba(255,255,255,.2);color:#fff}.o-rung--hi em{color:#C9D4FF}
+.o-cards--glass .o-card{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);box-shadow:none;color:#F3F6FC}
+.o-cards--glass .o-card p{color:#C9D4EA}.o-cards--glass .o-card em{color:var(--peri)}
+.o-slide--dark .o-cards{position:relative;z-index:1}
+.o-kpi{font:700 110px/1 'Space Grotesk',system-ui,sans-serif !important;letter-spacing:-3px;color:#fff !important;margin:8px 0 4px !important}
+.o-split--remote{grid-template-columns:1.05fr .95fr;gap:70px}
+.o-rates{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:6px 0 10px}
+.o-rate{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 30px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.o-rate::after{content:"";position:absolute;left:0;top:0;height:8px;width:100%;background:linear-gradient(90deg,var(--mint),var(--blue))}
+.o-rate b{font:700 96px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-3px;color:var(--ink)}.o-rate b small{font-size:36px;letter-spacing:0;color:var(--ink3)}
+.o-rate span{font-size:26px;line-height:1.35;color:var(--ink2)}.o-rate span small{font-size:22px;color:var(--ink3)}
 .o-todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
 .o-todo li{display:flex;gap:26px;align-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:28px 36px;font-size:33px;line-height:1.3}
 .o-todo b{font:700 44px/1 'Space Grotesk',system-ui,sans-serif;color:var(--mint);min-width:34px}

@@ -107,6 +107,23 @@
 .o-flow__step b{font:700 34px/1 'Space Grotesk',system-ui,sans-serif;color:var(--peri)}.o-flow__step h3{font:700 48px/1.05 'Space Grotesk',system-ui,sans-serif;margin:0;color:#fff}.o-flow__step p{font-size:28px;line-height:1.4;color:#C9D4EA;margin:0}
 .o-flow__step--hi{background:var(--mint);border-color:var(--mint)}.o-flow__step--hi b,.o-flow__step--hi h3{color:#062A1B}.o-flow__step--hi p{color:#0D3D27}
 .o-flow__arrow{align-self:center;font-size:56px;color:var(--peri)}
+.o-ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;align-items:end}
+.o-rung{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 28px;display:flex;flex-direction:column;gap:10px;position:relative}
+.o-rung:nth-child(1){min-height:330px}.o-rung:nth-child(2){min-height:380px}.o-rung:nth-child(3){min-height:430px}.o-rung:nth-child(4){min-height:480px}.o-rung:nth-child(5){min-height:530px}
+.o-rung i{font:700 28px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--blue);background:#E8EDFF;width:60px;height:60px;border-radius:50%;display:grid;place-items:center}
+.o-rung h3{font:700 36px/1.1 'Space Grotesk',system-ui,sans-serif;margin:6px 0 0}.o-rung p{font-size:24px;line-height:1.4;color:#4A5568;margin:0}
+.o-rung em{margin-top:auto;font:600 22px/1 'Space Grotesk',system-ui,sans-serif;font-style:normal;color:var(--ink3);letter-spacing:1px;text-transform:uppercase}
+.o-rung--hi{background:linear-gradient(160deg,#2453E6,#1838A8);border:0;color:#fff}.o-rung--hi p{color:#E4EAFF}.o-rung--hi i{background:rgba(255,255,255,.2);color:#fff}.o-rung--hi em{color:#C9D4FF}
+.o-cards--glass .o-card{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);box-shadow:none;color:#F3F6FC}
+.o-cards--glass .o-card p{color:#C9D4EA}.o-cards--glass .o-card em{color:var(--peri)}
+.o-slide--dark .o-cards{position:relative;z-index:1}
+.o-kpi{font:700 110px/1 'Space Grotesk',system-ui,sans-serif !important;letter-spacing:-3px;color:#fff !important;margin:8px 0 4px !important}
+.o-split--remote{grid-template-columns:1.05fr .95fr;gap:70px}
+.o-rates{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:6px 0 10px}
+.o-rate{background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 30px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.o-rate::after{content:"";position:absolute;left:0;top:0;height:8px;width:100%;background:linear-gradient(90deg,var(--mint),var(--blue))}
+.o-rate b{font:700 96px/1 'Space Grotesk',system-ui,sans-serif;letter-spacing:-3px;color:var(--ink)}.o-rate b small{font-size:36px;letter-spacing:0;color:var(--ink3)}
+.o-rate span{font-size:26px;line-height:1.35;color:var(--ink2)}.o-rate span small{font-size:22px;color:var(--ink3)}
 .o-todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
 .o-todo li{display:flex;gap:26px;align-items:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:28px 36px;font-size:33px;line-height:1.3}
 .o-todo b{font:700 44px/1 'Space Grotesk',system-ui,sans-serif;color:var(--mint);min-width:34px}
@@ -142,13 +159,13 @@
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     
-<div class="o-progress" aria-hidden="true"></div><div class="o-app" role="region" aria-label="Orientation slides"><div class="o-stage"><section class="o-slide o-slide--dark" id="s-cover" data-i="0" aria-roledescription="slide" aria-label="Slide 1 of 16"><div class="o-cover">
+<div class="o-progress" aria-hidden="true"></div><div class="o-app" role="region" aria-label="Orientation slides"><div class="o-stage"><section class="o-slide o-slide--dark" id="s-cover" data-i="0" aria-roledescription="slide" aria-label="Slide 1 of 19"><div class="o-cover">
   <p class="o-eyebrow o-eyebrow--light">Open Fraud Labs Academy</p>
   <h1 class="o-hero">Welcome to the<br><span class="o-grad">Founding Cohort</span></h1>
   <p class="o-lead o-lead--light">Orientation for Data Science from Scratch &middot; 12 October to 31 December 2026</p>
   <div class="o-row"><span class="o-chip o-chip--mint">Onboarding meeting &middot; Wed 14 Oct &middot; 5&ndash;6 pm WAT</span><span class="o-chip o-chip--ghost">openfraudlabs.com/academy</span></div>
 </div><div class="o-orb"></div><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>Welcome everyone. Over the next hour: who we are, what you will learn, how much time it takes, the key dates, how we support you, and what to do tonight. Attendance is taken in this meeting: everyone marked present gets their enrollment number by email at 6 pm, and that number opens the lessons.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>01</span></footer></section>
-<section class="o-slide o-slide--light" id="s-who" data-i="1" aria-roledescription="slide" aria-label="Slide 2 of 16" hidden><p class="o-eyebrow">Who we are</p>
+<section class="o-slide o-slide--light" id="s-who" data-i="1" aria-roledescription="slide" aria-label="Slide 2 of 19" hidden><p class="o-eyebrow">Who we are</p>
 <h2 class="o-h2">Open Fraud Labs builds better AI<br>through better data</h2>
 <div class="o-cards o-cards--4">
   <div class="o-card"><span class="o-ico">&#9707;</span><h3>AI data operations</h3><p>Collecting, annotating and validating datasets</p></div>
@@ -157,7 +174,7 @@
   <div class="o-card"><span class="o-ico">&#9733;</span><h3>Applied research</h3><p>Fraud detection and trustworthy, explainable AI</p></div>
 </div>
 <p class="o-foot">The Academy grows out of this work: the skills we teach are the ones we use every day.</p><aside class="o-notes-src" hidden>Open Fraud Labs partners with AI companies, research institutions and enterprises on datasets, evaluation and trustworthy AI research, including fraud detection. The Academy shares those practical skills.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>02</span></footer></section>
-<section class="o-slide o-slide--light" id="s-academy" data-i="2" aria-roledescription="slide" aria-label="Slide 3 of 16" hidden><div class="o-split">
+<section class="o-slide o-slide--light" id="s-academy" data-i="2" aria-roledescription="slide" aria-label="Slide 3 of 19" hidden><div class="o-split">
   <div><p class="o-eyebrow">The Academy</p><h2 class="o-h2">Practical data skills,<br>one lesson at a time</h2>
   <p class="o-lead">Short video lessons built on real code and real data. You practise in your browser, build a portfolio and earn a certificate anyone can verify.</p></div>
   <div class="o-stack">
@@ -165,19 +182,19 @@
     <div class="o-panel"><p class="o-tag">Coming next</p><p class="o-mid">Data Analysis, Data Engineering, Machine Learning and Financial Analysis</p></div>
   </div>
 </div><aside class="o-notes-src" hidden>Founding learners are helping us test and improve everything. Tell us what works and what does not. More tracks are in preparation for the public launch.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>03</span></footer></section>
-<section class="o-slide o-slide--dark" id="s-vision" data-i="3" aria-roledescription="slide" aria-label="Slide 4 of 16" hidden><div class="o-vm">
+<section class="o-slide o-slide--dark" id="s-vision" data-i="3" aria-roledescription="slide" aria-label="Slide 4 of 19" hidden><div class="o-vm">
   <div><p class="o-eyebrow o-eyebrow--light">Vision</p><p class="o-quote">A generation of data practitioners who build AI that people can trust.</p></div>
   <div class="o-rule"></div>
   <div><p class="o-eyebrow o-eyebrow--mint">Mission</p><p class="o-quote o-quote--sm">Make practical, honest data skills accessible, taught on real problems and proven with real work.</p></div>
 </div><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>Link this to the Open Fraud Labs focus on trustworthy and explainable AI and better data.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>04</span></footer></section>
-<section class="o-slide o-slide--light" id="s-numbers" data-i="4" aria-roledescription="slide" aria-label="Slide 5 of 16" hidden><p class="o-eyebrow">The training</p><h2 class="o-h2">Data Science from Scratch, in numbers</h2>
+<section class="o-slide o-slide--light" id="s-numbers" data-i="4" aria-roledescription="slide" aria-label="Slide 5 of 19" hidden><p class="o-eyebrow">The training</p><h2 class="o-h2">Data Science from Scratch, in numbers</h2>
 <div class="o-stats">
   <div class="o-stat"><b data-count="30">30</b><span>video lessons, from first principles to explainable models</span></div>
   <div class="o-stat"><b data-count="117">117</b><span>coding exercises that run in your browser</span></div>
   <div class="o-stat"><b>3 + 1</b><span>portfolio projects plus your own capstone</span></div>
 </div>
 <div class="o-row o-row--pills"><span class="o-pill">Beginner level, no experience needed</span><span class="o-pill">About 6.6 hours of video</span><span class="o-pill">12 weeks</span><span class="o-pill o-pill--mint">Free for this cohort</span></div><aside class="o-notes-src" hidden>39 lessons and project parts in total. The projects are credit risk, clinic no-shows and city rents. The capstone is an analysis of a dataset you choose.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>05</span></footer></section>
-<section class="o-slide o-slide--light" id="s-lesson" data-i="5" aria-roledescription="slide" aria-label="Slide 6 of 16" hidden><p class="o-eyebrow">Inside every lesson</p><h2 class="o-h2">The same four steps, about an hour each lesson</h2>
+<section class="o-slide o-slide--light" id="s-lesson" data-i="5" aria-roledescription="slide" aria-label="Slide 6 of 19" hidden><p class="o-eyebrow">Inside every lesson</p><h2 class="o-h2">The same four steps, about an hour each lesson</h2>
 <div class="o-steps">
   <div class="o-step"><i>01</i><h3>Watch</h3><p>A 10-minute video with worked Python examples</p></div>
   <div class="o-step"><i>02</i><h3>Read</h3><p>Study notes with the code, key terms and common mistakes</p></div>
@@ -185,7 +202,7 @@
   <div class="o-step o-step--hi"><i>04</i><h3>Quiz</h3><p>Score 70% to pass and unlock the next lesson</p></div>
 </div>
 <p class="o-foot">Missed the mark? Review the notes and try again. Worked solutions appear once you pass.</p><aside class="o-notes-src" hidden>Each step unlocks the next, so finishing a lesson means you really did the work. The practice exercises must be solved before the quiz opens. Budget about 45 to 60 minutes per lesson including practice.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>06</span></footer></section>
-<section class="o-slide o-slide--light" id="s-journey" data-i="6" aria-roledescription="slide" aria-label="Slide 7 of 16" hidden><p class="o-eyebrow">Your 12-week journey</p><h2 class="o-h2">From first dataset to verified certificate</h2>
+<section class="o-slide o-slide--light" id="s-journey" data-i="6" aria-roledescription="slide" aria-label="Slide 7 of 19" hidden><p class="o-eyebrow">Your 12-week journey</p><h2 class="o-h2">From first dataset to verified certificate</h2>
 <div class="o-time">
   <div class="o-time__bar"><span style="width:25%"></span><span style="width:17%"></span><span style="width:25%"></span><span style="width:25%"></span><span style="width:8%"></span></div>
   <div class="o-time__cols">
@@ -197,7 +214,7 @@
   </div>
 </div>
 <p class="o-foot">Each week's work is due on Sunday at 11:59 pm Lagos time. The full calendar is on your Academy calendar and in the orientation document.</p><aside class="o-notes-src" hidden>Week 8 overlaps: the last three lessons plus Project 1 Part 1. Weeks 11 and 12 are lighter, so use them to catch up if needed. No set work on 25 and 26 December.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>07</span></footer></section>
-<section class="o-slide o-slide--light" id="s-time" data-i="7" aria-roledescription="slide" aria-label="Slide 8 of 16" hidden><div class="o-split o-split--time">
+<section class="o-slide o-slide--light" id="s-time" data-i="7" aria-roledescription="slide" aria-label="Slide 8 of 19" hidden><div class="o-split o-split--time">
   <div class="o-panel o-panel--blue"><p class="o-eyebrow o-eyebrow--light">Your time</p><p class="o-giant">45 min</p><p class="o-mid o-mid--light">a day, five days a week</p><p class="o-small o-small--light">Short, regular sessions beat one long weekend sitting.</p></div>
   <div class="o-stack">
     <div class="o-panel"><p class="o-tag">Lesson weeks 1&ndash;8</p><p class="o-big o-big--ink">3&ndash;4 hours a week</p><p class="o-small">three or four lessons, about an hour each</p></div>
@@ -205,7 +222,7 @@
     <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">Whole programme</p><p class="o-big">About 45&ndash;50 hours</p><p class="o-small o-small--light">plus office hours once every two weeks</p></div>
   </div>
 </div><aside class="o-notes-src" hidden>Our planning figure is 3 to 5 hours a week. December has the three projects and the capstone, so plan a little more time then. Ahead of schedule? Keep going: lessons unlock as soon as you pass.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>08</span></footer></section>
-<section class="o-slide o-slide--dark" id="s-tonight" data-i="8" aria-roledescription="slide" aria-label="Slide 9 of 16" hidden><p class="o-eyebrow o-eyebrow--light">Tonight</p><h2 class="o-h2 o-h2--light">Your enrollment number opens your lessons</h2>
+<section class="o-slide o-slide--dark" id="s-tonight" data-i="8" aria-roledescription="slide" aria-label="Slide 9 of 19" hidden><p class="o-eyebrow o-eyebrow--light">Tonight</p><h2 class="o-h2 o-h2--light">Your enrollment number opens your lessons</h2>
 <div class="o-flow">
   <div class="o-flow__step"><b>5:00 pm</b><h3>Attend this meeting</h3><p>The team takes attendance during the call.</p></div>
   <span class="o-flow__arrow">&rarr;</span>
@@ -214,7 +231,7 @@
   <div class="o-flow__step"><b>Tonight</b><h3>Start Lesson 1</h3><p>Your lessons open with your number. Quote it whenever you contact us.</p></div>
 </div>
 <p class="o-foot o-foot--light">Joined late or no email by 6:30 pm? Check spam, then email academy@openfraudlabs.com.</p><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>The HR coordinator marks attendance on the team calendar. Numbers go out automatically when the meeting ends at 6 pm. Anyone ticked after 6 pm gets theirs straight away. Learners who did not attend do not get a number; the founder can issue one manually for a good reason.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>09</span></footer></section>
-<section class="o-slide o-slide--light" id="s-dates" data-i="9" aria-roledescription="slide" aria-label="Slide 10 of 16" hidden><p class="o-eyebrow">Key dates &middot; Lagos time</p><h2 class="o-h2">Dates to put in your calendar</h2>
+<section class="o-slide o-slide--light" id="s-dates" data-i="9" aria-roledescription="slide" aria-label="Slide 10 of 19" hidden><p class="o-eyebrow">Key dates &middot; Lagos time</p><h2 class="o-h2">Dates to put in your calendar</h2>
 <div class="o-cards o-cards--4">
   <div class="o-card o-card--ink"><em>Wed 14 Oct</em><h3>Onboarding, 5 pm</h3><p>Required. Attendees get their enrollment number at 6 pm</p></div>
   <div class="o-card"><em>Wed 21 Oct</em><h3>Accept your offer</h3><p>Every step done, Lesson 1 passed, by 8:30 pm</p></div>
@@ -222,7 +239,7 @@
   <div class="o-card o-card--mint"><em>Thu 31 Dec</em><h3>Final deadline</h3><p>Lessons, projects and capstone complete</p></div>
 </div>
 <p class="o-foot">Your own offer deadline is on your application page and your Academy calendar. Offers that arrive later get 7 days from the offer.</p><aside class="o-notes-src" hidden>For offers made before lessons open, the 7-day window starts when lessons open, so the deadline is Wednesday 21 October at 8:30 pm. Missed steps mean the place goes to the waitlist, and you get reminders before that happens.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>10</span></footer></section>
-<section class="o-slide o-slide--light" id="s-support" data-i="10" aria-roledescription="slide" aria-label="Slide 11 of 16" hidden><p class="o-eyebrow">How we support you</p><h2 class="o-h2">You are never learning alone</h2>
+<section class="o-slide o-slide--light" id="s-support" data-i="10" aria-roledescription="slide" aria-label="Slide 11 of 19" hidden><p class="o-eyebrow">How we support you</p><h2 class="o-h2">You are never learning alone</h2>
 <div class="o-cards o-cards--3">
   <div class="o-card"><span class="o-ico">&#9719;</span><h3>Office hours</h3><p>Live help from the cohort team. <b>Attend at least once every two weeks.</b></p></div>
   <div class="o-card o-card--hi"><span class="o-ico">&#9993;</span><h3>Messages from the team</h3><p>Announcements on your dashboard. Reply to everyone, or privately to the team.</p></div>
@@ -231,7 +248,7 @@
   <div class="o-card"><span class="o-ico">&#128273;</span><h3>Enrollment number</h3><p>Emailed at 6 pm today to everyone marked present. Quote it whenever you contact us.</p></div>
   <div class="o-card"><span class="o-ico">&#128202;</span><h3>Progress tracking</h3><p>Your My learning page shows where you are. The team sees it too.</p></div>
 </div><aside class="o-notes-src" hidden>Private matters such as your account or a personal situation: academy@openfraudlabs.com, or a private message to the team in Messages from the team. Office hours times are posted in the WhatsApp group and on the calendar.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>11</span></footer></section>
-<section class="o-slide o-slide--light" id="s-messages" data-i="11" aria-roledescription="slide" aria-label="Slide 12 of 16" hidden><div class="o-split">
+<section class="o-slide o-slide--light" id="s-messages" data-i="11" aria-roledescription="slide" aria-label="Slide 12 of 19" hidden><div class="o-split">
   <div><p class="o-eyebrow">New on the Academy</p><h2 class="o-h2">Messages from the team</h2>
   <p class="o-lead">A place on the Academy for updates and questions, alongside WhatsApp. Open it from the card on your dashboard or your profile menu.</p>
   <div class="o-row o-row--pills"><span class="o-pill">openfraudlabs.com/academy/chat</span></div></div>
@@ -241,14 +258,14 @@
     <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">3 &middot; Ask privately</p><p class="o-big">Send the team a private message. You get an email when they reply.</p></div>
   </div>
 </div><aside class="o-notes-src" hidden>Learners appear by first name and last initial. Be kind and on-topic; the team can hide messages and can switch learner replies to private if needed. Quiz answers and project solutions must never be posted.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>12</span></footer></section>
-<section class="o-slide o-slide--light" id="s-rules" data-i="12" aria-roledescription="slide" aria-label="Slide 13 of 16" hidden><p class="o-eyebrow">Ground rules</p><h2 class="o-h2">Four promises we ask you to keep</h2>
+<section class="o-slide o-slide--light" id="s-rules" data-i="12" aria-roledescription="slide" aria-label="Slide 13 of 19" hidden><p class="o-eyebrow">Ground rules</p><h2 class="o-h2">Four promises we ask you to keep</h2>
 <div class="o-cards o-cards--2">
   <div class="o-card o-card--line"><h3>Do your own work</h3><p>Keep quiz answers and project solutions to yourself, in the group, in the chat and everywhere else.</p></div>
   <div class="o-card o-card--line"><h3>Review honestly and kindly</h3><p>Score peers fairly against the rubric and say how to improve.</p></div>
   <div class="o-card o-card--line"><h3>Keep to the calendar</h3><p>Weekly work by Sunday, everything by 31 December.</p></div>
   <div class="o-card o-card--line"><h3>Speak up early</h3><p>Stuck or falling behind? Tell us now, not at the deadline.</p></div>
 </div><aside class="o-notes-src" hidden>These come from the offer letter and the Academy's Terms of Service.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>13</span></footer></section>
-<section class="o-slide o-slide--light" id="s-portfolio" data-i="13" aria-roledescription="slide" aria-label="Slide 14 of 16" hidden><p class="o-eyebrow">What you finish with</p><h2 class="o-h2">A portfolio, not just a certificate</h2>
+<section class="o-slide o-slide--light" id="s-portfolio" data-i="13" aria-roledescription="slide" aria-label="Slide 14 of 19" hidden><p class="o-eyebrow">What you finish with</p><h2 class="o-h2">A portfolio, not just a certificate</h2>
 <div class="o-cards o-cards--3">
   <div class="o-card"><em>Finance</em><h3>Credit risk</h3><p>A default model and a costed loan approval policy</p></div>
   <div class="o-card"><em>Health</em><h3>Clinic no-shows</h3><p>A risk model and a reminder plan a clinic could run</p></div>
@@ -258,7 +275,38 @@
   <div class="o-card o-card--ink"><em>Your capstone</em><p class="o-mid o-mid--light">Your own analysis of a dataset you choose, reviewed by three peers</p></div>
   <div class="o-card o-card--mint"><em>Your certificate</em><p class="o-mid">In your registered name, with a unique ID anyone can verify online</p></div>
 </div><aside class="o-notes-src" hidden>Projects pass with a median peer score of 70% against the published rubric. You review other learners' work in return. The certificate is a certificate of course completion, not an accredited qualification.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>14</span></footer></section>
-<section class="o-slide o-slide--blue" id="s-next" data-i="14" aria-roledescription="slide" aria-label="Slide 15 of 16" hidden><div class="o-split">
+<section class="o-slide o-slide--light" id="s-path" data-i="14" aria-roledescription="slide" aria-label="Slide 15 of 19" hidden><p class="o-eyebrow">After the course</p><h2 class="o-h2">Your data science path</h2>
+<div class="o-ladder">
+  <div class="o-rung"><i>1</i><h3>Foundations</h3><p>This course: Python, statistics, SQL, machine learning and explainable AI</p><em>Now &ndash; Dec 2026</em></div>
+  <div class="o-rung"><i>2</i><h3>Proof of skill</h3><p>Three peer-reviewed projects, your capstone and a verifiable certificate</p><em>Your portfolio</em></div>
+  <div class="o-rung"><i>3</i><h3>First paid work</h3><p>Junior data analyst roles, freelance projects, AI training and evaluation work</p><em>Entry level</em></div>
+  <div class="o-rung"><i>4</i><h3>Data scientist</h3><p>Build models that drive decisions in finance, health, retail, energy and tech</p><em>Mid level</em></div>
+  <div class="o-rung o-rung--hi"><i>5</i><h3>Specialise or lead</h3><p>Machine learning engineer, data engineer, AI evaluation, fraud and risk analytics, analytics lead</p><em>Senior</em></div>
+</div>
+<p class="o-foot">Every step needs practice beyond this course. What the course gives you is a real start: skills, projects to show and a certificate anyone can check.</p><aside class="o-notes-src" hidden>There is no fixed timeline: people move between steps at different speeds depending on practice, portfolio and opportunities. Encourage learners to keep building after the cohort, for example on Kaggle and GitHub.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>15</span></footer></section>
+<section class="o-slide o-slide--dark" id="s-demand" data-i="15" aria-roledescription="slide" aria-label="Slide 16 of 19" hidden><p class="o-eyebrow o-eyebrow--light">Recognised worldwide</p><h2 class="o-h2 o-h2--light">A skill the world is hiring for</h2>
+<div class="o-cards o-cards--3 o-cards--glass">
+  <div class="o-card"><em>World Economic Forum, 2025</em><p class="o-kpi">Top 3</p><p>Big data specialists and AI and machine learning specialists are among the three fastest-growing jobs to 2030</p></div>
+  <div class="o-card"><em>US Bureau of Labor Statistics</em><p class="o-kpi">35%</p><p>projected growth in data scientist jobs from 2025 to 2035, much faster than average</p></div>
+  <div class="o-card"><em>US Bureau of Labor Statistics</em><p class="o-kpi">$57.80</p><p>median hourly pay for data scientists in the US (May 2025)</p></div>
+</div>
+<p class="o-foot o-foot--light">The same skills are used by banks, fintechs, telcos, health and energy companies across Nigeria and Africa. Sources: WEF Future of Jobs Report 2025; BLS Occupational Outlook Handbook.</p><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>These are global and US figures, shown to illustrate demand, not a promise of what any learner will earn. US pay figures are for full-time US-based roles. Sources: weforum.org Future of Jobs Report 2025 (fastest-growing jobs); bls.gov Occupational Outlook Handbook, Data Scientists.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>16</span></footer></section>
+<section class="o-slide o-slide--light" id="s-remote" data-i="16" aria-roledescription="slide" aria-label="Slide 17 of 19" hidden><div class="o-split o-split--remote">
+  <div><p class="o-eyebrow">Remote work</p><h2 class="o-h2">Work from Nigeria for clients anywhere</h2>
+    <div class="o-rates">
+      <div class="o-rate"><b>$30<small>/hr</small></b><span>median rate for data analysts on Upwork<br><small>typical range $20&ndash;$50</small></span></div>
+      <div class="o-rate"><b>$50<small>/hr</small></b><span>median rate for data scientists on Upwork<br><small>typical range $35&ndash;$250</small></span></div>
+    </div>
+    <p class="o-small">Source: Upwork hiring guides. Rates depend on experience and the client; beginners usually start at the lower end, and a strong portfolio helps you move up. Not a promise of income.</p>
+  </div>
+  <div class="o-stack">
+    <div class="o-panel"><p class="o-tag">Freelance marketplaces</p><p class="o-mid"><b>Upwork</b>, <b>Toptal</b> (selective, for experienced talent)</p></div>
+    <div class="o-panel"><p class="o-tag">Remote placement</p><p class="o-mid"><b>Andela</b> (started in Lagos), <b>Turing</b>: matched with global companies</p></div>
+    <div class="o-panel"><p class="o-tag">AI training and evaluation</p><p class="o-mid"><b>Mindrift</b>, <b>Turing</b> and similar platforms pay experts to check and improve AI outputs</p></div>
+    <div class="o-panel o-panel--ink"><p class="o-tag o-tag--mint">Get noticed</p><p class="o-big">Kaggle competitions, a GitHub portfolio and LinkedIn, with your Academy certificate</p></div>
+  </div>
+</div><aside class="o-notes-src" hidden>Availability of projects on each platform varies by country and changes over time, so learners should check each platform's current terms. Never pay anyone to get a remote job. Sources: upwork.com/hire/data-analysts/cost and upwork.com/hire/data-scientists/cost.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>17</span></footer></section>
+<section class="o-slide o-slide--blue" id="s-next" data-i="17" aria-roledescription="slide" aria-label="Slide 18 of 19" hidden><div class="o-split">
   <div><p class="o-eyebrow o-eyebrow--light">After this meeting</p><h2 class="o-h2 o-h2--light">Your next steps</h2><p class="o-lead o-lead--light">Finish them by Wednesday 21 October, 8:30 pm, to keep your place.</p></div>
   <ol class="o-todo">
     <li><b>1</b>Sign your offer letter</li>
@@ -266,12 +314,12 @@
     <li><b>3</b>Join the WhatsApp group</li>
     <li class="is-hi"><b>4</b>Watch for your enrollment number at 6 pm, then start Lesson 1 tonight</li>
   </ol>
-</div><aside class="o-notes-src" hidden>Your application page shows which steps are done. Attendance is taken in this meeting. At 6 pm everyone marked present is emailed their enrollment number, and that number opens Lesson 1. If you joined late or your number has not arrived, email academy@openfraudlabs.com.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>15</span></footer></section>
-<section class="o-slide o-slide--dark" id="s-close" data-i="15" aria-roledescription="slide" aria-label="Slide 16 of 16" hidden><div class="o-cover">
+</div><aside class="o-notes-src" hidden>Your application page shows which steps are done. Attendance is taken in this meeting. At 6 pm everyone marked present is emailed their enrollment number, and that number opens Lesson 1. If you joined late or your number has not arrived, email academy@openfraudlabs.com.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>18</span></footer></section>
+<section class="o-slide o-slide--dark" id="s-close" data-i="18" aria-roledescription="slide" aria-label="Slide 19 of 19" hidden><div class="o-cover">
   <p class="o-eyebrow o-eyebrow--light">Questions?</p>
   <h1 class="o-hero">Let's build<br><span class="o-grad">something real.</span></h1>
   <div class="o-row"><span class="o-chip o-chip--ghost">openfraudlabs.com/academy</span><span class="o-chip o-chip--ghost">academy@openfraudlabs.com</span><span class="o-chip o-chip--ghost">TikTok @_drhola</span></div>
-</div><div class="o-orb o-orb--2"></div><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>Take questions. Remind everyone: enrollment numbers arrive at 6 pm, office hours at least once every two weeks, and check Messages from the team and the WhatsApp group for updates.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>16</span></footer></section></div><div class="o-notes" hidden><b>Speaker notes</b><p></p></div><nav class="o-bar" aria-label="Slide controls"><button type="button" data-a="prev" aria-label="Previous slide">&larr;</button><span class="o-count">1 / 16</span><button type="button" data-a="next" aria-label="Next slide">&rarr;</button><button type="button" data-a="notes">Notes</button><button type="button" data-a="full">&#x26F6; Full screen</button><button type="button" data-a="help" aria-label="Keyboard shortcuts">?</button></nav><div class="o-help" hidden><div><b>Presenting</b><br><kbd>&rarr;</kbd> <kbd>Space</kbd> next &nbsp; <kbd>&larr;</kbd> previous<br><kbd>F</kbd> full screen (hides the browser bar) &nbsp; <kbd>Esc</kbd> leave it<br><kbd>N</kbd> speaker notes &nbsp; <kbd>1</kbd>&ndash;<kbd>9</kbd> jump to a slide<br>Click the right or left of a slide, or swipe on a phone.<br><br>Tip for Google Meet: open this page, press <kbd>F</kbd>, then share this tab or window. Only the slides are shown.</div></div></div><script>
+</div><div class="o-orb o-orb--2"></div><div class="o-grid-bg"></div><aside class="o-notes-src" hidden>Take questions. Remind everyone: enrollment numbers arrive at 6 pm, office hours at least once every two weeks, and check Messages from the team and the WhatsApp group for updates.</aside><footer class="o-sfoot"><span><img src="/assets/logo.png" alt="">Open Fraud Labs Academy</span><span>19</span></footer></section></div><div class="o-notes" hidden><b>Speaker notes</b><p></p></div><nav class="o-bar" aria-label="Slide controls"><button type="button" data-a="prev" aria-label="Previous slide">&larr;</button><span class="o-count">1 / 19</span><button type="button" data-a="next" aria-label="Next slide">&rarr;</button><button type="button" data-a="notes">Notes</button><button type="button" data-a="full">&#x26F6; Full screen</button><button type="button" data-a="help" aria-label="Keyboard shortcuts">?</button></nav><div class="o-help" hidden><div><b>Presenting</b><br><kbd>&rarr;</kbd> <kbd>Space</kbd> next &nbsp; <kbd>&larr;</kbd> previous<br><kbd>F</kbd> full screen (hides the browser bar) &nbsp; <kbd>Esc</kbd> leave it<br><kbd>N</kbd> speaker notes &nbsp; <kbd>1</kbd>&ndash;<kbd>9</kbd> jump to a slide<br>Click the right or left of a slide, or swipe on a phone.<br><br>Tip for Google Meet: open this page, press <kbd>F</kbd>, then share this tab or window. Only the slides are shown.</div></div></div><script>
 (function(){
   var app=document.querySelector('.o-app'),stage=document.querySelector('.o-stage'),slides=[].slice.call(document.querySelectorAll('.o-slide')),n=slides.length,cur=0;
   var count=document.querySelector('.o-count'),prog=document.querySelector('.o-progress'),notes=document.querySelector('.o-notes'),notesTxt=notes.querySelector('p');
