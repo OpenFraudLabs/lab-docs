@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015c">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015d">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -90,6 +90,7 @@
                             <p class="cx-small">has successfully completed the course</p>
                             <p class="cx-course" id="c-course"></p>
                             <p class="cx-desc" id="c-desc">including all lesson quizzes and an approved capstone project.</p>
+                            <section class="cx-skills" id="c-skills" aria-label="Skills covered"><p class="cx-skills__h">Skills covered <span>39 lessons in 6 modules, each with a passed quiz</span></p><ol class="cx-skills__grid"><li><b><i>1</i>Foundations</b><span>Data science workflow, types of data, rows, columns and features</span></li><li><b><i>2</i>Statistics and EDA</b><span>Descriptive statistics, distributions, outliers, missing data, cleaning, charts, sampling, probability</span></li><li><b><i>3</i>Tools of the trade</b><span>Python, pandas DataFrames and SQL queries (SELECT, WHERE, GROUP BY)</span></li><li><b><i>4</i>Machine learning</b><span>Regression, classification, decision trees, feature engineering, cross-validation, precision and recall, imbalanced data</span></li><li><b><i>5</i>Responsible data science</b><span>Explainable AI, data ethics and bias in models</span></li><li><b><i>6</i>Portfolio projects</b><span>Credit risk modelling, clinic no-show prediction and rent price modelling, with error analysis</span></li></ol></section>
                             <div class="cx-foot">
                                 <div class="cx-sig"><img src="/assets/academy/signature-ayodele.png" alt="Signature of Ayodele Odugbile"><span class="cx-line"></span><b>Ayodele Odugbile</b><span>Founder, Open Fraud Labs</span></div>
                                 <dl class="cx-meta">
@@ -137,8 +138,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015c"></script>
-    <script src="/assets/js/academy.js?v=20261015c"></script>
+    <script src="/assets/js/learn.js?v=20261015d"></script>
+    <script src="/assets/js/academy.js?v=20261015d"></script>
     <script>
         (async function () {
             var sb = OFL.sb, msg = document.getElementById('msg');
@@ -150,6 +151,7 @@
                 if (!r.data) return OFL.notice(msg, 'No certificate found with ID “' + id + '”. Check the ID and try again.', 'error');
                 if (r.data.revoked_at) return OFL.notice(msg, 'Certificate ' + r.data.id + ' was issued to ' + r.data.full_name + ' but was revoked on ' + OFL.formatDate(r.data.revoked_at) + '. It is no longer valid.', 'error');
                 document.getElementById('c-sample').hidden = true;
+                document.getElementById('c-skills').hidden = !/^Data Science from Scratch$/i.test(r.data.course || '');
                 document.getElementById('c-desc').textContent = r.data.award_type === 'awarded' ? 'awarded by Open Fraud Labs in recognition of completing this programme.' : 'including all lesson quizzes and an approved capstone project.';
                 document.getElementById('c-name').textContent = r.data.full_name;
                 document.getElementById('c-course').textContent = r.data.course;
