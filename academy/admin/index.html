@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015b">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015c">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -355,8 +355,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015b"></script>
-    <script src="/assets/js/academy.js?v=20261015b"></script>
+    <script src="/assets/js/learn.js?v=20261015c"></script>
+    <script src="/assets/js/academy.js?v=20261015c"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -1234,6 +1234,7 @@
                     var s = progState(x), cb = el('input', { type: 'checkbox', 'aria-label': 'Select ' + x.name, disabled: x.revoked_at ? 'disabled' : null }); cb.checked = !!progSel[x.user_id];
                     cb.addEventListener('change', function () { progSel[x.user_id] = cb.checked; syncProg(); });
                     var acts = el('span', { class: 'prog-acts' });
+                    if (PROG.can_revoke) acts.appendChild(el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: '/academy/admin/view/?u=' + x.user_id, text: 'View', title: 'See their account as they see it (view only)' }));
                     if (PROG.can_revoke) acts.appendChild(x.revoked_at
                         ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Restore', onclick: function () { setAccess(x, false); } })
                         : el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm prog-danger', text: 'Withdraw', title: 'Withdraw learning access', onclick: function () { setAccess(x, true); } }));
@@ -1434,6 +1435,7 @@
                     group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
                         [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
                 }
+                if (can('manage_learners')) group('Their account', 'See their dashboard, lessons, calendar and messages as they see them. View only, and the visit is recorded in the admin log.', [el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/admin/view/?u=' + r.user_id, text: 'View as learner' })]);
                 if (can('manage_learners')) {
                     var enoBox = el('span', { class: 'ac-muted', text: 'Checking\u2026' });
                     group('Enrollment number', 'Learners get one automatically when they attend onboarding (or pay, or get a scholarship). Issue one here for anyone who missed onboarding for a good reason: their lessons open straight away and they\u2019re emailed.', [enoBox]);

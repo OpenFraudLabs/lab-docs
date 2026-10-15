@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://virxrqwxvgsbcnmhdwlp.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.googletagmanager.com; media-src 'self' blob: https://virxrqwxvgsbcnmhdwlp.supabase.co; connect-src 'self' https://virxrqwxvgsbcnmhdwlp.supabase.co wss://virxrqwxvgsbcnmhdwlp.supabase.co https://cdn.jsdelivr.net https://raw.githubusercontent.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; worker-src 'self' blob:; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }</script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WGCFJFHR');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View learner (view only) | Open Fraud Labs Academy</title>
+    <meta name="description" content="A read-only view of a learner's account for staff support.">
+    <meta property="og:title" content="View learner (view only) | Open Fraud Labs Academy">
+    <meta property="og:description" content="A read-only view of a learner's account for staff support.">
+    <meta property="og:site_name" content="Open Fraud Labs Academy">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015c">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <a class="ac-skip" href="#main">Skip to content</a>
+    <header class="ac-header">
+        <div class="ac-wrap ac-header__bar">
+            <a class="ac-brand" href="/academy/" aria-label="Open Fraud Labs Academy home">
+                <img src="/assets/logo.png" alt=""><strong>Open Fraud Labs</strong><span>Academy</span>
+            </a>
+            <nav class="ac-nav" aria-label="Academy">
+                <a href="/academy/#courses">Courses</a>
+                <a href="/academy/dashboard/">My learning</a>
+                <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/careers/">Careers</a>
+                <a href="/verify/">Verify</a>
+            </nav>
+            <div class="ac-account" id="ac-account"></div>
+            <button class="ac-burger" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+    <main id="main">
+        <div class="ac-wrap va">
+            <div class="va-banner" id="va-banner" role="status"><span class="va-eye" aria-hidden="true">&#128065;</span><span id="va-banner-text">Loading the learner's account…</span><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/admin/" id="va-back">Back to staff dashboard</a></div>
+            <div id="msg"></div>
+            <div id="va-body" hidden>
+                <header class="va-head">
+                    <span class="va-av" id="va-av"></span>
+                    <div><h1 id="va-name"></h1><p class="ac-muted" id="va-meta"></p></div>
+                    <div class="va-chips" id="va-chips"></div>
+                </header>
+                <div class="va-grid">
+                    <div class="va-col">
+                        <section class="va-card"><h2>Their course</h2><p class="ac-muted ac-small" id="va-course-sub"></p><ol class="va-lessons" id="va-lessons"></ol></section>
+                    </div>
+                    <div class="va-col">
+                        <section class="va-card" id="va-offer-card"><h2>Offer steps</h2><ul class="va-steps" id="va-steps"></ul></section>
+                        <section class="va-card"><h2>Their calendar</h2><ul class="va-list" id="va-cal"></ul></section>
+                        <section class="va-card"><h2>Messages they received</h2><p class="ac-muted ac-small">The notifications in their bell, newest first. Each is also emailed.</p><ul class="va-list va-notes" id="va-notes"></ul></section>
+                        <section class="va-card"><h2>Recent activity</h2><ul class="va-list" id="va-act"></ul></section>
+                        <section class="va-card"><h2>Projects, certificates and scholarships</h2><ul class="va-list" id="va-misc"></ul></section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="ac-footer">
+        <div class="ac-wrap ac-footer__grid">
+            <div>
+                <h3>Open Fraud Labs Academy</h3>
+                <p class="ac-muted">Free, practical data courses from Open Fraud Labs in Lagos, Nigeria. Video lessons, coding practice in the browser, quizzes and verifiable certificates.</p>
+            </div>
+            <div>
+                <h3>Learn</h3>
+                <ul>
+                    <li><a href="/academy/courses/data-science/">Data Science from Scratch</a></li>
+                    <li><a href="/academy/dashboard/">My learning</a></li>
+                    <li><a href="/verify/">Verify a certificate</a></li>
+                    <li><a href="https://www.tiktok.com/@_drhola">Lessons on TikTok</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Open Fraud Labs</h3>
+                <ul>
+                    <li><a href="/">Main website</a></li>
+                    <li><a href="/careers/">Careers</a></li>
+                    <li><a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a></li>
+                    <li><a href="/terms/">Terms of Service</a></li>
+                    <li><a href="/privacy/">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
+    </footer>
+    <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
+    <script src="/assets/js/learn.js?v=20261015c"></script>
+    <script src="/assets/js/academy.js?v=20261015c"></script>
+    <script>
+        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser(location.pathname + location.search); if (!user) return;
+            var uid = OFL.qs('u'); if (!uid) return OFL.notice(msg, 'Open this page from Cohort progress or the Learners list.', 'error');
+            var r = await sb.rpc('admin_view_learner', { p_user: uid });
+            if (r.error) { document.getElementById('va-banner-text').textContent = 'Could not open this account.'; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+            var D = r.data, P = D.profile || {}, first = (P.name || 'This learner').split(' ')[0];
+            function dt(v, t) { if (!v) return '—'; var d = new Date(v); return d.toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short' }) + (t ? ', ' + d.toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit' }) : ''); }
+            function ago(t) { if (!t) return 'never'; var s = (Date.now() - new Date(t)) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago'; if (s < 86400) return Math.round(s / 3600) + ' h ago'; var d = Math.round(s / 86400); return d === 1 ? 'yesterday' : d + ' days ago'; }
+            function hm(m) { m = m || 0; return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60 ? (m % 60) + ' min' : ''); }
+            document.title = P.name + ' (view only) | Open Fraud Labs Academy';
+            document.getElementById('va-banner-text').textContent = 'You are viewing ' + first + '’s account as they see it. View only: nothing can be changed here, and this visit is recorded in the admin log.';
+            document.getElementById('va-body').hidden = false;
+            document.getElementById('va-av').textContent = (P.name || '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+            document.getElementById('va-name').textContent = P.name || P.email;
+            document.getElementById('va-meta').textContent = P.email + ' · registered ' + dt(P.registered_at) + (P.email_confirmed ? '' : ' · email not confirmed');
+            var chips = document.getElementById('va-chips');
+            function chip(label, val, cls) { chips.appendChild(el('div', { class: 'va-chip' + (cls ? ' ' + cls : '') }, el('span', { text: label }), el('b', { text: val }))); }
+            chip('Enrollment number', D.enrollment_no ? D.enrollment_no.enrollment_no : 'Not issued', D.enrollment_no ? '' : 'is-warn');
+            chip('Last active', ago(D.activity.last_active), D.activity.last_active && Date.now() - new Date(D.activity.last_active) < 3 * 864e5 ? 'is-good' : 'is-warn');
+            chip('Time this week', hm(D.activity.minutes_week)); chip('Total time', hm(D.activity.minutes_total));
+            var passed = D.lessons.filter(function (l) { return l.passed_at; }).length;
+            chip('Lessons passed', passed + ' of ' + D.total_lessons, passed ? 'is-good' : '');
+            if (P.suspended_at) chip('Account', 'Suspended', 'is-bad');
+            if (D.application && D.application.revoked_at) chip('Learning access', 'Withdrawn', 'is-bad');
+            // course ledger
+            document.getElementById('va-course-sub').textContent = (D.course_title || D.course) + ' · ' + D.released + ' lessons released. Each lesson: watch, read, practise, then pass the quiz.';
+            var ol = document.getElementById('va-lessons'), nextShown = false;
+            D.lessons.forEach(function (l) {
+                var started = l.video_started || l.video_done || l.notes_done || l.practice_solved || l.quiz_attempts;
+                var state = l.passed_at ? 'done' : started ? 'doing' : (!nextShown && l.released ? 'next' : 'locked');
+                if (state === 'next' || state === 'doing') nextShown = true;
+                if (state === 'locked' && !l.released) return;
+                if (state === 'locked' && ol.querySelectorAll('.va-l--locked').length >= 3) return;
+                function step(lbl, on, extra) { return el('span', { class: 'va-step' + (on ? ' is-on' : '') }, lbl + (extra || '')); }
+                ol.appendChild(el('li', { class: 'va-l va-l--' + state },
+                    el('span', { class: 'va-l__n', text: String(l.n) }),
+                    el('div', { class: 'va-l__main' }, el('b', { text: l.title }),
+                        el('div', { class: 'va-l__steps' }, step('Video', l.video_done), step('Notes', l.notes_done), l.exercises ? step('Practice ', l.practice_solved >= l.exercises, l.practice_solved + '/' + l.exercises) : null,
+                            step('Quiz', l.passed_at, l.best_score != null ? ' ' + Math.round(l.best_score * 100) + '%' : l.quiz_attempts ? ' ' + l.quiz_attempts + ' tries' : ''))),
+                    el('span', { class: 'va-l__state', text: state === 'done' ? 'Passed ' + dt(l.passed_at) : state === 'doing' ? 'In progress' : state === 'next' ? 'Up next' : 'Locked' })));
+            });
+            // offer steps
+            var A = D.application, st = document.getElementById('va-steps');
+            if (!A) document.getElementById('va-offer-card').hidden = true;
+            else {
+                [['Signed the offer letter', A.signed], ['Posted on LinkedIn', A.post_url], ['Joined the WhatsApp group', A.whatsapp], ['Passed Lesson 1', D.lessons[0] && D.lessons[0].passed_at]].forEach(function (s) {
+                    st.appendChild(el('li', { class: s[1] ? 'is-done' : '' }, el('span', { class: 'va-tick', text: s[1] ? '✓' : '' }), s[0], s[1] && typeof s[1] === 'string' && s[1].indexOf('http') === 0 ? el('a', { href: s[1], target: '_blank', rel: 'noopener', text: ' View post' }) : null));
+                });
+                st.appendChild(el('li', { class: 'va-steps__meta' }, A.cohort + ' · status: ' + ({ shortlisted: 'offer holder', completed: 'place confirmed', missed: 'offer lapsed', withdrawn: 'withdrawn', waitlisted: 'waitlist', rejected: 'not offered' }[A.status] || A.status) + (A.deadline ? ' · deadline ' + dt(A.deadline, true) : '')));
+            }
+            function list(id, items, empty) { var ul = document.getElementById(id); if (!items.length) return ul.appendChild(el('li', { class: 'ac-muted', text: empty })); items.forEach(function (x) { ul.appendChild(x); }); }
+            var RESP = { yes: 'Going', no: 'Not going', maybe: 'Maybe', pending: 'No reply' };
+            list('va-cal', D.calendar.map(function (e) { return el('li', {}, el('b', { text: e.title }), el('small', { text: dt(e.starts_at, true) + ' · ' + (RESP[e.response] || e.response) + (e.present === true ? ' · attended' : e.present === false ? ' · marked absent' : '') })); }), 'No calendar invitations.');
+            list('va-notes', D.notifications.map(function (n) { return el('li', { class: n.read_at ? '' : 'is-unread' }, el('b', { text: n.title }), el('small', { text: dt(n.created_at, true) + (n.read_at ? ' · read' : ' · unread') + (n.email_status === 'sent' ? ' · emailed' : n.email_status === 'failed' ? ' · email failed' : '') }), el('p', { text: n.body })); }), 'No messages yet.');
+            var EV = { lesson_open: 'Opened lesson', practice_run: 'Ran practice code in lesson', practice_solved: 'Solved a practice exercise in lesson', login: 'Logged in' };
+            list('va-act', D.activity.recent.map(function (a) { return el('li', {}, el('b', { text: (EV[a.event] || a.event) + (a.lesson ? ' ' + a.lesson : '') }), el('small', { text: dt(a.at, true) })); }), 'No activity recorded yet.');
+            var misc = [];
+            D.projects.forEach(function (p) { misc.push(el('li', {}, el('b', { text: p.assignment }), el('small', { text: p.status + (p.peer_score != null ? ' · peer score ' + Math.round(p.peer_score * 100) + '%' : '') + ' · submitted ' + dt(p.submitted_at) }))); });
+            D.certificates.forEach(function (c) { misc.push(el('li', {}, el('b', {}, 'Certificate ', el('a', { href: '/verify/?id=' + c.id, target: '_blank', rel: 'noopener', text: c.id })), el('small', { text: 'Issued ' + dt(c.issued_at) + (c.revoked_at ? ' · revoked' : '') }))); });
+            D.scholarships.forEach(function (s) { misc.push(el('li', {}, el('b', { text: 'Scholarship' + (s.course ? ' (' + s.course + ')' : ' (all courses)') }), el('small', { text: dt(s.starts_at) + ' to ' + (s.ends_at ? dt(s.ends_at) : 'no end date') + (s.revoked_at ? ' · ended early' : '') }))); });
+            list('va-misc', misc, 'Nothing yet.');
+        })();
+    </script>
+</body>
+</html>

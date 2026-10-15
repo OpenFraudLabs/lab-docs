@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261015b"
+V = "20261015c"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -2834,6 +2834,7 @@ admin_script = r"""        (async function () {
                     var s = progState(x), cb = el('input', { type: 'checkbox', 'aria-label': 'Select ' + x.name, disabled: x.revoked_at ? 'disabled' : null }); cb.checked = !!progSel[x.user_id];
                     cb.addEventListener('change', function () { progSel[x.user_id] = cb.checked; syncProg(); });
                     var acts = el('span', { class: 'prog-acts' });
+                    if (PROG.can_revoke) acts.appendChild(el('a', { class: 'ac-btn ac-btn--ghost ac-btn--sm', href: '/academy/admin/view/?u=' + x.user_id, text: 'View', title: 'See their account as they see it (view only)' }));
                     if (PROG.can_revoke) acts.appendChild(x.revoked_at
                         ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Restore', onclick: function () { setAccess(x, false); } })
                         : el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm prog-danger', text: 'Withdraw', title: 'Withdraw learning access', onclick: function () { setAccess(x, true); } }));
@@ -3034,6 +3035,7 @@ admin_script = r"""        (async function () {
                     group('Staff role', targetRole ? 'Currently ' + ROLE_NAME[targetRole] + '.' : 'Give this person a staff role only if they work with Open Fraud Labs. See \u201cWhat each role can do\u201d in Staff and roles.',
                         [roleSel, btn('Save role', 'secondary', function () { act('set_role', roleSel.value, roleSel.value === 'none' ? 'Remove the staff role from ' + r.email + '?' : 'Make ' + r.email + ' ' + ROLE_NAME[roleSel.value] + '?')(); })]);
                 }
+                if (can('manage_learners')) group('Their account', 'See their dashboard, lessons, calendar and messages as they see them. View only, and the visit is recorded in the admin log.', [el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/admin/view/?u=' + r.user_id, text: 'View as learner' })]);
                 if (can('manage_learners')) {
                     var enoBox = el('span', { class: 'ac-muted', text: 'Checking\u2026' });
                     group('Enrollment number', 'Learners get one automatically when they attend onboarding (or pay, or get a scholarship). Issue one here for anyone who missed onboarding for a good reason: their lessons open straight away and they\u2019re emailed.', [enoBox]);
@@ -5472,6 +5474,98 @@ def build_orientation():
     print("wrote academy/orientation")
 
 build_orientation()
+
+
+# ============================================================== Admin: view a learner's account (view only)
+viewas_main = """        <div class="ac-wrap va">
+            <div class="va-banner" id="va-banner" role="status"><span class="va-eye" aria-hidden="true">&#128065;</span><span id="va-banner-text">Loading the learner's account…</span><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/admin/" id="va-back">Back to staff dashboard</a></div>
+            <div id="msg"></div>
+            <div id="va-body" hidden>
+                <header class="va-head">
+                    <span class="va-av" id="va-av"></span>
+                    <div><h1 id="va-name"></h1><p class="ac-muted" id="va-meta"></p></div>
+                    <div class="va-chips" id="va-chips"></div>
+                </header>
+                <div class="va-grid">
+                    <div class="va-col">
+                        <section class="va-card"><h2>Their course</h2><p class="ac-muted ac-small" id="va-course-sub"></p><ol class="va-lessons" id="va-lessons"></ol></section>
+                    </div>
+                    <div class="va-col">
+                        <section class="va-card" id="va-offer-card"><h2>Offer steps</h2><ul class="va-steps" id="va-steps"></ul></section>
+                        <section class="va-card"><h2>Their calendar</h2><ul class="va-list" id="va-cal"></ul></section>
+                        <section class="va-card"><h2>Messages they received</h2><p class="ac-muted ac-small">The notifications in their bell, newest first. Each is also emailed.</p><ul class="va-list va-notes" id="va-notes"></ul></section>
+                        <section class="va-card"><h2>Recent activity</h2><ul class="va-list" id="va-act"></ul></section>
+                        <section class="va-card"><h2>Projects, certificates and scholarships</h2><ul class="va-list" id="va-misc"></ul></section>
+                    </div>
+                </div>
+            </div>
+        </div>"""
+
+viewas_script = r"""        (async function () {
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
+            var user = await OFL.requireUser(location.pathname + location.search); if (!user) return;
+            var uid = OFL.qs('u'); if (!uid) return OFL.notice(msg, 'Open this page from Cohort progress or the Learners list.', 'error');
+            var r = await sb.rpc('admin_view_learner', { p_user: uid });
+            if (r.error) { document.getElementById('va-banner-text').textContent = 'Could not open this account.'; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+            var D = r.data, P = D.profile || {}, first = (P.name || 'This learner').split(' ')[0];
+            function dt(v, t) { if (!v) return '—'; var d = new Date(v); return d.toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short' }) + (t ? ', ' + d.toLocaleTimeString('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit' }) : ''); }
+            function ago(t) { if (!t) return 'never'; var s = (Date.now() - new Date(t)) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago'; if (s < 86400) return Math.round(s / 3600) + ' h ago'; var d = Math.round(s / 86400); return d === 1 ? 'yesterday' : d + ' days ago'; }
+            function hm(m) { m = m || 0; return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60 ? (m % 60) + ' min' : ''); }
+            document.title = P.name + ' (view only) | Open Fraud Labs Academy';
+            document.getElementById('va-banner-text').textContent = 'You are viewing ' + first + '’s account as they see it. View only: nothing can be changed here, and this visit is recorded in the admin log.';
+            document.getElementById('va-body').hidden = false;
+            document.getElementById('va-av').textContent = (P.name || '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+            document.getElementById('va-name').textContent = P.name || P.email;
+            document.getElementById('va-meta').textContent = P.email + ' · registered ' + dt(P.registered_at) + (P.email_confirmed ? '' : ' · email not confirmed');
+            var chips = document.getElementById('va-chips');
+            function chip(label, val, cls) { chips.appendChild(el('div', { class: 'va-chip' + (cls ? ' ' + cls : '') }, el('span', { text: label }), el('b', { text: val }))); }
+            chip('Enrollment number', D.enrollment_no ? D.enrollment_no.enrollment_no : 'Not issued', D.enrollment_no ? '' : 'is-warn');
+            chip('Last active', ago(D.activity.last_active), D.activity.last_active && Date.now() - new Date(D.activity.last_active) < 3 * 864e5 ? 'is-good' : 'is-warn');
+            chip('Time this week', hm(D.activity.minutes_week)); chip('Total time', hm(D.activity.minutes_total));
+            var passed = D.lessons.filter(function (l) { return l.passed_at; }).length;
+            chip('Lessons passed', passed + ' of ' + D.total_lessons, passed ? 'is-good' : '');
+            if (P.suspended_at) chip('Account', 'Suspended', 'is-bad');
+            if (D.application && D.application.revoked_at) chip('Learning access', 'Withdrawn', 'is-bad');
+            // course ledger
+            document.getElementById('va-course-sub').textContent = (D.course_title || D.course) + ' · ' + D.released + ' lessons released. Each lesson: watch, read, practise, then pass the quiz.';
+            var ol = document.getElementById('va-lessons'), nextShown = false;
+            D.lessons.forEach(function (l) {
+                var started = l.video_started || l.video_done || l.notes_done || l.practice_solved || l.quiz_attempts;
+                var state = l.passed_at ? 'done' : started ? 'doing' : (!nextShown && l.released ? 'next' : 'locked');
+                if (state === 'next' || state === 'doing') nextShown = true;
+                if (state === 'locked' && !l.released) return;
+                if (state === 'locked' && ol.querySelectorAll('.va-l--locked').length >= 3) return;
+                function step(lbl, on, extra) { return el('span', { class: 'va-step' + (on ? ' is-on' : '') }, lbl + (extra || '')); }
+                ol.appendChild(el('li', { class: 'va-l va-l--' + state },
+                    el('span', { class: 'va-l__n', text: String(l.n) }),
+                    el('div', { class: 'va-l__main' }, el('b', { text: l.title }),
+                        el('div', { class: 'va-l__steps' }, step('Video', l.video_done), step('Notes', l.notes_done), l.exercises ? step('Practice ', l.practice_solved >= l.exercises, l.practice_solved + '/' + l.exercises) : null,
+                            step('Quiz', l.passed_at, l.best_score != null ? ' ' + Math.round(l.best_score * 100) + '%' : l.quiz_attempts ? ' ' + l.quiz_attempts + ' tries' : ''))),
+                    el('span', { class: 'va-l__state', text: state === 'done' ? 'Passed ' + dt(l.passed_at) : state === 'doing' ? 'In progress' : state === 'next' ? 'Up next' : 'Locked' })));
+            });
+            // offer steps
+            var A = D.application, st = document.getElementById('va-steps');
+            if (!A) document.getElementById('va-offer-card').hidden = true;
+            else {
+                [['Signed the offer letter', A.signed], ['Posted on LinkedIn', A.post_url], ['Joined the WhatsApp group', A.whatsapp], ['Passed Lesson 1', D.lessons[0] && D.lessons[0].passed_at]].forEach(function (s) {
+                    st.appendChild(el('li', { class: s[1] ? 'is-done' : '' }, el('span', { class: 'va-tick', text: s[1] ? '✓' : '' }), s[0], s[1] && typeof s[1] === 'string' && s[1].indexOf('http') === 0 ? el('a', { href: s[1], target: '_blank', rel: 'noopener', text: ' View post' }) : null));
+                });
+                st.appendChild(el('li', { class: 'va-steps__meta' }, A.cohort + ' · status: ' + ({ shortlisted: 'offer holder', completed: 'place confirmed', missed: 'offer lapsed', withdrawn: 'withdrawn', waitlisted: 'waitlist', rejected: 'not offered' }[A.status] || A.status) + (A.deadline ? ' · deadline ' + dt(A.deadline, true) : '')));
+            }
+            function list(id, items, empty) { var ul = document.getElementById(id); if (!items.length) return ul.appendChild(el('li', { class: 'ac-muted', text: empty })); items.forEach(function (x) { ul.appendChild(x); }); }
+            var RESP = { yes: 'Going', no: 'Not going', maybe: 'Maybe', pending: 'No reply' };
+            list('va-cal', D.calendar.map(function (e) { return el('li', {}, el('b', { text: e.title }), el('small', { text: dt(e.starts_at, true) + ' · ' + (RESP[e.response] || e.response) + (e.present === true ? ' · attended' : e.present === false ? ' · marked absent' : '') })); }), 'No calendar invitations.');
+            list('va-notes', D.notifications.map(function (n) { return el('li', { class: n.read_at ? '' : 'is-unread' }, el('b', { text: n.title }), el('small', { text: dt(n.created_at, true) + (n.read_at ? ' · read' : ' · unread') + (n.email_status === 'sent' ? ' · emailed' : n.email_status === 'failed' ? ' · email failed' : '') }), el('p', { text: n.body })); }), 'No messages yet.');
+            var EV = { lesson_open: 'Opened lesson', practice_run: 'Ran practice code in lesson', practice_solved: 'Solved a practice exercise in lesson', login: 'Logged in' };
+            list('va-act', D.activity.recent.map(function (a) { return el('li', {}, el('b', { text: (EV[a.event] || a.event) + (a.lesson ? ' ' + a.lesson : '') }), el('small', { text: dt(a.at, true) })); }), 'No activity recorded yet.');
+            var misc = [];
+            D.projects.forEach(function (p) { misc.push(el('li', {}, el('b', { text: p.assignment }), el('small', { text: p.status + (p.peer_score != null ? ' · peer score ' + Math.round(p.peer_score * 100) + '%' : '') + ' · submitted ' + dt(p.submitted_at) }))); });
+            D.certificates.forEach(function (c) { misc.push(el('li', {}, el('b', {}, 'Certificate ', el('a', { href: '/verify/?id=' + c.id, target: '_blank', rel: 'noopener', text: c.id })), el('small', { text: 'Issued ' + dt(c.issued_at) + (c.revoked_at ? ' · revoked' : '') }))); });
+            D.scholarships.forEach(function (s) { misc.push(el('li', {}, el('b', { text: 'Scholarship' + (s.course ? ' (' + s.course + ')' : ' (all courses)') }), el('small', { text: dt(s.starts_at) + ' to ' + (s.ends_at ? dt(s.ends_at) : 'no end date') + (s.revoked_at ? ' · ended early' : '') }))); });
+            list('va-misc', misc, 'Nothing yet.');
+        })();"""
+
+page("academy/admin/view", "View learner (view only) | Open Fraud Labs Academy", "A read-only view of a learner's account for staff support.", viewas_main, viewas_script, noindex=True)
 
 
 # ============================================================== Redirects from old URLs
