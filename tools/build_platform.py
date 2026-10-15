@@ -5,7 +5,7 @@ Pages reuse the homepage <head>, header and footer so they match the site.
 """
 import os, re
 
-CSSV = "20261015e"
+CSSV = "20261015f"
 S = open("index.html").read()
 
 def head(title, desc):

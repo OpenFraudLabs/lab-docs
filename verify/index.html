@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015e">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015f">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -90,7 +90,7 @@
                             <p class="cx-small">has successfully completed the course</p>
                             <p class="cx-course" id="c-course"></p>
                             <p class="cx-desc" id="c-desc">including all lesson quizzes and an approved capstone project.</p>
-                            <section class="cx-skills" id="c-skills" aria-label="Skills covered"><p class="cx-skills__h">Skills covered <span>39 lessons in 6 modules, each with a passed quiz</span></p><ol class="cx-skills__grid"><li><b><i>1</i>Foundations</b><span>Data science workflow, types of data, rows, columns and features</span></li><li><b><i>2</i>Statistics and EDA</b><span>Descriptive statistics, distributions, outliers, missing data, cleaning, charts, sampling, probability</span></li><li><b><i>3</i>Tools of the trade</b><span>Python, pandas DataFrames and SQL queries (SELECT, WHERE, GROUP BY)</span></li><li><b><i>4</i>Machine learning</b><span>Regression, classification, decision trees, feature engineering, cross-validation, precision and recall, imbalanced data</span></li><li><b><i>5</i>Responsible data science</b><span>Explainable AI, data ethics and bias in models</span></li><li><b><i>6</i>Portfolio projects</b><span>Credit risk modelling, clinic no-show prediction and rent price modelling, with error analysis</span></li></ol></section>
+                            <section class="cx-skills" id="c-skills" aria-label="Skills covered"><p class="cx-skills__h">Skills covered <span>39 lessons in 6 modules, each with a passed quiz</span></p><ol class="cx-skills__grid"><li><b><i>01</i>Foundations</b><span>Data science workflow, types of data, rows, columns and features</span></li><li><b><i>02</i>Statistics and EDA</b><span>Descriptive statistics, distributions, outliers, missing data, cleaning, charts, sampling, probability</span></li><li><b><i>03</i>Tools of the trade</b><span>Python, pandas DataFrames and SQL queries (SELECT, WHERE, GROUP BY)</span></li><li><b><i>04</i>Machine learning</b><span>Regression, classification, decision trees, feature engineering, cross-validation, precision and recall, imbalanced data</span></li><li><b><i>05</i>Responsible data science</b><span>Explainable AI, data ethics and bias in models</span></li><li><b><i>06</i>Portfolio projects</b><span>Credit risk modelling, clinic no-show prediction and rent price modelling, with error analysis</span></li></ol></section>
                             <div class="cx-foot">
                                 <div class="cx-sig"><img src="/assets/academy/signature-ayodele.png" alt="Signature of Ayodele Odugbile"><span class="cx-line"></span><b>Ayodele Odugbile</b><span>Founder, Open Fraud Labs</span></div>
                                 <dl class="cx-meta">
@@ -103,7 +103,8 @@
                     </div>
                 </div>
                 <div class="ofl-actions ofl-noprint ofl-center">
-                    <button class="btn btn-primary" type="button" onclick="window.print()">Download / Print (save as PDF)</button>
+                    <button class="btn btn-primary" type="button" id="cert-pdf">Download PDF</button>
+                    <button class="btn btn-secondary" type="button" id="cert-print">Print</button>
                     <a class="btn btn-li" id="li-add" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>Add to LinkedIn profile</a>
                     <a class="btn btn-secondary" id="li-share" href="#" target="_blank" rel="noopener" hidden>Share on LinkedIn</a>
                     <button class="btn btn-secondary" type="button" id="copy-link">Copy verification link</button>
@@ -140,8 +141,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015e"></script>
-    <script src="/assets/js/academy.js?v=20261015e"></script>
+    <script src="/assets/js/learn.js?v=20261015f"></script>
+    <script src="/assets/js/academy.js?v=20261015f"></script>
     <script>
         (async function () {
             var sb = OFL.sb, msg = document.getElementById('msg');
@@ -171,6 +172,44 @@
                 li.hidden = false; ls.hidden = false;
             }
             form.addEventListener('submit', function (e) { e.preventDefault(); check(form.id.value.trim()); });
+            // Download and print use a picture of the certificate drawn at exact A4 landscape proportions, so it
+            // always fits the page whatever the browser, paper size or margin settings.
+            function loadJs(src) { return new Promise(function (ok, bad) { if (document.querySelector('script[src="' + src + '"]')) return ok(); var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = bad; document.head.appendChild(s); }); }
+            async function certCanvas() {
+                await loadJs('/assets/js/vendor/html2canvas-1.4.1.min.js');
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                var host = document.createElement('div');
+                host.style.cssText = 'position:fixed;left:-10000px;top:0;width:1123px;height:794px;background:#fff;';
+                var c = document.getElementById('cert').cloneNode(true); c.id = 'cert-clone'; c.classList.add('cx-fixed'); var nm = c.querySelector('.cx-name'), rule = document.createElement('div'); rule.className = 'cx-rule'; nm.after(rule);
+                c.style.cssText = 'width:1123px;height:794px;max-width:none;margin:0;aspect-ratio:auto;box-shadow:none;border-radius:0;';
+                host.appendChild(c); document.body.appendChild(host); var rg = document.createRange(); rg.selectNodeContents(nm); rule.style.width = Math.max(rg.getBoundingClientRect().width + 8, 430) + 'px';
+                try { return await html2canvas(c, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: 1440, windowHeight: 1000 }); }
+                finally { host.remove(); }
+            }
+            function busy(btn, on, label) { btn.disabled = on; btn.textContent = on ? 'Preparing…' : label; }
+            document.getElementById('cert-pdf').addEventListener('click', async function () {
+                var btn = this; busy(btn, true);
+                try {
+                    var cv = await certCanvas(); await loadJs('/assets/js/vendor/jspdf-2.5.1.umd.min.js');
+                    var pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    pdf.addImage(cv.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 297, 210);
+                    pdf.setProperties({ title: document.title, author: 'Open Fraud Labs Academy' });
+                    pdf.save('Open-Fraud-Labs-certificate-' + (document.getElementById('c-id').textContent || 'sample') + '.pdf');
+                } catch (e) { OFL.notice(msg, 'Could not create the PDF. Try Print and choose Save as PDF instead.', 'error'); }
+                busy(btn, false, 'Download PDF');
+            });
+            document.getElementById('cert-print').addEventListener('click', async function () {
+                var btn = this; busy(btn, true);
+                try {
+                    var cv = await certCanvas(), box = document.getElementById('cert-print-img');
+                    if (!box) { box = document.createElement('div'); box.id = 'cert-print-img'; box.appendChild(document.createElement('img')); document.body.appendChild(box); }
+                    var img = box.firstChild; img.alt = 'Certificate';
+                    await new Promise(function (ok) { img.onload = ok; img.src = cv.toDataURL('image/png'); });
+                    document.body.classList.add('cert-printing');
+                    window.addEventListener('afterprint', function done() { document.body.classList.remove('cert-printing'); window.removeEventListener('afterprint', done); });
+                    busy(btn, false, 'Print'); window.print();
+                } catch (e) { busy(btn, false, 'Print'); window.print(); }
+            });
             document.getElementById('copy-link').addEventListener('click', function () {
                 navigator.clipboard && navigator.clipboard.writeText(location.href).then(function () { OFL.notice(msg, 'Verification link copied.', 'success'); });
             });
