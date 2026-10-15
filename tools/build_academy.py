@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261015d"
+V = "20261015e"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1397,7 +1397,19 @@ PORT_FIX = [("select('repo_url, status, feedback, submitted_at, reviewed_at').eq
                 document.getElementById('copy-link').hidden = true;
                 OFL.notice(msg, 'This is a sample to preview the certificate design. It is not a certificate and cannot be verified.', 'info');
                 wrap.hidden = false;
-            } else if (id) { form.id.value = id; check(id); }""")]
+            } else if (id) { form.id.value = id; check(id); }"""),
+            ('''<button class="btn btn-secondary" type="button" id="copy-link">Copy verification link</button>''',
+             '''<a class="btn btn-li" id="li-add" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>Add to LinkedIn profile</a>
+                    <a class="btn btn-secondary" id="li-share" href="#" target="_blank" rel="noopener" hidden>Share on LinkedIn</a>
+                    <button class="btn btn-secondary" type="button" id="copy-link">Copy verification link</button>'''),
+            ("""                history.replaceState(null, '', '/verify/?id=' + encodeURIComponent(r.data.id));""",
+             """                history.replaceState(null, '', '/verify/?id=' + encodeURIComponent(r.data.id));
+                // One click fills in LinkedIn's Licenses & certifications form with this certificate's details.
+                var iss = new Date(r.data.issued_at), vurl = 'https://openfraudlabs.com/verify/?id=' + encodeURIComponent(r.data.id);
+                var li = document.getElementById('li-add'), ls = document.getElementById('li-share');
+                li.href = 'https://www.linkedin.com/profile/add?' + new URLSearchParams({ startTask: 'CERTIFICATION_NAME', name: r.data.course, organizationName: 'Open Fraud Labs Academy', issueYear: String(iss.getUTCFullYear()), issueMonth: String(iss.getUTCMonth() + 1), certUrl: vurl, certId: r.data.id }).toString();
+                ls.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(vurl);
+                li.hidden = false; ls.hidden = false;""")]
 
 def port(src, dest, title, desc, active="", noindex=False):
     srcfile = os.path.join(src, "index.html")

@@ -1814,3 +1814,7 @@ body.is-console .adm-top { padding-top: 28px; }
 .va-notes p { margin: 4px 0 0; font-size: .84rem; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .va-notes li.is-unread b::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2453E6; margin-right: 6px; vertical-align: middle; }
 @media (max-width: 860px) { .va-grid { grid-template-columns: 1fr; } .va-banner { flex-wrap: wrap; top: 60px; } .va-banner #va-back { margin-left: 0; } }
+/* LinkedIn buttons on the certificate page */
+.btn.btn-li { display: inline-flex; align-items: center; gap: 8px; background: #0A66C2; color: #fff; border: 1px solid #0A66C2; }
+.btn.btn-li:hover { background: #004182; border-color: #004182; color: #fff; }
+.btn[hidden] { display: none !important; }

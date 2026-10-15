@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015d">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015e">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -104,6 +104,8 @@
                 </div>
                 <div class="ofl-actions ofl-noprint ofl-center">
                     <button class="btn btn-primary" type="button" onclick="window.print()">Download / Print (save as PDF)</button>
+                    <a class="btn btn-li" id="li-add" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>Add to LinkedIn profile</a>
+                    <a class="btn btn-secondary" id="li-share" href="#" target="_blank" rel="noopener" hidden>Share on LinkedIn</a>
                     <button class="btn btn-secondary" type="button" id="copy-link">Copy verification link</button>
                 </div>
             </div>
@@ -138,8 +140,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015d"></script>
-    <script src="/assets/js/academy.js?v=20261015d"></script>
+    <script src="/assets/js/learn.js?v=20261015e"></script>
+    <script src="/assets/js/academy.js?v=20261015e"></script>
     <script>
         (async function () {
             var sb = OFL.sb, msg = document.getElementById('msg');
@@ -161,6 +163,12 @@
                 OFL.notice(msg, '✓ Genuine certificate issued by Open Fraud Labs to ' + r.data.full_name + ' on ' + OFL.formatDate(r.data.issued_at) + '.', 'success');
                 wrap.hidden = false;
                 history.replaceState(null, '', '/verify/?id=' + encodeURIComponent(r.data.id));
+                // One click fills in LinkedIn's Licenses & certifications form with this certificate's details.
+                var iss = new Date(r.data.issued_at), vurl = 'https://openfraudlabs.com/verify/?id=' + encodeURIComponent(r.data.id);
+                var li = document.getElementById('li-add'), ls = document.getElementById('li-share');
+                li.href = 'https://www.linkedin.com/profile/add?' + new URLSearchParams({ startTask: 'CERTIFICATION_NAME', name: r.data.course, organizationName: 'Open Fraud Labs Academy', issueYear: String(iss.getUTCFullYear()), issueMonth: String(iss.getUTCMonth() + 1), certUrl: vurl, certId: r.data.id }).toString();
+                ls.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(vurl);
+                li.hidden = false; ls.hidden = false;
             }
             form.addEventListener('submit', function (e) { e.preventDefault(); check(form.id.value.trim()); });
             document.getElementById('copy-link').addEventListener('click', function () {
