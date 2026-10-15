@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015f">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015g">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -189,8 +189,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015f"></script>
-    <script src="/assets/js/academy.js?v=20261015f"></script>
+    <script src="/assets/js/learn.js?v=20261015g"></script>
+    <script src="/assets/js/academy.js?v=20261015g"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -402,9 +402,16 @@
                                 m.whatsapp_joined ? null : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'I’ve joined', onclick: function () { step('whatsapp'); } })) : null));
                     }
                     var notYet = info.lessons_open_at && new Date(info.lessons_open_at) > new Date();
+                    var l1Note = el('p', { class: 'ac-muted ac-small' }), l1Btn = m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson });
                     item(!!m.trial_done, 'Complete Lesson ' + info.trial_lesson, el('div', { class: 'ap-offer__body' },
                         el('p', { text: notYet ? 'Lessons open straight after the onboarding meeting, on ' + when(info.lessons_open_at) + '. Attend the meeting (the link is shared in the WhatsApp group), then watch the video, read the notes, try the practice and pass the quiz.' : 'Watch the video, read the notes, try the practice and pass the quiz.' }),
-                        m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
+                        l1Note, l1Btn));
+                    // Joined after the onboarding meeting: lessons open with the enrollment number, emailed once the steps above are done.
+                    if (!notYet && !m.trial_done) sb.rpc('my_enrollment_no').then(function (r) {
+                        if (r.data && r.data.enrollment_no) return;
+                        l1Note.textContent = 'You joined after the onboarding meeting, so you don’t need to wait for one: your enrollment number is emailed as soon as the steps above are done, and Lesson ' + info.trial_lesson + ' opens with it. You’ll also get a short catch-up guide and an invitation to the catch-up onboarding.';
+                        if (l1Btn) l1Btn.hidden = true;
+                    });
                     box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Offer' }),
                         el('h2', { text: 'You’ve been offered a place' }),
                         el('p', { text: 'Finish every step below by ' + when(m.deadline_at) + ' to accept it. If they aren’t all done in time, the place goes to the next person on the waitlist.' }),

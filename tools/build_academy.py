@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261015f"
+V = "20261015g"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -1209,7 +1209,7 @@ dash_script = r"""        (async function () {
             sb.rpc('calendar_access').then(function (r) { var d = r.data || {}; if (d.team || d.learner) document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-teamlink' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: d.team ? '/academy/team/' : '/academy/calendar/', text: d.team ? 'Open the team calendar' : 'Open your calendar' }), d.team ? el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: '/academy/staff/', text: 'Pay and leave' }) : null)); });
             document.getElementById('dash-chips').appendChild(el('p', { class: 'ac-enrolno' }, el('span', { text: 'Enrollment number' }), eno && eno.enrollment_no
                 ? el('b', { class: 'num', text: eno.enrollment_no })
-                : el('em', { text: 'Issued when you attend onboarding' })));
+                : el('em', { text: 'Emailed when your offer steps are done' })));
             var bg = (await sb.from('learner_background').select('completed_at, skipped_at').eq('user_id', user.id).maybeSingle()).data;
             if (!bg) { location.replace('/academy/welcome/?next=/academy/dashboard/'); return; }
             if (OFL.qs('welcome')) OFL.notice(msg, 'Thank you! Your answers are saved. You can change them any time from your account page.', 'success');
@@ -2863,7 +2863,7 @@ admin_script = r"""        (async function () {
                 var open = PROG.cohort.lessons_open_at, act = x.last_active && open && new Date(x.last_active) > new Date(open);
                 if (x.revoked_at) return 'revoked';
                 if (!act) return 'inactive';
-                if (x.lessons_passed < Math.max(PROG.expected, 0) ) return 'behind';
+                if (x.lessons_passed < Math.max(x.expected != null ? x.expected : PROG.expected, 0)) return 'behind';
                 if (x.lessons_passed === 0) return 'started';
                 return 'ontrack';
             }
@@ -2897,7 +2897,7 @@ admin_script = r"""        (async function () {
                     tb.appendChild(el('tr', { class: 'prog-row prog-row--' + s }, el('td', {}, cb),
                         el('td', {}, el('b', { text: x.name }), el('small', { class: 'ac-muted prog-email', text: x.email })),
                         el('td', { class: 'num', text: x.enrollment_no || '—' }),
-                        el('td', { class: 'num' }, el('b', { text: String(x.lessons_passed) }), PROG.expected ? el('small', { class: 'ac-muted', text: ' of ' + PROG.expected + ' due' }) : null, x.practice_solved ? el('small', { class: 'ac-muted prog-email', text: x.practice_solved + ' exercises solved' }) : null),
+                        el('td', { class: 'num' }, el('b', { text: String(x.lessons_passed) }), (x.expected != null ? x.expected : PROG.expected) ? el('small', { class: 'ac-muted', text: ' of ' + (x.expected != null ? x.expected : PROG.expected) + ' due' }) : null, x.practice_solved ? el('small', { class: 'ac-muted prog-email', text: x.practice_solved + ' exercises solved' }) : null),
                         el('td', { class: 'num', text: hm(x.minutes_week) }), el('td', { class: 'num', text: hm(x.minutes_total) }),
                         el('td', { title: x.last_active ? new Date(x.last_active).toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) : '' }, ago(x.last_active)),
                         el('td', {}, el('span', { class: 'sp-pill sp-pill--' + PST[s][1], text: PST[s][0] }), x.reminded_at ? el('small', { class: 'ac-muted prog-email', text: 'Reminded ' + ago(x.reminded_at) + (x.reminder_deadline ? ', deadline ' + new Date(x.reminder_deadline + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '') }) : null,
@@ -3785,9 +3785,16 @@ apply_script = r"""        (async function () {
                                 m.whatsapp_joined ? null : el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'I’ve joined', onclick: function () { step('whatsapp'); } })) : null));
                     }
                     var notYet = info.lessons_open_at && new Date(info.lessons_open_at) > new Date();
+                    var l1Note = el('p', { class: 'ac-muted ac-small' }), l1Btn = m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson });
                     item(!!m.trial_done, 'Complete Lesson ' + info.trial_lesson, el('div', { class: 'ap-offer__body' },
                         el('p', { text: notYet ? 'Lessons open straight after the onboarding meeting, on ' + when(info.lessons_open_at) + '. Attend the meeting (the link is shared in the WhatsApp group), then watch the video, read the notes, try the practice and pass the quiz.' : 'Watch the video, read the notes, try the practice and pass the quiz.' }),
-                        m.trial_done || notYet ? null : el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: lesson, text: 'Start Lesson ' + info.trial_lesson })));
+                        l1Note, l1Btn));
+                    // Joined after the onboarding meeting: lessons open with the enrollment number, emailed once the steps above are done.
+                    if (!notYet && !m.trial_done) sb.rpc('my_enrollment_no').then(function (r) {
+                        if (r.data && r.data.enrollment_no) return;
+                        l1Note.textContent = 'You joined after the onboarding meeting, so you don’t need to wait for one: your enrollment number is emailed as soon as the steps above are done, and Lesson ' + info.trial_lesson + ' opens with it. You’ll also get a short catch-up guide and an invitation to the catch-up onboarding.';
+                        if (l1Btn) l1Btn.hidden = true;
+                    });
                     box = el('div', { class: 'ap-state ap-state--go' }, el('span', { class: 'ap-state__tag', text: 'Offer' }),
                         el('h2', { text: 'You’ve been offered a place' }),
                         el('p', { text: 'Finish every step below by ' + when(m.deadline_at) + ' to accept it. If they aren’t all done in time, the place goes to the next person on the waitlist.' }),
