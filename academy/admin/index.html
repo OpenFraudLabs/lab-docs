@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014j">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -278,6 +278,17 @@
                     <h3 class="ac-admin__sub">Recent payments</h3>
                     <div class="ac-table-wrap"><table class="ac-table" id="payments-table"></table></div>
                 </section>
+                <section class="ac-admin__sec" id="prog-sec" data-cap="manage_applications">
+                    <div class="ac-admin__head"><h2>Cohort progress</h2><p class="ac-muted" id="prog-sub">Every learner holding a cohort place: lessons passed, time spent on the Academy this week, and when they were last active. Remind anyone who hasn't started; the owner and admins can withdraw learning access.</p>
+                        <div class="ac-admin__tools"><button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="prog-csv">Download CSV</button></div></div>
+                    <div class="ac-kpis adm-kpis prog-kpis" id="prog-kpis"></div>
+                    <div class="prog-bar">
+                        <div class="ofl-tabs" id="prog-filters" role="tablist"></div>
+                        <div class="prog-act"><label class="prog-dl">Deadline <input type="date" id="prog-deadline"></label><button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="prog-remind" disabled>Remind selected</button></div>
+                    </div>
+                    <div class="ac-table-wrap"><table class="ac-table prog-table" id="prog-table"></table></div>
+                    <p class="ac-muted ac-small prog-note">Time on the Academy is counted from 15 October, a minute at a time while a learner is active on a page (watching a video counts). Last active is the latest of their last log-in, lesson activity and time on the site.</p>
+                </section>
                 <section class="ac-admin__sec" id="mail-sec" data-cap="send_messages">
                     <div class="ac-admin__head"><h2>Email and messages</h2><p class="ac-muted">Email a mailing list (current learners, learners falling behind, withdrawn, signed up only and more) straight from the portal, or post to the learner chat.</p></div>
                     <div class="ofl-actions"><a class="ac-btn ac-btn--primary" href="/academy/admin/messages/">Email learners</a><a class="ac-btn ac-btn--secondary" href="/academy/chat/">Open learner chat</a></div>
@@ -344,8 +355,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014j"></script>
-    <script src="/assets/js/academy.js?v=20261014j"></script>
+    <script src="/assets/js/learn.js?v=20261015a"></script>
+    <script src="/assets/js/academy.js?v=20261015a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -443,7 +454,7 @@
                 })();
                 var GROUPS = [
                     ['Today', [['overview-sec', 'Overview']]],
-                    ['Founding Cohort', [['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
+                    ['Founding Cohort', [['prog-sec', 'Cohort progress'], ['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
                     ['Learners', [['learners-sec', 'Learners'], ['reviews-sec', 'Project reviews'], ['sch-sec', 'Scholarships']]],
                     ['Content', [['courses-sec', 'Courses and lessons'], ['doc-sec', 'Documents']]],
                     ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
@@ -489,10 +500,11 @@
                     var rev = document.querySelectorAll('#reviews-sec .ac-review-row, #reviews-sec tbody tr, #reviews-sec .ac-cap').length;
                     var revTab = document.querySelector('#reviews-sec .ofl-tab.is-active'); if (revTab && !/waiting/i.test(revTab.textContent)) rev = 0;
                     var inc = document.querySelectorAll('#inc-sec tbody input[type=checkbox]').length;
-                    var B = { 'app-sec': check, 'reviews-sec': rev, 'inc-sec': inc };
+                    var inact = (function () { var t = [].filter.call(document.querySelectorAll('#prog-filters .ofl-tab'), function (b) { return /not active/i.test(b.textContent); })[0]; var m = t && /\((\d+)\)/.exec(t.textContent); return m ? +m[1] : 0; })();
+                    var B = { 'app-sec': check, 'reviews-sec': rev, 'inc-sec': inc, 'prog-sec': inact };
                     Object.keys(B).forEach(function (k) { var b = rail.querySelector('[data-badge="' + k + '"]'); if (b) { b.hidden = !B[k]; b.textContent = B[k]; } });
                     var attn = document.getElementById('adm-attn'); attn.textContent = '';
-                    var items = [[check, 'application' + (check === 1 ? '' : 's') + ' to check', '#app-sec'], [rev, 'project' + (rev === 1 ? '' : 's') + ' waiting for review', '#reviews-sec'], [inc, 'signed up but not applied', '#inc-sec']].filter(function (x) { return x[0] && document.querySelector(x[2]) && !document.querySelector(x[2]).hidden; });
+                    var items = [[inact, 'learner' + (inact === 1 ? '' : 's') + ' not active since lessons opened', '#prog-sec'], [check, 'application' + (check === 1 ? '' : 's') + ' to check', '#app-sec'], [rev, 'project' + (rev === 1 ? '' : 's') + ' waiting for review', '#reviews-sec'], [inc, 'signed up but not applied', '#inc-sec']].filter(function (x) { return x[0] && document.querySelector(x[2]) && !document.querySelector(x[2]).hidden; });
                     if (!items.length) attn.appendChild(el('p', { class: 'adm-attn__clear', text: 'Nothing is waiting for a decision right now.' }));
                     else items.forEach(function (x) { attn.appendChild(el('a', { class: 'adm-attn__item', href: x[2] }, el('b', { class: 'num', text: String(x[0]) }), el('span', { text: x[1] }))); });
                 }
@@ -1181,6 +1193,89 @@
                 if (r.error) return OFL.notice(m, OFL.friendlyError(r.error), 'error');
                 docDlg.close(); OFL.notice(msg, 'Document saved.', 'success'); loadDocs();
             });
+            // ---- Cohort progress
+            var PROG = null, progFilter = 'all', progSel = {};
+            async function loadProg() {
+                if (!can('manage_applications')) return;
+                var r = await sb.rpc('cohort_monitor', { p_cohort: null });
+                if (r.error) return OFL.notice(document.getElementById('prog-table'), OFL.friendlyError(r.error), 'error');
+                PROG = r.data; drawProg();
+            }
+            function hm(m) { m = m || 0; return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60 ? (m % 60) + ' min' : ''); }
+            function ago(t) { if (!t) return 'Never'; var s = (Date.now() - new Date(t)) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago'; if (s < 86400) return Math.round(s / 3600) + ' h ago'; var d = Math.round(s / 86400); return d === 1 ? 'Yesterday' : d + ' days ago'; }
+            function progState(x) {
+                var open = PROG.cohort.lessons_open_at, act = x.last_active && open && new Date(x.last_active) > new Date(open);
+                if (x.revoked_at) return 'revoked';
+                if (!act) return 'inactive';
+                if (x.lessons_passed < Math.max(PROG.expected, 0) ) return 'behind';
+                if (x.lessons_passed === 0) return 'started';
+                return 'ontrack';
+            }
+            var PST = { revoked: ['Access withdrawn', 'late'], inactive: ['Not active since lessons opened', 'late'], behind: ['Behind schedule', 'pending'], started: ['Active, no lesson passed yet', 'pending'], ontrack: ['On track', 'paid'] };
+            function drawProg() {
+                var L = PROG.learners.filter(function (x) { return !x.is_staff; }), dl = document.getElementById('prog-deadline');
+                if (!dl.value) { var d = new Date(Date.now() + 3 * 864e5); dl.value = d.toISOString().slice(0, 10); }
+                var c = { all: L.length, inactive: 0, nolesson: 0, behind: 0, revoked: 0 }, wk = 0, active24 = 0, passed = 0;
+                L.forEach(function (x) { var s = progState(x); if (s === 'inactive') c.inactive++; if (s === 'revoked') c.revoked++; if (s === 'behind') c.behind++; if (!x.revoked_at && x.lessons_passed === 0) c.nolesson++;
+                    wk += x.minutes_week; passed += x.lessons_passed; if (x.last_active && Date.now() - new Date(x.last_active) < 864e5) active24++; });
+                var active = L.filter(function (x) { return !x.revoked_at; }).length;
+                kp('prog-kpis', [['Learners with a place', active], ['Active in the last 24 hours', active24], ['Not active since lessons opened', c.inactive], ['Lessons passed (all learners)', passed], ['Average time this week', hm(Math.round(wk / Math.max(active, 1)))]]);
+                var F = [['all', 'All'], ['inactive', 'Not active since lessons opened'], ['nolesson', 'No lesson passed'], ['behind', 'Behind schedule'], ['revoked', 'Access withdrawn']];
+                var fb = document.getElementById('prog-filters'); fb.textContent = '';
+                F.forEach(function (f) { if (f[0] === 'behind' && !PROG.expected) return; fb.appendChild(el('button', { type: 'button', role: 'tab', class: 'ofl-tab' + (progFilter === f[0] ? ' is-active' : ''), 'aria-selected': String(progFilter === f[0]), text: f[1] + ' (' + c[f[0]] + ')', onclick: function () { progFilter = f[0]; progSel = {}; drawProg(); } })); });
+                var rows = L.filter(function (x) { var s = progState(x); return progFilter === 'all' || (progFilter === 'nolesson' ? (!x.revoked_at && x.lessons_passed === 0) : s === progFilter); });
+                var t = document.getElementById('prog-table'); t.textContent = '';
+                var all = el('input', { type: 'checkbox', 'aria-label': 'Select all' });
+                all.addEventListener('change', function () { rows.forEach(function (x) { if (!x.revoked_at) progSel[x.user_id] = all.checked; }); drawProg(); });
+                var hr = el('tr'); [all, 'Learner', 'Enrollment no.', 'Lessons passed', 'This week', 'Total time', 'Last active', 'Status', ''].forEach(function (h) { hr.appendChild(el('th', {}, h)); });
+                t.appendChild(el('thead', {}, hr)); var tb = el('tbody'); t.appendChild(tb);
+                if (!rows.length) tb.appendChild(el('tr', {}, el('td', { colspan: '9', class: 'ac-muted', text: progFilter === 'inactive' ? 'Everyone has been active since lessons opened.' : 'Nobody here.' })));
+                rows.forEach(function (x) {
+                    var s = progState(x), cb = el('input', { type: 'checkbox', 'aria-label': 'Select ' + x.name, disabled: x.revoked_at ? 'disabled' : null }); cb.checked = !!progSel[x.user_id];
+                    cb.addEventListener('change', function () { progSel[x.user_id] = cb.checked; syncProg(); });
+                    var acts = el('span', { class: 'prog-acts' });
+                    if (PROG.can_revoke) acts.appendChild(x.revoked_at
+                        ? el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm', text: 'Restore', onclick: function () { setAccess(x, false); } })
+                        : el('button', { type: 'button', class: 'ac-btn ac-btn--ghost ac-btn--sm prog-danger', text: 'Withdraw', title: 'Withdraw learning access', onclick: function () { setAccess(x, true); } }));
+                    tb.appendChild(el('tr', { class: 'prog-row prog-row--' + s }, el('td', {}, cb),
+                        el('td', {}, el('b', { text: x.name }), el('small', { class: 'ac-muted prog-email', text: x.email })),
+                        el('td', { class: 'num', text: x.enrollment_no || '—' }),
+                        el('td', { class: 'num' }, el('b', { text: String(x.lessons_passed) }), PROG.expected ? el('small', { class: 'ac-muted', text: ' of ' + PROG.expected + ' due' }) : null, x.practice_solved ? el('small', { class: 'ac-muted prog-email', text: x.practice_solved + ' exercises solved' }) : null),
+                        el('td', { class: 'num', text: hm(x.minutes_week) }), el('td', { class: 'num', text: hm(x.minutes_total) }),
+                        el('td', { title: x.last_active ? new Date(x.last_active).toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) : '' }, ago(x.last_active)),
+                        el('td', {}, el('span', { class: 'sp-pill sp-pill--' + PST[s][1], text: PST[s][0] }), x.reminded_at ? el('small', { class: 'ac-muted prog-email', text: 'Reminded ' + ago(x.reminded_at) + (x.reminder_deadline ? ', deadline ' + new Date(x.reminder_deadline + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '') }) : null,
+                            x.revoked_reason ? el('small', { class: 'ac-muted prog-email', text: x.revoked_reason }) : null),
+                        el('td', {}, acts)));
+                });
+                syncProg();
+            }
+            function syncProg() { var n = Object.keys(progSel).filter(function (k) { return progSel[k]; }).length, b = document.getElementById('prog-remind'); b.disabled = !n; b.textContent = n ? 'Remind ' + n + ' selected' : 'Remind selected'; }
+            function kp(id, rowsK) { var k = document.getElementById(id); k.textContent = ''; rowsK.forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }))); }); }
+            document.getElementById('prog-remind').addEventListener('click', async function () {
+                var ids = Object.keys(progSel).filter(function (k) { return progSel[k]; }), dl = document.getElementById('prog-deadline').value;
+                if (!dl) return OFL.notice(msg, 'Choose a deadline first.', 'error');
+                var nice = new Date(dl + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+                if (!window.confirm('Email ' + ids.length + ' learner' + (ids.length === 1 ? '' : 's') + ' asking them to log in and start Lesson 1 by ' + nice + '?\n\nThe email says that if there is no activity by then, their learning access will be withdrawn and the place offered to the next applicant.')) return;
+                var r = await sb.rpc('cohort_remind_inactive', { p_users: ids, p_deadline: dl });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                progSel = {}; OFL.toast('Reminder sent to ' + r.data.sent + ' learner' + (r.data.sent === 1 ? '' : 's') + '.', 'success'); loadProg();
+            });
+            async function setAccess(x, revoke) {
+                var reason = null;
+                if (revoke) { reason = window.prompt('Withdraw learning access for ' + x.name + '?\n\nTheir lessons lock straight away, the place is freed for the waitlist and they are emailed. Give a short reason (included in the email):', 'No activity after the reminder deadline'); if (reason === null) return; }
+                else if (!window.confirm('Restore learning access for ' + x.name + '? They are emailed and can continue straight away.')) return;
+                var r = await sb.rpc('cohort_set_access', { p_user: x.user_id, p_revoke: revoke, p_reason: reason });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.toast(revoke ? 'Access withdrawn. ' + x.name + ' has been emailed.' : 'Access restored. ' + x.name + ' has been emailed.', 'success'); loadProg();
+            }
+            document.getElementById('prog-csv').addEventListener('click', function () {
+                if (!PROG) return;
+                var lines = [['Name', 'Email', 'Enrollment no.', 'Lessons passed', 'Exercises solved', 'Minutes this week', 'Minutes total', 'Last active', 'Status']];
+                PROG.learners.filter(function (x) { return !x.is_staff; }).forEach(function (x) { lines.push([x.name, x.email, x.enrollment_no || '', x.lessons_passed, x.practice_solved, x.minutes_week, x.minutes_total, x.last_active || '', PST[progState(x)][0]]); });
+                var csv = lines.map(function (l) { return l.map(function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
+                var a = el('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'cohort-progress.csv' }); document.body.appendChild(a); a.click(); a.remove();
+            });
+            loadProg();
             if (can('view_stats')) loadDocs();
             await loadCourses(); loadScholarships(); loadContent(); loadCohorts(); loadRoles(); loadIncomplete();
             var staffRoles = {};

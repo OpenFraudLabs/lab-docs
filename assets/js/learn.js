@@ -49,6 +49,7 @@
         if (/^APPLY:/.test(m)) return 'During pre-launch this course is open to shortlisted applicants. Apply for the Founding Cohort at openfraudlabs.com/academy/apply/.';
         if (/^ENROL:/.test(m)) return 'Enrol in this course first: open the course page and choose "Enrol for free".';
         if (/^ENROLNO:/.test(m)) return m.replace(/^ENROLNO:\s*/, '');
+        if (/^REVOKED:/.test(m)) return m.replace(/^REVOKED:\s*/, '');
         if (/^ORIENTATION:/.test(m)) return m.replace(/^ORIENTATION:\s*/, '') + ' The meeting link is shared in the cohort WhatsApp group.';
         if (/^PAID:/.test(m)) return 'This lesson is part of the full course. See the plans at openfraudlabs.com/academy/pricing/ to unlock it.';
         if (/already registered/i.test(m)) return 'An account with this email already exists. Try logging in instead.';
@@ -146,7 +147,18 @@
         TIKTOK: TIKTOK, track: track, toast: toast, celebrate: celebrate
     };
 
-    function boot() { navAccount(); reveal(); }
+    // Time on the Academy: one ping a minute while a signed-in person is active on a visible page
+    var lastInput = Date.now();
+    ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(function (ev) { addEventListener(ev, function () { lastInput = Date.now(); }, { passive: true }); });
+    function heartbeat() {
+        sb.auth.getSession().then(function (r) {
+            if (!r || !r.data || !r.data.session) return;
+            var playing = [].some.call(document.querySelectorAll('video'), function (v) { return !v.paused && !v.ended; });
+            if (document.visibilityState === 'visible' && (Date.now() - lastInput < 180000 || playing)) sb.rpc('activity_ping').then(function () {}, function () {});
+        });
+    }
+    setInterval(heartbeat, 60000);
+    function boot() { navAccount(); reveal(); setTimeout(heartbeat, 5000); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
 })();

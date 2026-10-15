@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261014j">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -166,8 +166,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261014j"></script>
-    <script src="/assets/js/academy.js?v=20261014j"></script>
+    <script src="/assets/js/learn.js?v=20261015a"></script>
+    <script src="/assets/js/academy.js?v=20261015a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -280,8 +280,13 @@
                     options: { data: { full_name: f.full_name.value.trim(), terms_signature: f.full_name.value.trim(), terms_version: TERMS_VERSION }, emailRedirectTo: location.origin + '/account/?next=' + encodeURIComponent(next) }
                 });
                 busy(btn, false);
+                if (res.error && /already (registered|exists)/i.test(res.error.message || '')) { var em0 = f.email.value.trim(); show('login'); document.querySelector('#login-form [name=email]').value = em0; return OFL.notice(msg, 'An account already exists for ' + em0 + '. Log in below, or use “Forgot password?” if you can’t remember your password.', 'info'); }
                 if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
                 try { localStorage.setItem('ofl-has-account', '1'); } catch (x) {}
+                if (res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length === 0) {
+                    var em = f.email.value.trim(); show('login'); document.querySelector('#login-form [name=email]').value = em;
+                    return OFL.notice(msg, 'An account already exists for ' + em + '. Log in below, or use “Forgot password?” if you can’t remember your password.', 'info');
+                }
                 if (res.data.session) { location.href = next; return; }
                 var email = f.email.value.trim(); f.reset();
                 document.getElementById('signup-form').hidden = true; sw.hidden = true;

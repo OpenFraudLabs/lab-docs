@@ -1696,3 +1696,17 @@ body.is-console .adm-top { padding-top: 28px; }
   .adm-next__item { grid-template-columns: 70px minmax(0, 1fr); }
   .adm-next__item .ac-btn { grid-column: 1 / -1; justify-self: start; }
 }
+/* ---- cohort progress ---- */
+.prog-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; margin: 4px 0 12px; }
+.prog-bar .ofl-tabs { margin: 0; border: 0; flex-wrap: wrap; }
+.prog-act { display: flex; align-items: center; gap: 10px; }
+.prog-dl { display: flex; align-items: center; gap: 6px; font-size: .86rem; font-weight: 600; color: var(--ink-2); }
+.prog-dl input { font: 400 .88rem var(--font); border: 1px solid var(--line-2); border-radius: 8px; padding: 5px 8px; background: var(--surface); }
+.prog-table td { white-space: nowrap; }
+.prog-email { display: block; font-size: .78rem; }
+.prog-row--inactive td:first-child { box-shadow: inset 3px 0 0 #E25C5C; }
+.prog-row--revoked { opacity: .65; }
+.prog-danger { color: #A12B2B !important; }
+.prog-danger:hover { background: #FDECEC !important; }
+.prog-note { margin-top: 10px; }
+.prog-kpis { margin-bottom: 18px !important; }
