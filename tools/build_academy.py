@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261016a"
+V = "20261016b"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -3180,6 +3180,7 @@ admin_script = r"""        (async function () {
                 var box = document.getElementById('subs'); box.textContent = 'Loading…';
                 var r = await sb.from('capstone_submissions').select('*').eq('status', status).order('submitted_at', { ascending: true });
                 if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                var FL = {}; if (r.data.length) ((await sb.from('capstone_flags').select('submission_id, kind, detail, resolved_at').in('submission_id', r.data.map(function (x) { return x.id; }))).data || []).forEach(function (f) { if (!f.resolved_at) (FL[f.submission_id] = FL[f.submission_id] || []).push(f); });
                 var names = {}; rows.forEach(function (x) { names[x.user_id] = x.full_name || x.email; });
                 box.textContent = '';
                 if (!r.data.length) return box.appendChild(el('p', { class: 'ac-muted', text: 'Nothing here.' }));
@@ -3196,6 +3197,8 @@ admin_script = r"""        (async function () {
                         s.peer_score != null ? el('p', { class: 'ac-muted', text: 'Peer score (median): ' + Math.round(100 * s.peer_score) + '%' }) : null,
                         el('p', { class: 'ac-muted', text: 'Submitted ' + OFL.formatDate(s.submitted_at) + (s.reviewed_at ? ' · reviewed ' + OFL.formatDate(s.reviewed_at) : '') }),
                         el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })),
+                        (FL[s.id] || []).length ? el('div', { class: 'app-warn' }, el('b', { text: 'Check before approving: ' }), FL[s.id].map(function (f) { return f.detail; }).join(' ')) : null,
+                        s.status === 'submitted' && s.release_at ? el('p', { class: 'ac-muted ac-small', text: 'Peer result due ' + new Date(s.release_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }) : null,
                         el('p', { class: 'ofl-writeup', text: s.writeup }), fbx,
                         el('div', { class: 'ofl-actions' },
                             el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Approve', onclick: function () { review('approved'); } }),
@@ -3209,7 +3212,7 @@ admin_script = r"""        (async function () {
 review_main = """        <div class="ac-wrap">
             <div class="ac-dash-head">
                 <h1 id="rv-title">Peer review</h1>
-                <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Open Fraud Labs can step in and review any project.</p>
+                <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. Projects are handed out automatically: you never review your own, you can't choose whose you get, and names are never shown either way. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Results for each week come out together on Monday at 9:00, at least 7 days after you submit. If you don't pass, improve your project and resubmit as many times as you need. Open Fraud Labs checks for copied work and can step in and review any project.</p>
                 <div id="msg"></div>
             </div>
             <div class="ac-two">
@@ -3217,7 +3220,7 @@ review_main = """        <div class="ac-wrap">
                     <div id="mine"></div>
                     <form id="sub-form" class="ac-panel ofl-form" hidden>
                         <h2>Share your project</h2>
-                        <p class="ac-muted">Push your notebook and a README to a public GitHub repository, then share it here. Your reviewers see the link and your summary, not your name.</p>
+                        <p class="ac-muted">Push your notebook and a README to a public GitHub repository, then share it here. Your reviewers see the link and your summary, not your name. Keep your name out of the summary, notebook and README so the review stays anonymous (your GitHub username is still part of the link).</p>
                         <label>GitHub repository link <input name="repo_url" type="url" required placeholder="https://github.com/you/your-project"></label>
                         <label>Summary <small>(the problem, what you did and what you found)</small>
                             <textarea name="writeup" rows="6" required minlength="50" maxlength="5000"></textarea></label>
@@ -3234,7 +3237,7 @@ review_main = """        <div class="ac-wrap">
                 </div>
                 <div>
                     <div class="ac-aside-card"><h3>The rubric</h3><ol class="rv-rubric" id="rubric"></ol><p class="ac-small ac-muted" id="rv-pass"></p></div>
-                    <div class="ac-aside-card"><h3>Reviewing well</h3><p>Be specific and kind: say what works, then the one or two changes that would most improve the project. Score what's in the repository, not what you think the author meant. Reviews are anonymous and each one is due within 48 hours.</p></div>
+                    <div class="ac-aside-card"><h3>Reviewing well</h3><p>Be specific and kind: say what works, then the one or two changes that would most improve the project. Score what's in the repository, not what you think the author meant. Reviews are anonymous and each one is due within 48 hours. Don\u2019t try to find out who wrote a project, and don\u2019t share or reuse anything you review: copied work is flagged to the Academy team.</p></div>
                 </div>
             </div>
         </div>"""
@@ -3276,7 +3279,8 @@ review_script = r"""        (async function () {
                     el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })));
                 if (s.status === 'submitted') {
                     card.appendChild(el('p', { text: 'Reviews received: ' + s.received + ' of ' + st.needed + '. Reviews you have given: ' + Math.min(st.given, st.needed) + ' of ' + st.needed + '.' }));
-                    if (st.given < st.needed) card.appendChild(el('p', { class: 'ac-muted', text: 'Your grade is released once you have reviewed ' + st.needed + ' projects (or there are none left for you to review) and three learners have reviewed yours.' }));
+                    var rel = s.release_at ? new Date(s.release_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : null;
+                    card.appendChild(el('p', { class: 'ac-muted', text: (rel ? 'Results are released on ' + rel + ' (Lagos time), ' : 'Results are released ') + 'once three learners have reviewed your project and you have reviewed ' + st.needed + ' (or there are none left for you to review). Everyone\u2019s results for the week come out together, so no one sees feedback early.' }));
                 }
                 if (s.feedback) card.appendChild(el('blockquote', { class: 'ofl-feedback-box', text: s.feedback }));
                 box.appendChild(card);

@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261016a">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261016b">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -55,7 +55,7 @@
         <div class="ac-wrap">
             <div class="ac-dash-head">
                 <h1 id="rv-title">Peer review</h1>
-                <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Open Fraud Labs can step in and review any project.</p>
+                <p class="ac-muted">Your project is graded by three other learners using the rubric below, and you review three projects in return. Projects are handed out automatically: you never review your own, you can't choose whose you get, and names are never shown either way. The middle of the three scores counts, so one harsh or generous reviewer can't decide your grade. Results for each week come out together on Monday at 9:00, at least 7 days after you submit. If you don't pass, improve your project and resubmit as many times as you need. Open Fraud Labs checks for copied work and can step in and review any project.</p>
                 <div id="msg"></div>
             </div>
             <div class="ac-two">
@@ -63,7 +63,7 @@
                     <div id="mine"></div>
                     <form id="sub-form" class="ac-panel ofl-form" hidden>
                         <h2>Share your project</h2>
-                        <p class="ac-muted">Push your notebook and a README to a public GitHub repository, then share it here. Your reviewers see the link and your summary, not your name.</p>
+                        <p class="ac-muted">Push your notebook and a README to a public GitHub repository, then share it here. Your reviewers see the link and your summary, not your name. Keep your name out of the summary, notebook and README so the review stays anonymous (your GitHub username is still part of the link).</p>
                         <label>GitHub repository link <input name="repo_url" type="url" required placeholder="https://github.com/you/your-project"></label>
                         <label>Summary <small>(the problem, what you did and what you found)</small>
                             <textarea name="writeup" rows="6" required minlength="50" maxlength="5000"></textarea></label>
@@ -80,7 +80,7 @@
                 </div>
                 <div>
                     <div class="ac-aside-card"><h3>The rubric</h3><ol class="rv-rubric" id="rubric"></ol><p class="ac-small ac-muted" id="rv-pass"></p></div>
-                    <div class="ac-aside-card"><h3>Reviewing well</h3><p>Be specific and kind: say what works, then the one or two changes that would most improve the project. Score what's in the repository, not what you think the author meant. Reviews are anonymous and each one is due within 48 hours.</p></div>
+                    <div class="ac-aside-card"><h3>Reviewing well</h3><p>Be specific and kind: say what works, then the one or two changes that would most improve the project. Score what's in the repository, not what you think the author meant. Reviews are anonymous and each one is due within 48 hours. Don’t try to find out who wrote a project, and don’t share or reuse anything you review: copied work is flagged to the Academy team.</p></div>
                 </div>
             </div>
         </div>
@@ -114,8 +114,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261016a"></script>
-    <script src="/assets/js/academy.js?v=20261016a"></script>
+    <script src="/assets/js/learn.js?v=20261016b"></script>
+    <script src="/assets/js/academy.js?v=20261016b"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -155,7 +155,8 @@
                     el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })));
                 if (s.status === 'submitted') {
                     card.appendChild(el('p', { text: 'Reviews received: ' + s.received + ' of ' + st.needed + '. Reviews you have given: ' + Math.min(st.given, st.needed) + ' of ' + st.needed + '.' }));
-                    if (st.given < st.needed) card.appendChild(el('p', { class: 'ac-muted', text: 'Your grade is released once you have reviewed ' + st.needed + ' projects (or there are none left for you to review) and three learners have reviewed yours.' }));
+                    var rel = s.release_at ? new Date(s.release_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : null;
+                    card.appendChild(el('p', { class: 'ac-muted', text: (rel ? 'Results are released on ' + rel + ' (Lagos time), ' : 'Results are released ') + 'once three learners have reviewed your project and you have reviewed ' + st.needed + ' (or there are none left for you to review). Everyone\u2019s results for the week come out together, so no one sees feedback early.' }));
                 }
                 if (s.feedback) card.appendChild(el('blockquote', { class: 'ofl-feedback-box', text: s.feedback }));
                 box.appendChild(card);

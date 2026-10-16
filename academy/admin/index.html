@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261016a">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261016b">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -355,8 +355,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261016a"></script>
-    <script src="/assets/js/academy.js?v=20261016a"></script>
+    <script src="/assets/js/learn.js?v=20261016b"></script>
+    <script src="/assets/js/academy.js?v=20261016b"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -1524,6 +1524,7 @@
                 var box = document.getElementById('subs'); box.textContent = 'Loading…';
                 var r = await sb.from('capstone_submissions').select('*').eq('status', status).order('submitted_at', { ascending: true });
                 if (r.error) return OFL.notice(box, OFL.friendlyError(r.error), 'error');
+                var FL = {}; if (r.data.length) ((await sb.from('capstone_flags').select('submission_id, kind, detail, resolved_at').in('submission_id', r.data.map(function (x) { return x.id; }))).data || []).forEach(function (f) { if (!f.resolved_at) (FL[f.submission_id] = FL[f.submission_id] || []).push(f); });
                 var names = {}; rows.forEach(function (x) { names[x.user_id] = x.full_name || x.email; });
                 box.textContent = '';
                 if (!r.data.length) return box.appendChild(el('p', { class: 'ac-muted', text: 'Nothing here.' }));
@@ -1540,6 +1541,8 @@
                         s.peer_score != null ? el('p', { class: 'ac-muted', text: 'Peer score (median): ' + Math.round(100 * s.peer_score) + '%' }) : null,
                         el('p', { class: 'ac-muted', text: 'Submitted ' + OFL.formatDate(s.submitted_at) + (s.reviewed_at ? ' · reviewed ' + OFL.formatDate(s.reviewed_at) : '') }),
                         el('p', {}, el('a', { href: s.repo_url, target: '_blank', rel: 'noopener noreferrer', text: s.repo_url })),
+                        (FL[s.id] || []).length ? el('div', { class: 'app-warn' }, el('b', { text: 'Check before approving: ' }), FL[s.id].map(function (f) { return f.detail; }).join(' ')) : null,
+                        s.status === 'submitted' && s.release_at ? el('p', { class: 'ac-muted ac-small', text: 'Peer result due ' + new Date(s.release_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }) : null,
                         el('p', { class: 'ofl-writeup', text: s.writeup }), fbx,
                         el('div', { class: 'ofl-actions' },
                             el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Approve', onclick: function () { review('approved'); } }),
