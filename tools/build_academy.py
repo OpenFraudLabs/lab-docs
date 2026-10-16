@@ -5,7 +5,7 @@ Ports account/verify/capstone/admin pages into the Academy shell and adds redire
 """
 import json, os, re, urllib.request
 
-V = "20261015g"
+V = "20261016a"
 TT = "https://www.tiktok.com/@_drhola"
 REPO = "https://github.com/Odugbile1993/openfraudlab-tiktok"
 RAW = "https://raw.githubusercontent.com/Odugbile1993/openfraudlab-tiktok/main/"
@@ -2500,6 +2500,7 @@ admin_script = r"""        (async function () {
                     var pf = el('div', { class: 'app-card app-proofcard' }, el('h3', {}, 'Eligibility screenshots ', el('span', { class: 'app-st app-st--' + (PROOF[a.proof_status] || ['', 'end'])[1], text: (PROOF[a.proof_status] || ['—'])[0] })));
                     var shots = el('div', { class: 'app-shots' }); pf.appendChild(shots);
                     KINDS.forEach(function (k) {
+                        if (ans.has_linkedin === 'no' && k[0] !== 'tiktok') { shots.appendChild(el('figure', {}, el('div', { class: 'app-shot__img', text: 'Not needed: no LinkedIn' }), el('figcaption', { text: k[1] }))); return; }
                         var fig = el('figure', {}, el('div', { class: 'app-shot__img', text: 'Loading\u2026' }), el('figcaption', { text: k[1] })); shots.appendChild(fig);
                         sb.storage.from('application-proofs').createSignedUrl(a.user_id + '/' + a.cohort_slug + '/' + k[0] + '.jpg', 600).then(function (r) {
                             var box = fig.firstChild; box.textContent = '';
@@ -2522,8 +2523,26 @@ admin_script = r"""        (async function () {
                     if (a.offered_at) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer sent' }), el('b', { text: dt(a.offered_at) + ' · ' + (a.offered_by_name === 'automatic' ? 'automatic (top of waitlist)' : 'by ' + (a.offered_by_name || 'staff')) })));
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Offer letter' }), el('b', { text: a.offer_signed_at ? 'Signed by ' + a.offer_signed_name + ', ' + dt(a.offer_signed_at) : 'Not signed yet' })));
                     if (a.offer_letter) { var lt = el('details', { class: 'app-letter' }, el('summary', { text: 'Read the letter they were sent' }), el('p', { class: 'app-text', text: a.offer_letter })); os.appendChild(lt); }
-                    if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: 'Not yet' })));
-                    if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : 'Not yet' })));
+                    var AW = a.waived_steps || [];
+                    if (c0.require_post) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'LinkedIn post' }), a.post_url ? el('a', { href: a.post_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open post' }) : el('b', { text: AW.indexOf('post') >= 0 ? (ans.has_linkedin === 'no' ? 'Not needed (no LinkedIn)' : 'Waived') : 'Not yet' })));
+                    if (c0.require_whatsapp) os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'WhatsApp group' }), el('b', { text: a.whatsapp_joined_at ? 'Says they joined ' + dOnly(a.whatsapp_joined_at) : AW.indexOf('whatsapp') >= 0 ? 'Waived' : 'Not yet' })));
+                    if (a.status === 'shortlisted') {
+                        var wv = el('div', { class: 'app-waive' }, el('p', { class: 'ac-small' }, el('b', { text: 'Waive steps' }), ' Tick any step this person doesn\u2019t need to do. Their place then confirms as soon as they pass Lesson ' + c0.trial_lesson + '. They\u2019re emailed about the change.'));
+                        var boxes = {};
+                        [['sign', 'Sign the offer letter', c0.require_signature, a.offer_signed_at], ['post', 'LinkedIn post', c0.require_post, a.post_url], ['whatsapp', 'Join the WhatsApp group', c0.require_whatsapp, a.whatsapp_joined_at]].forEach(function (s) {
+                            if (!s[2]) return;
+                            var cb = el('input', { type: 'checkbox' }); cb.checked = AW.indexOf(s[0]) >= 0; boxes[s[0]] = cb;
+                            wv.appendChild(el('label', { class: 'ap-check' }, cb, ' ' + s[1] + (s[3] ? ' (already done)' : '')));
+                        });
+                        var wr = el('input', { type: 'text', maxlength: '300', class: 'app-note', placeholder: 'Optional line for the email, e.g. \u201cNo LinkedIn needed, thanks for letting us know.\u201d' });
+                        wv.appendChild(wr);
+                        wv.appendChild(el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Save waived steps', onclick: async function () {
+                            var steps = Object.keys(boxes).filter(function (k) { return boxes[k].checked; });
+                            var r = await sb.rpc('application_waive', { p_id: a.id, p_steps: steps, p_reason: wr.value || null });
+                            if (r.error) return OFL.notice(document.getElementById('app-dlg-msg'), OFL.friendlyError(r.error), 'error');
+                            appDlg.close(); OFL.notice(msg, r.data.status === 'completed' ? (a.full_name || a.email) + '\u2019s place is now confirmed.' : 'Saved. ' + (a.full_name || a.email) + (r.data.steps_left.length ? ' still needs to: ' + r.data.steps_left.join('; ') + '.' : ' has nothing left to do.'), 'success'); loadApps(); } }));
+                        os.appendChild(wv);
+                    }
                     os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Lesson ' + c0.trial_lesson }), el('b', { text: a.trial_done ? 'Passed' : 'Not yet' })));
                     if (a.status === 'shortlisted') {
                         os.appendChild(el('div', { class: 'app-kv' }, el('span', { text: 'Reminders' }), el('b', { text: a.last_reminder_at ? 'Last sent ' + dt(a.last_reminder_at) + (a.nudge_count ? ' (' + a.nudge_count + ' sent by staff)' : '') : 'None yet' })));
@@ -3535,7 +3554,10 @@ apply_main = f"""        <section class="cp-hero ap-hero">
                 <form id="ap-form" class="wb-form" novalidate hidden>
                     <fieldset class="wb-group" id="ap-follow-group">
                         <legend>1. Follow us and show us</legend>
-                        <p class="ac-muted ap-help">Follow all three, then upload a screenshot of each profile showing &ldquo;Following&rdquo;. Screenshots are private: only the Open Fraud Labs team checking applications can see them.</p>
+                        <div class="wb-q"><span class="wb-q__label" id="q-li">Do you have a LinkedIn account?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-li"><label class="wb-chip"><input type="radio" name="has_linkedin" value="yes" checked><span>Yes</span></label><label class="wb-chip"><input type="radio" name="has_linkedin" value="no"><span>No, not yet</span></label></div>
+                            <p class="ac-muted ap-help" id="ap-noli" hidden>No problem: LinkedIn is optional. Just follow us on TikTok below. You won&rsquo;t be asked to post on LinkedIn if you&rsquo;re offered a place, though a profile is worth creating for your career later.</p></div>
+                        <p class="ac-muted ap-help" id="ap-follow-help">Follow all three, then upload a screenshot of each profile showing &ldquo;Following&rdquo;. Screenshots are private: only the Open Fraud Labs team checking applications can see them.</p>
                         <div class="ap-proofs">
                             <div class="ap-proof" data-kind="tiktok">
                                 <div class="ap-proof__head"><b>TikTok: @_drhola</b><a class="ac-btn ac-btn--secondary ac-btn--sm" href="{TT}" target="_blank" rel="noopener noreferrer">Open</a></div>
@@ -3554,7 +3576,7 @@ apply_main = f"""        <section class="cp-hero ap-hero">
                                 <div class="ap-upload"></div>
                             </div>
                         </div>
-                        <label class="au-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
+                        <label class="au-field" id="ap-li-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
                         <div class="au-field" id="ap-cv-field" hidden><span>Your CV <em>(PDF or Word)</em></span><div class="ap-upload" id="ap-cv"></div></div>
                     </fieldset>
                     <fieldset class="wb-group">
@@ -3613,7 +3635,7 @@ apply_script = r"""        (async function () {
                 document.getElementById('ap-trial').textContent = info.trial_days + '-day offer window';
                 document.querySelector('#ap-facts li:nth-child(3) span').textContent = 'Accept your offer and finish Lesson ' + info.trial_lesson + ' in time';
                 var steps = [];
-                if (info.require_post) steps.push('post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs');
+                if (info.require_post) steps.push('post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs (if I have LinkedIn)');
                 if (info.require_whatsapp) steps.push('join the cohort WhatsApp group');
                 steps.push('complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz)');
                 document.getElementById('ap-step3').textContent = 'You’ll get the offer by email and on this page. Within ' + info.trial_days + ' days: ' + steps.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.';
@@ -3714,18 +3736,28 @@ apply_script = r"""        (async function () {
                 function upd() { var n = t.value.trim().length; c.textContent = n + ' characters' + (min && n < min ? ' (at least ' + min + ')' : ''); c.classList.toggle('is-short', !!min && n < min); }
                 t.addEventListener('input', upd); upd();
             });
-            form.hidden = false;
+            function noLi() { var x = form.querySelector('input[name="has_linkedin"]:checked'); return !!x && x.value === 'no'; }
+            function syncLi() {
+                var no = noLi();
+                document.querySelectorAll('#ap-follow-group .ap-proof[data-kind^="linkedin"]').forEach(function (p) { p.hidden = no; });
+                document.getElementById('ap-li-field').hidden = no; document.getElementById('ap-noli').hidden = !no;
+                document.getElementById('ap-follow-help').textContent = no ? 'Follow us on TikTok, then upload a screenshot of the profile showing \u201cFollowing\u201d. Screenshots are private: only the Open Fraud Labs team checking applications can see them.'
+                    : 'Follow all three, then upload a screenshot of each profile showing \u201cFollowing\u201d. Screenshots are private: only the Open Fraud Labs team checking applications can see them.';
+            }
+            form.querySelectorAll('input[name="has_linkedin"]').forEach(function (r) { r.addEventListener('change', syncLi); });
+            form.hidden = false; // cohort application form
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 var f = form, val = function (n) { var x = f.querySelector('input[name="' + n + '"]:checked'); return x ? x.value : null; };
                 function stop(target, text) { if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' }); if (target && target.focus) target.focus(); return OFL.notice(msg, text, 'error'); }
                 document.querySelectorAll('#ap-form .wb-chips').forEach(function (g) { g.classList.remove('is-invalid'); });
                 if (info.require_proofs) {
-                    if (!f.follows_tiktok.checked || !f.follows_founder.checked || !f.follows_linkedin.checked) return stop(f.follows_tiktok, 'Follow all three and tick each box.');
+                    var nl = noLi();
+                    if (!f.follows_tiktok.checked || (!nl && (!f.follows_founder.checked || !f.follows_linkedin.checked))) return stop(f.follows_tiktok, nl ? 'Follow @_drhola on TikTok and tick the box.' : 'Follow all three and tick each box.');
                     if (f.tiktok_handle.value.replace(/^@/, '').trim().length < 2) return stop(f.tiktok_handle, 'Add your TikTok username.');
-                    var missing = KINDS.filter(function (k) { return !uploaded[k[0]]; });
+                    var missing = KINDS.filter(function (k) { return !uploaded[k[0]] && !(nl && k[0] !== 'tiktok'); });
                     if (missing.length) return stop(document.getElementById('ap-follow-group'), 'Upload a screenshot for: ' + missing.map(function (k) { return k[1]; }).join(', ') + '.');
-                    if (!/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
+                    if (!nl && !/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
                 }
                 if (info.require_cv && !hasCv) return stop(document.getElementById('ap-cv-field'), 'Upload your CV.');
                 if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); return stop(g, 'Tell us how many hours a week you can study.'); }
@@ -3734,7 +3766,7 @@ apply_script = r"""        (async function () {
                 if (!f.commit_deadline.checked) return stop(f.commit_deadline, 'Please confirm you can complete the offer steps in time.');
                 var btn = document.getElementById('ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
                 var res = await sb.rpc('application_submit', { p_slug: info.slug, p_answers: {
-                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_founder: f.follows_founder.checked, follows_linkedin: f.follows_linkedin.checked, linkedin_url: f.linkedin_url.value,
+                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_founder: f.follows_founder.checked, follows_linkedin: !noLi() && f.follows_linkedin.checked, linkedin_url: noLi() ? '' : f.linkedin_url.value, has_linkedin: noLi() ? 'no' : 'yes',
                     hours: val('hours'), device: val('device'), internet: val('internet'), career_goal: val('career_goal'), can_afford: val('can_afford'),
                     motivation: f.motivation.value, problem: f.problem.value,
                     commit_deadline: f.commit_deadline.checked, consent_reports: f.consent_reports.checked, consent_jobs: f.consent_jobs.checked } });
@@ -3763,12 +3795,17 @@ apply_script = r"""        (async function () {
                     var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
                     var list = el('ol', { class: 'ap-offer' });
                     function item(done, title, body) { list.appendChild(el('li', { class: done ? 'is-done' : '' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: done ? '✓' : '' }), el('div', {}, el('b', { text: title + (done ? ' (done)' : '') }), body))); }
-                    if (m.require_signature) {
+                    var W = m.waived || [];
+                    function waivedItem(title, why) { list.appendChild(el('li', { class: 'is-done is-waived' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: '\u2713' }), el('div', {}, el('b', { text: title + ' (not needed)' }), el('div', { class: 'ap-offer__body' }, el('p', { class: 'ac-muted', text: why }))))); }
+                    function whyWaived(step) { return step === 'post' && m.has_linkedin === false ? 'You told us you don\u2019t have LinkedIn, so this step is skipped for you.' : 'The Academy team has removed this step for you.'; }
+                    if (m.require_signature && W.indexOf('sign') >= 0 && !m.offer_signed_at) waivedItem('Sign your offer letter', whyWaived('sign'));
+                    else if (m.require_signature) {
                         item(!!m.offer_signed_at, 'Sign your offer letter', el('div', { class: 'ap-offer__body' },
                             el('p', { text: m.offer_signed_at ? 'Signed by ' + m.offer_signed_name + '. You can read it again or save a copy any time.' : 'Your offer letter sets out what we provide and what we ask of you. It was also emailed to you.' }),
                             el('a', { class: 'ac-btn ac-btn--' + (m.offer_signed_at ? 'secondary' : 'primary') + ' ac-btn--sm', href: '/academy/offer/?c=' + encodeURIComponent(info.slug), text: m.offer_signed_at ? 'View signed letter' : 'Read and sign' })));
                     }
-                    if (info.require_post) {
+                    if (info.require_post && W.indexOf('post') >= 0 && !m.post_url) waivedItem('Post your offer on LinkedIn', whyWaived('post'));
+                    else if (info.require_post) {
                         var post = 'I’ve been offered a place in the Founding Cohort of Open Fraud Labs Academy.\n\nOver the coming weeks I’ll be learning Data Science from Scratch: Python, statistics and machine learning, with hands-on projects.\n\nThank you @Ayodele Odugbile and @Open Fraud Labs for the opportunity. If you’re curious about data, take a look: openfraudlabs.com/academy\n\n#OpenFraudLabsAcademy #DataScience';
                         var url = el('input', { type: 'url', placeholder: 'https://www.linkedin.com/posts/…', value: m.post_url || '', 'aria-label': 'Link to your LinkedIn post' });
                         item(!!m.post_url, 'Post your offer on LinkedIn', el('div', { class: 'ap-offer__body' },
@@ -3778,7 +3815,8 @@ apply_script = r"""        (async function () {
                             el('label', { class: 'au-field' }, el('span', { text: 'Then paste the link to your post (on the post, choose … then “Copy link to post”)' }), url),
                             el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: m.post_url ? 'Update link' : 'Save link', onclick: function () { step('post', url.value); } })));
                     }
-                    if (info.require_whatsapp) {
+                    if (info.require_whatsapp && W.indexOf('whatsapp') >= 0 && !m.whatsapp_joined) waivedItem('Join the cohort WhatsApp group', whyWaived('whatsapp'));
+                    else if (info.require_whatsapp) {
                         item(!!m.whatsapp_joined, 'Join the cohort WhatsApp group', el('div', { class: 'ap-offer__body' },
                             m.whatsapp_url ? el('p', { text: 'Updates, reminders and questions go here. Please don’t share the link outside the cohort.' }) : el('p', { text: 'The group link will appear here shortly. Check back soon; your deadline already allows for this.' }),
                             m.whatsapp_url ? el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open WhatsApp group' }),

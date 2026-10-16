@@ -1829,3 +1829,8 @@ body.is-console .adm-top { padding-top: 28px; }
 /* download/print picture: draw the name rule as its own line so it never crosses the letters */
 .cx-fixed .cx-name { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; line-height: normal; }
 .cx-fixed .cx-rule { width: 62%; height: 1.5px; background: #C9A24B; margin: 2.4cqi 0 1.2cqi; }
+/* offer steps: waived, and the staff waive box */
+.ap-offer li.is-waived b { color: var(--ink-3); }
+.app-waive { margin-top: 12px; padding: 12px 14px; border: 1px dashed var(--line-2, #CBD3E0); border-radius: 10px; background: #FAFBFD; display: grid; gap: 8px; }
+.app-waive p { margin: 0; }
+.app-waive .ac-btn { justify-self: start; }

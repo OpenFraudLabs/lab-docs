@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/academy.css?v=20261015g">
+    <link rel="stylesheet" href="/assets/css/academy.css?v=20261016a">
 </head>
 <body>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCFJFHR" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -99,7 +99,10 @@
                 <form id="ap-form" class="wb-form" novalidate hidden>
                     <fieldset class="wb-group" id="ap-follow-group">
                         <legend>1. Follow us and show us</legend>
-                        <p class="ac-muted ap-help">Follow all three, then upload a screenshot of each profile showing &ldquo;Following&rdquo;. Screenshots are private: only the Open Fraud Labs team checking applications can see them.</p>
+                        <div class="wb-q"><span class="wb-q__label" id="q-li">Do you have a LinkedIn account?</span>
+                            <div class="wb-chips" role="radiogroup" aria-labelledby="q-li"><label class="wb-chip"><input type="radio" name="has_linkedin" value="yes" checked><span>Yes</span></label><label class="wb-chip"><input type="radio" name="has_linkedin" value="no"><span>No, not yet</span></label></div>
+                            <p class="ac-muted ap-help" id="ap-noli" hidden>No problem: LinkedIn is optional. Just follow us on TikTok below. You won&rsquo;t be asked to post on LinkedIn if you&rsquo;re offered a place, though a profile is worth creating for your career later.</p></div>
+                        <p class="ac-muted ap-help" id="ap-follow-help">Follow all three, then upload a screenshot of each profile showing &ldquo;Following&rdquo;. Screenshots are private: only the Open Fraud Labs team checking applications can see them.</p>
                         <div class="ap-proofs">
                             <div class="ap-proof" data-kind="tiktok">
                                 <div class="ap-proof__head"><b>TikTok: @_drhola</b><a class="ac-btn ac-btn--secondary ac-btn--sm" href="https://www.tiktok.com/@_drhola" target="_blank" rel="noopener noreferrer">Open</a></div>
@@ -118,7 +121,7 @@
                                 <div class="ap-upload"></div>
                             </div>
                         </div>
-                        <label class="au-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
+                        <label class="au-field" id="ap-li-field"><span>Your LinkedIn profile link</span><input name="linkedin_url" type="url" maxlength="200" placeholder="https://www.linkedin.com/in/yourname"></label>
                         <div class="au-field" id="ap-cv-field" hidden><span>Your CV <em>(PDF or Word)</em></span><div class="ap-upload" id="ap-cv"></div></div>
                     </fieldset>
                     <fieldset class="wb-group">
@@ -189,8 +192,8 @@
         <div class="ac-wrap ac-footer__legal">&copy; 2026 Open Fraud Labs. Certificates are certificates of course completion, not accredited qualifications.</div>
     </footer>
     <script src="/assets/js/vendor/supabase-2.117.2.js"></script>
-    <script src="/assets/js/learn.js?v=20261015g"></script>
-    <script src="/assets/js/academy.js?v=20261015g"></script>
+    <script src="/assets/js/learn.js?v=20261016a"></script>
+    <script src="/assets/js/academy.js?v=20261016a"></script>
     <script>
         (async function () {
             var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg');
@@ -230,7 +233,7 @@
                 document.getElementById('ap-trial').textContent = info.trial_days + '-day offer window';
                 document.querySelector('#ap-facts li:nth-child(3) span').textContent = 'Accept your offer and finish Lesson ' + info.trial_lesson + ' in time';
                 var steps = [];
-                if (info.require_post) steps.push('post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs');
+                if (info.require_post) steps.push('post about it on LinkedIn and tag Ayodele Odugbile and Open Fraud Labs (if I have LinkedIn)');
                 if (info.require_whatsapp) steps.push('join the cohort WhatsApp group');
                 steps.push('complete Lesson ' + info.trial_lesson + ' (video, notes, practice and quiz)');
                 document.getElementById('ap-step3').textContent = 'You’ll get the offer by email and on this page. Within ' + info.trial_days + ' days: ' + steps.join(', ').replace(/, ([^,]*)$/, ', and $1') + '.';
@@ -331,18 +334,28 @@
                 function upd() { var n = t.value.trim().length; c.textContent = n + ' characters' + (min && n < min ? ' (at least ' + min + ')' : ''); c.classList.toggle('is-short', !!min && n < min); }
                 t.addEventListener('input', upd); upd();
             });
-            form.hidden = false;
+            function noLi() { var x = form.querySelector('input[name="has_linkedin"]:checked'); return !!x && x.value === 'no'; }
+            function syncLi() {
+                var no = noLi();
+                document.querySelectorAll('#ap-follow-group .ap-proof[data-kind^="linkedin"]').forEach(function (p) { p.hidden = no; });
+                document.getElementById('ap-li-field').hidden = no; document.getElementById('ap-noli').hidden = !no;
+                document.getElementById('ap-follow-help').textContent = no ? 'Follow us on TikTok, then upload a screenshot of the profile showing \u201cFollowing\u201d. Screenshots are private: only the Open Fraud Labs team checking applications can see them.'
+                    : 'Follow all three, then upload a screenshot of each profile showing \u201cFollowing\u201d. Screenshots are private: only the Open Fraud Labs team checking applications can see them.';
+            }
+            form.querySelectorAll('input[name="has_linkedin"]').forEach(function (r) { r.addEventListener('change', syncLi); });
+            form.hidden = false; // cohort application form
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 var f = form, val = function (n) { var x = f.querySelector('input[name="' + n + '"]:checked'); return x ? x.value : null; };
                 function stop(target, text) { if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center' }); if (target && target.focus) target.focus(); return OFL.notice(msg, text, 'error'); }
                 document.querySelectorAll('#ap-form .wb-chips').forEach(function (g) { g.classList.remove('is-invalid'); });
                 if (info.require_proofs) {
-                    if (!f.follows_tiktok.checked || !f.follows_founder.checked || !f.follows_linkedin.checked) return stop(f.follows_tiktok, 'Follow all three and tick each box.');
+                    var nl = noLi();
+                    if (!f.follows_tiktok.checked || (!nl && (!f.follows_founder.checked || !f.follows_linkedin.checked))) return stop(f.follows_tiktok, nl ? 'Follow @_drhola on TikTok and tick the box.' : 'Follow all three and tick each box.');
                     if (f.tiktok_handle.value.replace(/^@/, '').trim().length < 2) return stop(f.tiktok_handle, 'Add your TikTok username.');
-                    var missing = KINDS.filter(function (k) { return !uploaded[k[0]]; });
+                    var missing = KINDS.filter(function (k) { return !uploaded[k[0]] && !(nl && k[0] !== 'tiktok'); });
                     if (missing.length) return stop(document.getElementById('ap-follow-group'), 'Upload a screenshot for: ' + missing.map(function (k) { return k[1]; }).join(', ') + '.');
-                    if (!/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
+                    if (!nl && !/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
                 }
                 if (info.require_cv && !hasCv) return stop(document.getElementById('ap-cv-field'), 'Upload your CV.');
                 if (!val('hours')) { var g = f.querySelector('[data-name="hours"]'); g.classList.add('is-invalid'); return stop(g, 'Tell us how many hours a week you can study.'); }
@@ -351,7 +364,7 @@
                 if (!f.commit_deadline.checked) return stop(f.commit_deadline, 'Please confirm you can complete the offer steps in time.');
                 var btn = document.getElementById('ap-submit'); btn.disabled = true; btn.textContent = 'Submitting…';
                 var res = await sb.rpc('application_submit', { p_slug: info.slug, p_answers: {
-                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_founder: f.follows_founder.checked, follows_linkedin: f.follows_linkedin.checked, linkedin_url: f.linkedin_url.value,
+                    follows_tiktok: f.follows_tiktok.checked, tiktok_handle: f.tiktok_handle.value, follows_founder: f.follows_founder.checked, follows_linkedin: !noLi() && f.follows_linkedin.checked, linkedin_url: noLi() ? '' : f.linkedin_url.value, has_linkedin: noLi() ? 'no' : 'yes',
                     hours: val('hours'), device: val('device'), internet: val('internet'), career_goal: val('career_goal'), can_afford: val('can_afford'),
                     motivation: f.motivation.value, problem: f.problem.value,
                     commit_deadline: f.commit_deadline.checked, consent_reports: f.consent_reports.checked, consent_jobs: f.consent_jobs.checked } });
@@ -380,12 +393,17 @@
                     var left = Math.max(0, new Date(m.deadline_at) - Date.now()), d = Math.floor(left / 864e5), h = Math.floor(left % 864e5 / 36e5);
                     var list = el('ol', { class: 'ap-offer' });
                     function item(done, title, body) { list.appendChild(el('li', { class: done ? 'is-done' : '' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: done ? '✓' : '' }), el('div', {}, el('b', { text: title + (done ? ' (done)' : '') }), body))); }
-                    if (m.require_signature) {
+                    var W = m.waived || [];
+                    function waivedItem(title, why) { list.appendChild(el('li', { class: 'is-done is-waived' }, el('span', { class: 'ap-offer__dot', 'aria-hidden': 'true', text: '\u2713' }), el('div', {}, el('b', { text: title + ' (not needed)' }), el('div', { class: 'ap-offer__body' }, el('p', { class: 'ac-muted', text: why }))))); }
+                    function whyWaived(step) { return step === 'post' && m.has_linkedin === false ? 'You told us you don\u2019t have LinkedIn, so this step is skipped for you.' : 'The Academy team has removed this step for you.'; }
+                    if (m.require_signature && W.indexOf('sign') >= 0 && !m.offer_signed_at) waivedItem('Sign your offer letter', whyWaived('sign'));
+                    else if (m.require_signature) {
                         item(!!m.offer_signed_at, 'Sign your offer letter', el('div', { class: 'ap-offer__body' },
                             el('p', { text: m.offer_signed_at ? 'Signed by ' + m.offer_signed_name + '. You can read it again or save a copy any time.' : 'Your offer letter sets out what we provide and what we ask of you. It was also emailed to you.' }),
                             el('a', { class: 'ac-btn ac-btn--' + (m.offer_signed_at ? 'secondary' : 'primary') + ' ac-btn--sm', href: '/academy/offer/?c=' + encodeURIComponent(info.slug), text: m.offer_signed_at ? 'View signed letter' : 'Read and sign' })));
                     }
-                    if (info.require_post) {
+                    if (info.require_post && W.indexOf('post') >= 0 && !m.post_url) waivedItem('Post your offer on LinkedIn', whyWaived('post'));
+                    else if (info.require_post) {
                         var post = 'I’ve been offered a place in the Founding Cohort of Open Fraud Labs Academy.\n\nOver the coming weeks I’ll be learning Data Science from Scratch: Python, statistics and machine learning, with hands-on projects.\n\nThank you @Ayodele Odugbile and @Open Fraud Labs for the opportunity. If you’re curious about data, take a look: openfraudlabs.com/academy\n\n#OpenFraudLabsAcademy #DataScience';
                         var url = el('input', { type: 'url', placeholder: 'https://www.linkedin.com/posts/…', value: m.post_url || '', 'aria-label': 'Link to your LinkedIn post' });
                         item(!!m.post_url, 'Post your offer on LinkedIn', el('div', { class: 'ap-offer__body' },
@@ -395,7 +413,8 @@
                             el('label', { class: 'au-field' }, el('span', { text: 'Then paste the link to your post (on the post, choose … then “Copy link to post”)' }), url),
                             el('button', { type: 'button', class: 'ac-btn ac-btn--primary ac-btn--sm', text: m.post_url ? 'Update link' : 'Save link', onclick: function () { step('post', url.value); } })));
                     }
-                    if (info.require_whatsapp) {
+                    if (info.require_whatsapp && W.indexOf('whatsapp') >= 0 && !m.whatsapp_joined) waivedItem('Join the cohort WhatsApp group', whyWaived('whatsapp'));
+                    else if (info.require_whatsapp) {
                         item(!!m.whatsapp_joined, 'Join the cohort WhatsApp group', el('div', { class: 'ap-offer__body' },
                             m.whatsapp_url ? el('p', { text: 'Updates, reminders and questions go here. Please don’t share the link outside the cohort.' }) : el('p', { text: 'The group link will appear here shortly. Check back soon; your deadline already allows for this.' }),
                             m.whatsapp_url ? el('div', { class: 'ap-up-row' }, el('a', { class: 'ac-btn ac-btn--secondary ac-btn--sm', href: m.whatsapp_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open WhatsApp group' }),
