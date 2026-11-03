@@ -245,11 +245,24 @@
                     try { navigator.clipboard.writeText(d.link).then(function () { copyBtn.textContent = 'Copied ✓'; setTimeout(function () { copyBtn.textContent = 'Copy my link'; }, 2000); }); } catch (e) { window.prompt('Copy your link:', d.link); } } });
                 next.appendChild(el('div', { style: 'margin-top:1rem;border-radius:14px;padding:1.2rem 1.3rem;color:#fff;background:linear-gradient(135deg,#0E1A2B,#1A3DB0 60%,#2453E6)' },
                     el('h2', { style: 'color:#fff;margin:0 0 .35rem;font-size:1.15rem', text: '🤝 Invite friends to Cohort 2 and earn XP' }),
-                    el('p', { style: 'margin:0 0 .8rem;opacity:.9', text: 'Share your personal link. You earn ' + (d.xp_per_qualified || 50) + ' XP for every person who applies with it and qualifies. Referral XP counts towards the monthly MVP and the Ambassador programme.' }),
+                    el('p', { style: 'margin:0 0 .8rem;opacity:.9', text: 'Share your personal link. You earn ' + (d.xp_per_qualified || 50) + ' XP for every person who applies with it, accepts their offer and joins the WhatsApp group. Referral XP counts towards the monthly MVP and the Ambassador programme.' }),
                     el('div', { style: 'background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:.6rem .8rem;font-family:IBM Plex Mono,monospace;font-size:.85rem;word-break:break-all;margin-bottom:.8rem', text: d.link }),
                     el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem;align-items:center' }, copyBtn,
                         el('a', { class: 'ac-btn ac-btn--sm', style: 'background:#25D366;color:#fff;border-color:#25D366', href: wa, target: '_blank', rel: 'noopener', text: 'Share on WhatsApp' }),
-                        el('span', { style: 'margin-left:auto;font-size:.9rem;opacity:.9', text: d.applied + ' applied · ' + d.qualified + ' qualified · ' + d.xp + ' XP earned' }))));
+                        el('span', { style: 'margin-left:auto;font-size:.9rem;opacity:.9', text: d.applied + ' applied · ' + d.qualified + ' joined · ' + d.xp + ' XP earned' })),
+                    (function () {
+                        var STG = { screening: ['Applied: being screened', '#FEF4E6', '#B45309'], offered: ['Offered a place: needs to accept', '#EDF2FF', '#1A3DB0'], signed: ['Accepted: needs to join WhatsApp', '#F3E8FF', '#6D28D9'],
+                                    joined: ['Joined ✓', '#E7F7F0', '#046C4A'], not_selected: ['Not selected', '#FEF0EE', '#B42318'] };
+                        var wrap = el('div', { style: 'margin-top:1rem;background:#fff;color:#0E1A2B;border-radius:12px;padding:.9rem 1rem' },
+                            el('b', { style: 'display:block;margin-bottom:.5rem', text: 'Track my referrals' }),
+                            el('p', { style: 'margin:0 0 .6rem;font-size:.85rem;color:#5B6782', text: 'You earn ' + (d.xp_per_qualified || 50) + ' XP when a friend accepts their offer and joins the WhatsApp group. Nudge friends who are stuck at a step.' }));
+                        if (!(d.people || []).length) wrap.appendChild(el('p', { style: 'margin:0;font-size:.9rem;color:#5B6782', text: 'Nobody has applied with your link yet. Share it today!' }));
+                        (d.people || []).forEach(function (f) { var s = STG[f.stage] || [f.stage, '#F2F4F8', '#33415C'];
+                            wrap.appendChild(el('div', { style: 'display:flex;justify-content:space-between;gap:.6rem;align-items:center;padding:.45rem 0;border-top:1px solid #E3E7EF;flex-wrap:wrap' },
+                                el('span', { text: f.name + ' · applied ' + new Date(f.applied_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }),
+                                el('span', { style: 'display:flex;gap:.5rem;align-items:center' }, el('span', { style: 'border-radius:99px;padding:.15rem .6rem;font-size:.78rem;font-weight:700;background:' + s[1] + ';color:' + s[2], text: s[0] }),
+                                    f.xp ? el('b', { style: 'color:#046C4A;font-size:.85rem', text: '+' + f.xp + ' XP' }) : null))); });
+                        return wrap; })()));
             })();
             otherCourses(document.querySelector('.ac-two').parentNode.appendChild(el('div', { class: 'ac-more-wrap' })), 'More courses');
             var list = document.getElementById('checklist');

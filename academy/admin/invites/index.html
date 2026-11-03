@@ -244,7 +244,9 @@
                 shown.forEach(function (x) {
                     var st = AST[x.stage] || [x.status, '#33415C', '#F2F4F8'];
                     var tl = el('div', { style: 'font-size:.82rem;line-height:1.55;color:#33415C' }, el('div', { text: 'Applied: ' + dt(x.applied_at) }),
-                        x.screened_at ? el('div', { text: 'Screened: ' + dt(x.screened_at) + ' (' + x.screen_reason + ')' }) : el('div', { text: 'Screening email due: ' + dt(x.screen_at) }));
+                        x.screened_at ? el('div', { text: 'Screened: ' + dt(x.screened_at) + ' (' + x.screen_reason + ')' }) : el('div', { text: 'Screening email due: ' + dt(x.screen_at) }),
+                        x.offer_signed_at ? el('div', { text: 'Offer accepted: ' + dt(x.offer_signed_at) }) : (x.status === 'shortlisted' ? el('div', { style: 'color:#B45309', text: 'Offer not accepted yet' }) : null),
+                        x.whatsapp_joined_at ? el('div', { text: 'Joined WhatsApp: ' + dt(x.whatsapp_joined_at) }) : (x.offer_signed_at ? el('div', { style: 'color:#B45309', text: 'Not in WhatsApp yet' }) : null));
                     var ans = el('div', { style: 'font-size:.82rem;line-height:1.5' }); if (x.answers && x.answers.appeal) ans.appendChild(el('div', { style: 'background:#F3E8FF;border-radius:8px;padding:.5rem .6rem;margin-bottom:.4rem' }, el('b', { text: 'Their request: ' }), x.answers.appeal));
                     Object.keys(Q).forEach(function (k) { if (x.answers && x.answers[k]) ans.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.answers[k])); });
                     tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })),

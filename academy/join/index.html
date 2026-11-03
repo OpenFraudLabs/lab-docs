@@ -266,9 +266,32 @@
                         title('Your application');
                         return app.appendChild(el('p', { class: 'mvp-quote', text: a.needs_approval ? 'Thank you for your request. We are not able to offer you a place in ' + c.title + ', as it is reserved for people who have not taken part in an Academy cohort before. We have emailed you the details.' : 'Thank you for applying. The course needs a personal laptop or tablet, so we were not able to offer you a place in ' + c.title + '. Once you have one, you are welcome to apply for a future cohort.' }));
                     }
-                    title(a.status === 'admitted' ? 'Welcome to ' + c.title + '!' : 'You have been shortlisted for ' + c.title + ' 🎉');
-                    app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Congratulations, you have a place' }),
-                        el('p', { text: c.title + ' starts on ' + d(c.starts_on) + ' and ends on ' + d(c.ends_on) + '. Join the WhatsApp group now for onboarding details and to meet your cohort.' })));
+                    if (!a.offer_signed_at) {
+                        title('Your offer: ' + c.title + ' 🎉');
+                        app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Congratulations, you have been offered a place' }),
+                            el('p', { text: c.title + ' of Data Science from Scratch runs from ' + d(c.starts_on) + ' to ' + d(c.ends_on) + '. It is free. To accept, confirm below by typing your full name.' })));
+                        app.appendChild(datesBox(c));
+                        var sig = el('input', { type: 'text', maxlength: '120', autocomplete: 'off', placeholder: a.full_name || 'Your full name' });
+                        return app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Accept your offer', style: 'margin:0 0 .4rem' }),
+                            el('p', { class: 'ac-muted', style: 'margin:0 0 .7rem', text: 'I accept my place in ' + c.title + ' and will follow the lessons, deadlines and community rules. I sign by typing my full name as on my application' + (a.full_name ? ' (' + a.full_name + ')' : '') + '.' }),
+                            el('div', { class: 'rv-form' }, sig, el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Sign and accept my offer', onclick: async function () {
+                                msg.textContent = ''; var x = await sb.rpc('cohort_offer_accept', { p_slug: slug, p_signed_name: sig.value });
+                                if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.celebrate && OFL.celebrate(); render(x.data); window.scrollTo(0, 0); } }))));
+                    }
+                    if (!a.whatsapp_joined_at) {
+                        title('One last step: join the WhatsApp group');
+                        app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '✅ Offer accepted' }),
+                            el('p', { text: 'Welcome to ' + c.title + '! Join the cohort WhatsApp group now: it is where we share onboarding details before ' + d(c.starts_on) + '.' })));
+                        app.appendChild(datesBox(c));
+                        async function joined() { var x = await sb.rpc('cohort_whatsapp_joined', { p_slug: slug }); if (!x.error) render(x.data); }
+                        return app.appendChild(el('div', { class: 'mvp-cta' },
+                            a.whatsapp_url ? el('a', { class: 'ac-btn ac-btn--primary', href: a.whatsapp_url, target: '_blank', rel: 'noopener', text: 'Join the ' + c.title + ' WhatsApp group', onclick: function () { setTimeout(joined, 1500); } })
+                                           : el('p', { class: 'ac-muted', text: 'The WhatsApp group link will appear here shortly.' }),
+                            a.whatsapp_url ? el('button', { class: 'ac-btn', type: 'button', text: 'I have joined the group', onclick: joined }) : null));
+                    }
+                    title(a.status === 'admitted' ? 'Welcome to ' + c.title + '!' : 'You are all set for ' + c.title + ' 🎉');
+                    app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '✅ Offer accepted · ✅ WhatsApp group joined' }),
+                        el('p', { text: c.title + ' starts on ' + d(c.starts_on) + '. Watch the WhatsApp group for onboarding details. See you there!' })));
                     app.appendChild(datesBox(c)); return app.appendChild(whatsapp(a.whatsapp_url, c));
                 }
                 var elig = data.eligibility || { eligible: true };

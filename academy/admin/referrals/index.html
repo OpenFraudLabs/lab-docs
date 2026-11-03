@@ -121,7 +121,7 @@
         <div class="ac-wrap rv" style="max-width:1100px">
             <p class="rv-eyebrow">Staff dashboard</p>
             <h1>Referrals</h1>
-            <p class="ac-muted">Every learner's referral link and results. Today rewards are XP. When the platform starts taking payments, switch on commission below and each referrer earns a percentage of what the people they referred pay.</p>
+            <p class="ac-muted">Every learner's referral link and results. XP is given when a referred person accepts their offer and joins the WhatsApp group. Today rewards are XP. When the platform starts taking payments, switch on commission below and each referrer earns a percentage of what the people they referred pay.</p>
             <div id="msg"></div>
             <div id="app"><p class="ac-muted">Loading…</p></div>
             <p><a href="/academy/admin/">← Back to the staff dashboard</a></p>
@@ -174,7 +174,7 @@
                     el('div', { class: 'rv-c' }, el('b', { text: String(ppl.length) }), el('span', { text: 'Learners with a link' })),
                     el('div', { class: 'rv-c' }, el('b', { text: String(tot.active) }), el('span', { text: 'Have referred someone' })),
                     el('div', { class: 'rv-c' }, el('b', { text: String(tot.applied) }), el('span', { text: 'Referred applications' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: String(tot.qualified) }), el('span', { text: 'Qualified' })),
+                    el('div', { class: 'rv-c' }, el('b', { text: String(tot.qualified) }), el('span', { text: 'Joined (XP given)' })),
                     el('div', { class: 'rv-c' }, el('b', { text: s.commission_enabled ? money(tot.comm) : tot.xp + ' XP' }), el('span', { text: s.commission_enabled ? 'Commission earned' : 'XP awarded' }))));
                 // people
                 var t = el('table', { class: 'ac-table' }), tb = el('tbody');
@@ -183,7 +183,7 @@
                 ppl.forEach(function (x, i) {
                     var who = el('td', { style: 'font-size:.82rem;line-height:1.5' });
                     if (!(x.referred || []).length) who.appendChild(el('span', { class: 'ac-muted', text: '—' }));
-                    (x.referred || []).forEach(function (f) { who.appendChild(el('div', { text: f.name + ' · ' + (f.status === 'applied' && f.needs_approval ? 'Needs your approval' : ST[f.status] || f.status) })); });
+                    (x.referred || []).forEach(function (f) { who.appendChild(el('div', { text: f.name + ' · ' + (f.status === 'applied' && f.needs_approval ? 'Needs your approval' : f.status === 'applied' ? 'Screening' : f.status === 'not_selected' ? 'Not selected' : f.joined && f.signed ? 'Accepted offer + joined WhatsApp (XP given)' : f.signed ? 'Accepted offer, not yet in WhatsApp' : 'Offered, not yet accepted') })); });
                     tb.appendChild(el('tr', {}, el('td', { text: String(i + 1) }), el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })),
                         el('td', {}, el('code', { text: x.code })), el('td', { class: 'num', text: String(x.applied) }), el('td', { class: 'num', text: String(x.qualified) }),
                         el('td', { class: 'num', text: String(x.xp) }), el('td', { class: 'num', text: x.commission_minor ? money(x.commission_minor) + (x.commission_unpaid_minor ? ' (' + money(x.commission_unpaid_minor) + ' unpaid)' : '') : '—' }),
