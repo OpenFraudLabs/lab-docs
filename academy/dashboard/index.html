@@ -44,6 +44,7 @@
                 <a href="/academy/#courses">Courses</a>
                 <a href="/academy/dashboard/" aria-current="page">My learning</a>
                 <a href="/academy/leaderboard/">Leaderboard</a>
+                <a href="/academy/tutor/">1-to-1 tutor</a>
                 <a href="/careers/">Careers</a>
                 <a href="/verify/">Verify</a>
             </nav>
@@ -57,6 +58,11 @@
                 <h1 id="hello">My learning</h1>
                 <div class="ac-dash-chips" id="dash-chips"></div>
                 <div id="msg"></div>
+            </div>
+            <div class="dash-quick" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.6rem;margin:0 0 1rem">
+                <a href="/academy/tutor/" style="display:flex;gap:.7rem;align-items:center;padding:.85rem 1rem;border-radius:12px;background:#0E1A2B;color:#fff;text-decoration:none"><span style="font-size:1.5rem" aria-hidden="true">👩🏽‍🏫</span><span><b style="display:block">Book a 1-to-1 tutor</b><span style="font-size:.85rem;opacity:.85">Stuck? Get help with any lesson</span></span></a>
+                <a href="/academy/capstone/?course=data-science" style="display:flex;gap:.7rem;align-items:center;padding:.85rem 1rem;border-radius:12px;background:#EDF2FF;color:#0E1A2B;text-decoration:none;border:1px solid #CDD4E1"><span style="font-size:1.5rem" aria-hidden="true">📝</span><span><b style="display:block">Capstone brief</b><span style="font-size:.85rem;color:#5B6782">Read it now, plan as you learn</span></span></a>
+                <a href="/academy/leaderboard/" style="display:flex;gap:.7rem;align-items:center;padding:.85rem 1rem;border-radius:12px;background:#FEF4E6;color:#0E1A2B;text-decoration:none;border:1px solid #F1D27A"><span style="font-size:1.5rem" aria-hidden="true">🏆</span><span><b style="display:block">This month’s leaderboard</b><span style="font-size:.85rem;color:#5B6782">Climb to become MVP</span></span></a>
             </div>
             <div id="next"></div>
             <div class="ac-two">
@@ -201,7 +207,18 @@
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
             (async function pace() {
-                var pr = await sb.rpc('my_pace', { p_course: course }); if (pr.error || !pr.data || !pr.data.in_cohort || st.done >= st.total) return; var p = pr.data;
+                var pr = await sb.rpc('my_pace', { p_course: course }); if (pr.error || !pr.data || st.done >= st.total) return; var p = pr.data;
+                if (!p.in_cohort) {
+                    next.appendChild(el('div', { style: 'margin-top:1rem;border:1px solid #E3E7EF;border-radius:14px;padding:1.2rem 1.3rem;background:#fff' },
+                        el('h2', { style: 'margin:0 0 .4rem;font-size:1.15rem', text: 'Your progress' }),
+                        el('div', { style: 'height:12px;border-radius:99px;background:#EDF2FF;overflow:hidden;margin:.6rem 0 .4rem' }, el('div', { style: 'height:100%;width:' + Math.round(100 * p.done / p.total) + '%;background:#2453E6' })),
+                        el('p', { style: 'margin:0 0 .8rem', text: p.done + ' of ' + p.total + ' lessons done. You are learning at your own pace.' }),
+                        el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem' },
+                            st.next ? el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: '/academy/lesson/?course=' + course + '&n=' + st.next.n, text: 'Continue with Lesson ' + st.next.n }) : null,
+                            el('a', { class: 'ac-btn ac-btn--sm', href: '/academy/capstone/?course=' + course, text: 'Read the capstone brief' }),
+                            el('a', { class: 'ac-btn ac-btn--sm', href: '/academy/tutor/', text: 'Book a 1-to-1 with a tutor' }))));
+                    return;
+                }
                 var col = p.state === 'on_track' ? ['#046C4A', '#E7F7F0', '✅ You are on track'] : p.state === 'slightly_behind' ? ['#B45309', '#FEF4E6', '⏳ Slightly behind: ' + p.behind + ' lesson' + (p.behind === 1 ? '' : 's') + ' to catch up'] : ['#B42318', '#FEF0EE', '⚠️ Behind schedule: ' + p.behind + ' lessons to catch up'];
                 var due = p.next_due ? new Date(p.next_due.due_at).toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) : '';
                 var pct = Math.round(100 * p.done / p.total);
