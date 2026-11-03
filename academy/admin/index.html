@@ -300,6 +300,7 @@
                 <section class="ac-admin__sec" id="staff-sec" data-cap="view_staff">
                     <div class="ac-admin__head"><h2>Staff and roles</h2><p class="ac-muted" id="staff-note">Who can use this page and what they can do. Only the owner can give or remove roles, and nobody can change the owner.</p></div>
                     <div class="ac-table-wrap"><table class="ac-table" id="staff-table"></table></div>
+                    <div id="rights-box" hidden><h3 style="margin:1.5rem 0 .3rem">Extra rights</h3><p class="ac-muted ac-small">On top of their role, tick any extra right a staff member should have. It works straight away, is recorded, and they get an email. Only you can change roles and rights.</p><div class="ac-table-wrap"><table class="ac-table" id="rights-table"></table></div></div>
                     <details class="ac-roles"><summary>What each role can do</summary>
                         <ul>
                             <li><b>Owner</b>: everything, including giving and removing roles. Can't be removed from the website.</li>
@@ -419,8 +420,9 @@
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
                 manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
                 manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'], send_messages: ['owner', 'admin', 'hr'],
-                view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'] };
-            function can(c) { return (CAPS[c] || []).indexOf(role) >= 0; }
+                view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'], manage_checklists: ['owner'] };
+            var MYCAPS = []; try { var mc = await sb.rpc('my_staff_caps'); if (!mc.error && Array.isArray(mc.data)) MYCAPS = mc.data; } catch (e) {}
+            function can(c) { return MYCAPS.indexOf(c) >= 0 || (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
             var ROLE_OPTS = [['admin', 'Admin'], ['instructor', 'Instructor'], ['reviewer', 'Reviewer'], ['scholarship', 'Scholarship officer'], ['finance', 'Finance'], ['hr', 'HR'], ['analyst', 'Analyst']];
             document.querySelectorAll('[data-cap]').forEach(function (sec) { sec.hidden = !can(sec.getAttribute('data-cap')); });
@@ -433,7 +435,7 @@
                     var t = document.getElementById('adm-title'); t.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + nm.split(' ')[0] : '');
                     var sub = document.getElementById('admin-sub'); var dl = el('span', { class: 'adm-date', text: new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Lagos time' });
                     var plain = [].slice.call(sub.childNodes).filter(function (n) { return n.nodeType === 3; }); plain.forEach(function (n) { n.remove(); }); sub.appendChild(dl);
-                    var Q = [['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
+                    var Q = [['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
                              ['Review applications', '#app-sec', 'manage_applications'], ['Staff pay and leave', '/academy/admin/pay/', 'pay_or_leave'], ['Add a document', '#doc-sec', 'manage_applications'], ['Give a scholarship', '#sch-sec', 'manage_scholarships']];
                     var qb = document.getElementById('adm-quick');
                     Q.filter(function (q) { return can(q[2]); }).forEach(function (q) { qb.appendChild(el('a', { class: 'adm-quick__btn', href: q[1], text: q[0] })); });
@@ -458,7 +460,7 @@
                     ['Learners', [['learners-sec', 'Learners'], ['reviews-sec', 'Project reviews'], ['sch-sec', 'Scholarships']]],
                     ['Content', [['courses-sec', 'Courses and lessons'], ['doc-sec', 'Documents']]],
                     ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
-                    ['Team', [['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
+                    ['Team', [['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/staff/review/', 'Staff checklists', 'manage_checklists'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
                     ['Messages', [['link:/academy/admin/messages/', 'Email learners', 'send_messages'], ['link:/academy/chat/', 'Learner chat']]],
                     ['Money', [['finance-sec', 'Finance']]]];
                 var act = document.getElementById('activity-sec'), ovs = document.getElementById('overview-sec');
@@ -1319,6 +1321,34 @@
                         cell.appendChild(sel);
                     } else cell.appendChild(el('span', { class: 'ac-rolebadge' + (x.staff_role === 'owner' ? ' is-owner' : ''), text: ROLE_NAME[x.staff_role] || x.staff_role }));
                     tb.appendChild(el('tr', {}, el('td', { text: x.full_name || '—' }), el('td', { text: x.email }), cell));
+                });
+            })();
+            if (can('manage_roles')) (async function rights() {
+                var RN = { manage_checklists: 'Assign and review staff checklists', send_messages: 'Email learners and post in chat', manage_applications: 'Run applications and cohorts',
+                    view_people: 'See learners', view_staff: 'See the staff list', manage_learners: 'Manage learner accounts', review: 'Grade projects', manage_content: 'Edit courses and lessons',
+                    manage_scholarships: 'Give scholarships', view_stats: 'See stats', view_finance: 'See finance', manage_plans: 'Manage plans and prices', manage_payroll: 'Manage staff pay', manage_leave: 'Approve leave' };
+                var r = await sb.rpc('owner_staff_rights'); if (r.error) return;
+                var box = document.getElementById('rights-box'), t = document.getElementById('rights-table'); box.hidden = false; t.textContent = '';
+                t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Staff member' }), el('th', { text: 'Role' }), el('th', { text: 'Extra rights' }))));
+                var tb = el('tbody'); t.appendChild(tb);
+                if (!(r.data.staff || []).length) tb.appendChild(el('tr', {}, el('td', { colspan: '3', class: 'ac-muted', text: 'Give someone a staff role first.' })));
+                (r.data.staff || []).forEach(function (x) {
+                    var cell = el('td'), wrap = el('div', { style: 'display:flex;flex-wrap:wrap;gap:.35rem .9rem' });
+                    (r.data.caps || []).forEach(function (c) {
+                        var cb = el('input', { type: 'checkbox', checked: (x.grants || []).indexOf(c) >= 0 ? 'checked' : null });
+                        cb.addEventListener('change', async function () {
+                            var on = cb.checked;
+                            if (!window.confirm((on ? 'Give ' : 'Remove ') + '"' + (RN[c] || c) + '" ' + (on ? 'to ' : 'from ') + (x.name || 'this staff member') + '? They will get an email.')) { cb.checked = !on; return; }
+                            cb.disabled = true;
+                            var res = await sb.rpc('owner_set_right', { p_user: x.user_id, p_cap: c, p_on: on });
+                            cb.disabled = false;
+                            if (res.error) { cb.checked = !on; return OFL.notice(msg, OFL.friendlyError(res.error), 'error'); }
+                            OFL.notice(msg, (on ? 'Right given to ' : 'Right removed from ') + (x.name || 'staff member') + '. They have been emailed.', 'success');
+                        });
+                        wrap.appendChild(el('label', { style: 'display:flex;gap:.35rem;align-items:center;font-size:.9rem;white-space:nowrap' }, cb, RN[c] || c));
+                    });
+                    cell.appendChild(wrap);
+                    tb.appendChild(el('tr', {}, el('td', { text: x.name || '—' }), el('td', { text: ROLE_NAME[x.role] || x.role }), cell));
                 });
             })();
             if (can('view_finance')) (async function finance() {

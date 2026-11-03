@@ -118,7 +118,7 @@
         (async function () {
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var user = await OFL.requireUser('/academy/staff/review/'); if (!user) return;
-            var admin = await OFL.isAdmin();
+            var mc = await sb.rpc('my_staff_caps'); var admin = mc.error ? await OFL.isAdmin() : (Array.isArray(mc.data) && mc.data.indexOf('manage_checklists') >= 0);
             var KIND = { whatsapp: 'WhatsApp post', checkin: 'Daily check-in', followup_list: 'Learner follow-up list' };
             function day(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
             function scoreBlock(s) {
