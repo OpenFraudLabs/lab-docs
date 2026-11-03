@@ -420,7 +420,7 @@
                 view_people: ['owner', 'admin', 'reviewer', 'hr'], view_staff: ['owner', 'admin', 'hr'], view_finance: ['owner', 'finance'],
                 manage_plans: ['owner', 'finance'], manage_scholarships: ['owner', 'admin', 'scholarship'], manage_content: ['owner', 'admin', 'instructor'], manage_applications: ['owner', 'admin', 'hr'],
                 manage_payroll: ['owner', 'finance'], manage_leave: ['owner', 'admin'], pay_or_leave: ['owner', 'finance', 'admin'], send_messages: ['owner', 'admin', 'hr'],
-                view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'], manage_checklists: ['owner'] };
+                view_stats: ['owner', 'admin', 'reviewer', 'analyst', 'finance', 'hr', 'scholarship', 'instructor'], manage_checklists: ['owner'], manage_rewards: ['owner'], manage_invites: ['owner'] };
             var MYCAPS = []; try { var mc = await sb.rpc('my_staff_caps'); if (!mc.error && Array.isArray(mc.data)) MYCAPS = mc.data; } catch (e) {}
             function can(c) { return MYCAPS.indexOf(c) >= 0 || (CAPS[c] || []).indexOf(role) >= 0; }
             var ROLE_NAME = { owner: 'Owner', admin: 'Admin', reviewer: 'Reviewer', analyst: 'Analyst', finance: 'Finance', hr: 'HR', scholarship: 'Scholarship officer', instructor: 'Instructor' };
@@ -435,7 +435,7 @@
                     var t = document.getElementById('adm-title'); t.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + nm.split(' ')[0] : '');
                     var sub = document.getElementById('admin-sub'); var dl = el('span', { class: 'adm-date', text: new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Lagos time' });
                     var plain = [].slice.call(sub.childNodes).filter(function (n) { return n.nodeType === 3; }); plain.forEach(function (n) { n.remove(); }); sub.appendChild(dl);
-                    var Q = [['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
+                    var Q = [['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Rewards', '/academy/admin/rewards/', 'manage_rewards'], ['Cohort 2 invitations', '/academy/admin/invites/', 'manage_invites'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
                              ['Review applications', '#app-sec', 'manage_applications'], ['Staff pay and leave', '/academy/admin/pay/', 'pay_or_leave'], ['Add a document', '#doc-sec', 'manage_applications'], ['Give a scholarship', '#sch-sec', 'manage_scholarships']];
                     var qb = document.getElementById('adm-quick');
                     Q.filter(function (q) { return can(q[2]); }).forEach(function (q) { qb.appendChild(el('a', { class: 'adm-quick__btn', href: q[1], text: q[0] })); });
@@ -457,10 +457,11 @@
                 var GROUPS = [
                     ['Today', [['overview-sec', 'Overview']]],
                     ['Founding Cohort', [['prog-sec', 'Cohort progress'], ['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
+                    ['Cohort 2', [['link:/academy/admin/invites/', 'Invitations and onboarding', 'manage_invites']]],
                     ['Learners', [['learners-sec', 'Learners'], ['reviews-sec', 'Project reviews'], ['sch-sec', 'Scholarships']]],
                     ['Content', [['courses-sec', 'Courses and lessons'], ['doc-sec', 'Documents']]],
                     ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
-                    ['Team', [['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/staff/review/', 'Staff checklists', 'manage_checklists'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
+                    ['Team', [['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/staff/review/', 'Staff checklists', 'manage_checklists'], ['link:/academy/admin/rewards/', 'Rewards', 'manage_rewards'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
                     ['Messages', [['link:/academy/admin/messages/', 'Email learners', 'send_messages'], ['link:/academy/chat/', 'Learner chat']]],
                     ['Money', [['finance-sec', 'Finance']]]];
                 var act = document.getElementById('activity-sec'), ovs = document.getElementById('overview-sec');
@@ -1334,7 +1335,8 @@
                 if (!(r.data.staff || []).length) tb.appendChild(el('tr', {}, el('td', { colspan: '3', class: 'ac-muted', text: 'Give someone a staff role first.' })));
                 (r.data.staff || []).forEach(function (x) {
                     var cell = el('td'), wrap = el('div', { style: 'display:flex;flex-wrap:wrap;gap:.35rem .9rem' });
-                    (r.data.caps || []).forEach(function (c) {
+                    (r.data.caps || []).forEach(function (cc) {
+                        var c = typeof cc === 'string' ? cc : cc.cap; if (cc.label) RN[c] = cc.label;
                         var cb = el('input', { type: 'checkbox', checked: (x.grants || []).indexOf(c) >= 0 ? 'checked' : null });
                         cb.addEventListener('change', async function () {
                             var on = cb.checked;
