@@ -14,9 +14,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Careers | Open Fraud Labs</title>
-    <meta name="description" content="Internships, programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
+    <meta name="description" content="Internships, programmes and roles at Open Fraud Labs, including Cohort 2 of the free Academy, starting 9 January 2027.">
     <meta property="og:title" content="Careers | Open Fraud Labs">
-    <meta property="og:description" content="Internships, programmes and roles at Open Fraud Labs, including the free Academy Founding Cohort.">
+    <meta property="og:description" content="Internships, programmes and roles at Open Fraud Labs, including Cohort 2 of the free Academy, starting 9 January 2027.">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
@@ -67,13 +67,13 @@
                 <h2 class="cr-h">Academy programmes</h2>
                 <article class="cr-job" id="cr-cohort">
                     <div>
-                        <span class="ac-status ac-status--soon" id="cr-state">Loading</span>
+                        <span class="ac-status ac-status--live" id="cr-state">Places open</span>
                         <p class="cr-org">Open Fraud Labs Academy</p>
-                        <h3>Founding Cohort: free learning internship</h3>
-                        <p class="ac-muted">Learn Data Science from Scratch for free before the Academy launches. For people with their own laptop who follow Open Fraud Labs on TikTok and LinkedIn. Offers go to eligible applicants in ranked order.</p>
-                        <p class="cr-meta" id="cr-meta">Online · Free · Unpaid</p>
+                        <h3>Cohort 2: Data Science from Scratch (free)</h3>
+                        <p class="ac-muted">Three months of practical, beginner-friendly data science: video lessons, coding practice in your browser, projects and a certificate anyone can verify. Runs from Saturday 9 January to Friday 9 April 2027. Claim your place, then complete a two-minute onboarding form to join the cohort WhatsApp group.</p>
+                        <p class="cr-meta" id="cr-meta">Online · Free · 9 January to 9 April 2027</p>
                     </div>
-                    <a class="ac-btn ac-btn--primary" href="/academy/apply/" id="cr-apply">See details and apply</a>
+                    <a class="ac-btn ac-btn--primary" href="/academy/join/?c=cohort-2-2027" id="cr-apply">Claim my free place</a>
                 </article>
                 <h2 class="cr-h">Paid roles</h2>
                 <p class="ac-muted">No paid roles are open right now. Follow Open Fraud Labs on <a href="https://www.linkedin.com/company/open-fraud-labs/" target="_blank" rel="noopener noreferrer">LinkedIn</a> to hear when they are. Questions about careers: <a href="mailto:academy@openfraudlabs.com">academy@openfraudlabs.com</a>.</p>
@@ -125,14 +125,6 @@
                     el('p', { class: 'cr-meta', text: [r.paid ? 'Paid' : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
                     el('a', { class: 'ac-btn ac-btn--' + (open ? 'primary' : 'secondary'), href: '/careers/role/?r=' + encodeURIComponent(r.slug), text: open ? 'See role and apply' : 'See role' })));
             });
-        })();
-        (async function () {
-            var info = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
-            var s = document.getElementById('cr-state'), meta = document.getElementById('cr-meta'), a = document.getElementById('cr-apply');
-            if (!info || info.status !== 'open') { s.textContent = 'Closed'; a.textContent = 'See details'; return; }
-            s.textContent = 'Applications open'; s.className = 'ac-status ac-status--live';
-            meta.textContent = 'Online · Free · Unpaid · ' + (info.places_left > 0 ? info.places_left + ' of ' + info.capacity + ' places open' : 'Places full: waitlist open');
-            a.href = '/academy/apply/?c=' + encodeURIComponent(info.slug);
         })();
     </script>
 </body>

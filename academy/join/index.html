@@ -172,8 +172,12 @@
                     el('div', { class: 'rv-c' }, el('b', { text: new Date(c.starts_on + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }), el('span', { text: 'Start date' })),
                     el('div', { class: 'rv-c' }, el('b', { text: new Date(c.ends_on + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }), el('span', { text: 'End date' })),
                     el('div', { class: 'rv-c' }, el('b', { text: '3 months' }), el('span', { text: 'Free · online' })));
-                if (!i) { document.getElementById('j-title').textContent = 'Invitation not found';
-                    return app.appendChild(el('p', { class: 'ac-muted', text: 'We could not find an invitation for this account. Make sure you are logged in with the email the invitation was sent to, or write to academy@openfraudlabs.com.' })); }
+                if (!i) { document.getElementById('j-title').textContent = 'Join ' + c.title;
+                    app.appendChild(el('p', { class: 'mvp-quote', text: c.title + ' of Data Science from Scratch is free: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify.' }));
+                    app.appendChild(dates);
+                    return app.appendChild(el('div', { class: 'mvp-cta' }, el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Claim my free place', onclick: async function () {
+                        msg.textContent = ''; var x = await sb.rpc('cohort_self_invite', { p_slug: slug });
+                        if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); render(x.data); } }))); }
                 if (i.status === 'invited' || i.status === 'declined') {
                     document.getElementById('j-title').textContent = 'A place for you in ' + c.title;
                     app.appendChild(el('p', { class: 'mvp-quote', text: (i.status === 'declined' ? 'You declined this place earlier. If you have changed your mind, you can still accept it below. ' : '') +
