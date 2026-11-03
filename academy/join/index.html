@@ -197,12 +197,12 @@
                         el('h2', { text: 'Onboarding form', style: 'margin:0' }),
                         inp('full_name', 'Full name', { maxlength: '120', autocomplete: 'name' }),
                         inp('phone', 'Phone number (WhatsApp)', { type: 'tel', inputmode: 'tel', placeholder: '+234…', autocomplete: 'tel' }),
-                        sel('gender', 'Gender', ['Female', 'Male'], false),
-                        sel('age_range', 'Age range', ['18–24', '25–34', '35–44', '45 and above'], false),
+                        sel('gender', 'Gender', ['Female', 'Male', 'Prefer not to say'], true),
+                        sel('age_range', 'Age range', ['18–24', '25–34', '35–44', '45 and above'], true),
                         sel('education', 'Highest level of education', ['Secondary school (SSCE/WAEC)', 'OND / NCE / Diploma', 'HND', 'Bachelor’s degree', 'Master’s degree', 'PhD', 'Other'], true),
-                        inp('field', 'Course or field of study', { maxlength: '120' }, false),
+                        inp('field', 'Course or field of study', { maxlength: '120' }),
                         inp('country', 'Country', { maxlength: '80', autocomplete: 'country-name', value: 'Nigeria' }),
-                        inp('state', 'State or city', { maxlength: '80' }, false),
+                        inp('state', 'State or city', { maxlength: '80' }),
                         sel('employment', 'What do you do now?', ['Student', 'NYSC corps member', 'Employed', 'Self-employed', 'Looking for work', 'Other'], true),
                         sel('laptop', 'Do you have a personal laptop?', ['Yes, my own laptop', 'I share a laptop', 'No laptop yet'], true),
                         sel('internet', 'Internet access', ['Reliable', 'Sometimes unreliable', 'Mostly on mobile data'], true),
@@ -214,6 +214,8 @@
                     f.addEventListener('submit', async function (e) {
                         e.preventDefault(); msg.textContent = '';
                         var data = {}; ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours','experience','goal','heard_from'].forEach(function (k) { data[k] = (f[k].value || '').trim(); });
+                        var miss = ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours'].filter(function (k) { return !data[k]; });
+                        if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question marked as required (all questions except the last three).', 'error'); }
                         var b = f.querySelector('button[type=submit]'); b.disabled = true;
                         var r = await sb.rpc('cohort_onboarding_submit', { p_slug: slug, p_data: data }); b.disabled = false;
                         if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
