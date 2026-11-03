@@ -174,9 +174,10 @@
                 el('div', { class: 'rv-c' }, el('b', { text: short(c.starts_on) }), el('span', { text: 'Start date' })),
                 el('div', { class: 'rv-c' }, el('b', { text: short(c.ends_on) }), el('span', { text: 'End date' })),
                 el('div', { class: 'rv-c' }, el('b', { text: '3 months' }), el('span', { text: 'Free · online' }))); }
-            function form(heading, buttonText, onSubmit) {
+            function form(heading, buttonText, onSubmit, appeal) {
                 var f = el('form', { class: 'rv-form', novalidate: true, style: 'margin-top:1rem' },
                     el('h2', { text: heading, style: 'margin:0' }),
+                    appeal ? (function () { var t = el('textarea', { name: 'appeal', maxlength: '1500', style: 'min-height:110px', placeholder: 'For example: what you learned before, why you stopped, and what will be different this time.' }); return el('label', {}, el('span', { text: 'Why should we consider you for this cohort?' }), el('small', { class: 'ac-muted', style: 'display:block;margin:-.2rem 0 .35rem', text: 'A few sentences. The founder reads every request personally.' }), t); })() : null,
                     inp('full_name', 'Full name', { maxlength: '120', autocomplete: 'name' }),
                     inp('phone', 'Phone number (WhatsApp)', { type: 'tel', inputmode: 'tel', placeholder: '+234…', autocomplete: 'tel' }),
                     sel('gender', 'Gender', ['Female', 'Male', 'Prefer not to say']),
@@ -196,6 +197,7 @@
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); msg.textContent = '';
                     var data = {}; FIELDS.forEach(function (k) { data[k] = (f[k].value || '').trim(); });
+                    if (appeal) { data.appeal = (f.appeal.value || '').trim(); if (data.appeal.length < 20) { f.appeal.focus(); return OFL.notice(msg, 'Please tell us in a few sentences why you would like to be considered.', 'error'); } }
                     var miss = REQUIRED.filter(function (k) { return !data[k]; });
                     if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question (only the last three are optional).', 'error'); }
                     var b = f.querySelector('button[type=submit]'); b.disabled = true;
@@ -234,6 +236,12 @@
                     app.appendChild(datesBox(c)); return app.appendChild(whatsapp(i.whatsapp_url, c));
                 }
                 if (a) {
+                    if (a.status === 'applied' && a.needs_approval) {
+                        title('Request received');
+                        app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Your request is with the founder' }),
+                            el('p', { text: c.title + ' is for people who have not taken part in an Academy cohort before, so your application is a special request. The founder reviews each one personally, and we will email you with the decision.' })));
+                        return app.appendChild(datesBox(c));
+                    }
                     if (a.status === 'applied') {
                         title('Application received');
                         app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Thank you for applying' }),
@@ -242,12 +250,19 @@
                     }
                     if (a.status === 'not_selected') {
                         title('Your application');
-                        return app.appendChild(el('p', { class: 'mvp-quote', text: 'Thank you for applying. The course needs a personal laptop or tablet, so we were not able to offer you a place in ' + c.title + '. Once you have one, you are welcome to apply for a future cohort.' }));
+                        return app.appendChild(el('p', { class: 'mvp-quote', text: a.needs_approval ? 'Thank you for your request. We are not able to offer you a place in ' + c.title + ', as it is reserved for people who have not taken part in an Academy cohort before. We have emailed you the details.' : 'Thank you for applying. The course needs a personal laptop or tablet, so we were not able to offer you a place in ' + c.title + '. Once you have one, you are welcome to apply for a future cohort.' }));
                     }
                     title(a.status === 'admitted' ? 'Welcome to ' + c.title + '!' : 'You have been shortlisted for ' + c.title + ' 🎉');
                     app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Congratulations, you have a place' }),
                         el('p', { text: c.title + ' starts on ' + d(c.starts_on) + ' and ends on ' + d(c.ends_on) + '. Join the WhatsApp group now for onboarding details and to meet your cohort.' })));
                     app.appendChild(datesBox(c)); return app.appendChild(whatsapp(a.whatsapp_url, c));
+                }
+                var elig = data.eligibility || { eligible: true };
+                if (!elig.eligible) {
+                    title('Request to join ' + c.title);
+                    app.appendChild(el('div', { class: 'ofl-notice ofl-notice--info', text: c.title + ' is for people who have not taken part in an Academy cohort before (' + (elig.reason || 'previous Academy learner') + '). You can still send a request: tell us why you would like to join, and the founder will approve or decline it personally.' }));
+                    app.appendChild(datesBox(c));
+                    return app.appendChild(form('Request form', 'Send my request', function (x) { return sb.rpc('cohort_apply', { p_slug: slug, p_data: x }); }, true));
                 }
                 title('Apply for ' + c.title);
                 app.appendChild(el('p', { class: 'mvp-quote', text: c.title + ' of Data Science from Scratch is free: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify. You need your own laptop or tablet. We review every application and reply by email within 24 hours.' }));

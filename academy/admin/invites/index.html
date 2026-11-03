@@ -219,28 +219,41 @@
                             if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, 'WhatsApp link saved.', 'success'); } }))));
             }
             var AFILTER = 'all';
-            var AST = { applied: ['Applied: screening in progress', '#B45309', '#FEF4E6'], shortlisted: ['Shortlisted (has WhatsApp link)', '#046C4A', '#E7F7F0'],
+            var AST = { approval: ['Needs your approval', '#6D28D9', '#F3E8FF'], applied: ['Applied: screening in progress', '#B45309', '#FEF4E6'], shortlisted: ['Shortlisted (has WhatsApp link)', '#046C4A', '#E7F7F0'],
                         not_selected: ['Not selected: no own laptop or tablet', '#B42318', '#FEF0EE'], admitted: ['Joined the cohort', '#046C4A', '#E7F7F0'] };
+            async function decide(x, ok) {
+                var note = window.prompt((ok ? 'Approve ' : 'Decline ') + x.name + '? They will be emailed straight away.\n\nOptional personal note to include in the email:', '');
+                if (note === null) return;
+                var r = await sb.rpc('cohort_application_decide', { p_id: x.id, p_approve: ok, p_note: note });
+                if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                OFL.notice(msg, (ok ? 'Approved. ' : 'Declined. ') + x.name + ' has been emailed.', 'success'); load();
+            }
             async function loadApps() {
                 var r = await sb.rpc('cohort_applications_admin', { p_slug: SLUG }); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                var rows = (r.data || []).filter(function (x) { return !x.is_staff; }), cnt = {}; rows.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
+                var rows = (r.data || []).filter(function (x) { return !x.is_staff; }).map(function (x) { x.stage = x.status === 'applied' && x.needs_approval ? 'approval' : x.status; return x; }), cnt = {}; rows.forEach(function (x) { cnt[x.stage] = (cnt[x.stage] || 0) + 1; });
                 var wrap = el('div'); app.appendChild(el('h2', { text: 'Applications (screened 24 hours after applying)', style: 'margin:1.75rem 0 .5rem' })); app.appendChild(wrap);
-                var g = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(5,1fr)' });
-                [['all', 'All applications', rows.length], ['applied', 'Screening', cnt.applied || 0], ['shortlisted', 'Shortlisted', cnt.shortlisted || 0], ['not_selected', 'Not selected', cnt.not_selected || 0], ['admitted', 'Joined', cnt.admitted || 0]].forEach(function (f) {
+                var g = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(6,1fr)' });
+                [['all', 'All applications', rows.length], ['approval', 'Needs your approval', cnt.approval || 0], ['applied', 'Screening', cnt.applied || 0], ['shortlisted', 'Shortlisted', cnt.shortlisted || 0], ['not_selected', 'Not selected', cnt.not_selected || 0], ['admitted', 'Joined', cnt.admitted || 0]].forEach(function (f) {
                     g.appendChild(el('button', { type: 'button', class: 'rv-c', style: 'text-align:left;cursor:pointer;' + (AFILTER === f[0] ? 'outline:2px solid #2453E6;' : ''), onclick: function () { AFILTER = f[0]; load(); } }, el('b', { text: String(f[2]) }), el('span', { text: f[1] })));
                 });
                 wrap.appendChild(g);
                 var t = el('table', { class: 'ac-table' }), tb = el('tbody');
                 t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Name' }), el('th', { text: 'Stage' }), el('th', { text: 'Timeline' }), el('th', { text: 'Application answers' }))));
-                var shown = rows.filter(function (x) { return AFILTER === 'all' || x.status === AFILTER; });
+                var shown = rows.filter(function (x) { return AFILTER === 'all' || x.stage === AFILTER; });
                 shown.forEach(function (x) {
-                    var st = AST[x.status] || [x.status, '#33415C', '#F2F4F8'];
+                    var st = AST[x.stage] || [x.status, '#33415C', '#F2F4F8'];
                     var tl = el('div', { style: 'font-size:.82rem;line-height:1.55;color:#33415C' }, el('div', { text: 'Applied: ' + dt(x.applied_at) }),
                         x.screened_at ? el('div', { text: 'Screened: ' + dt(x.screened_at) + ' (' + x.screen_reason + ')' }) : el('div', { text: 'Screening email due: ' + dt(x.screen_at) }));
-                    var ans = el('div', { style: 'font-size:.82rem;line-height:1.5' }); Object.keys(Q).forEach(function (k) { if (x.answers && x.answers[k]) ans.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.answers[k])); });
+                    var ans = el('div', { style: 'font-size:.82rem;line-height:1.5' }); if (x.answers && x.answers.appeal) ans.appendChild(el('div', { style: 'background:#F3E8FF;border-radius:8px;padding:.5rem .6rem;margin-bottom:.4rem' }, el('b', { text: 'Their request: ' }), x.answers.appeal));
+                    Object.keys(Q).forEach(function (k) { if (x.answers && x.answers[k]) ans.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.answers[k])); });
                     tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })),
                         el('td', {}, el('span', { style: 'display:inline-block;border-radius:99px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;color:' + st[1] + ';background:' + st[2], text: st[0] }),
-                            x.status === 'applied' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Meets the laptop/tablet rule' : 'Will be declined: no own laptop or tablet' }) : null),
+                            x.stage === 'applied' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Meets the laptop/tablet rule' : 'Will be declined: no own laptop or tablet' }) : null,
+                            x.ineligible_reason ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;color:#6D28D9', text: 'Not eligible by default: ' + x.ineligible_reason }) : null,
+                            x.stage === 'approval' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Has own laptop or tablet' : 'No own laptop or tablet' }) : null,
+                            x.stage === 'approval' ? el('div', { class: 'mvp-cta', style: 'margin-top:.5rem' },
+                                el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Approve', onclick: function () { decide(x, true); } }),
+                                el('button', { class: 'ac-btn ac-btn--sm', type: 'button', text: 'Decline', onclick: function () { decide(x, false); } })) : null),
                         el('td', {}, tl), el('td', {}, ans)));
                 });
                 if (!shown.length) tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'No applications at this stage yet.' })));
