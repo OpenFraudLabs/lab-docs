@@ -174,7 +174,7 @@
                 el('div', { class: 'rv-c' }, el('b', { text: short(c.starts_on) }), el('span', { text: 'Start date' })),
                 el('div', { class: 'rv-c' }, el('b', { text: short(c.ends_on) }), el('span', { text: 'End date' })),
                 el('div', { class: 'rv-c' }, el('b', { text: '3 months' }), el('span', { text: 'Free · online' }))); }
-            function form(heading, buttonText, onSubmit, appeal) {
+            function form(heading, buttonText, onSubmit, appeal, prefill) {
                 var f = el('form', { class: 'rv-form', novalidate: true, style: 'margin-top:1rem' },
                     el('h2', { text: heading, style: 'margin:0' }),
                     appeal ? (function () { var t = el('textarea', { name: 'appeal', maxlength: '1500', style: 'min-height:110px', placeholder: 'For example: what you learned before, why you stopped, and what will be different this time.' }); return el('label', {}, el('span', { text: 'Why should we consider you for this cohort?' }), el('small', { class: 'ac-muted', style: 'display:block;margin:-.2rem 0 .35rem', text: 'A few sentences. The founder reads every request personally.' }), t); })() : null,
@@ -194,6 +194,7 @@
                     inp('goal', 'What do you hope to achieve?', { maxlength: '300' }, true),
                     osel('heard_from', 'How did you hear about us?', ['TikTok', 'LinkedIn', 'WhatsApp', 'A friend', 'Other']),
                     el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: buttonText }));
+                if (prefill) FIELDS.forEach(function (k) { if (prefill[k] && f[k]) f[k].value = prefill[k]; });
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); msg.textContent = '';
                     var data = {}; FIELDS.forEach(function (k) { data[k] = (f[k].value || '').trim(); });
@@ -202,16 +203,26 @@
                     if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question (only the last three are optional).', 'error'); }
                     var b = f.querySelector('button[type=submit]'); b.disabled = true;
                     var r = await onSubmit(data); b.disabled = false;
+                    if (r.error && /NEEDS_REQUEST:/.test(r.error.message || '')) { requestMode(data, (r.error.message || '').replace(/^.*NEEDS_REQUEST:\s*/, '')); return; }
                     if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
                     render(r.data); window.scrollTo(0, 0);
                 });
                 return f;
+            }
+            var CUR = null;
+            function requestMode(prefill, text) {
+                var c = CUR; app.textContent = ''; title('Request to join ' + c.title);
+                app.appendChild(el('div', { class: 'ofl-notice ofl-notice--info', text: text }));
+                app.appendChild(datesBox(c));
+                app.appendChild(form('Request form', 'Send my request', function (x) { return sb.rpc('cohort_apply', { p_slug: slug, p_data: x }); }, true, prefill));
+                window.scrollTo(0, 0);
             }
             function whatsapp(url, c) { return url ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: url, target: '_blank', rel: 'noopener', text: 'Join the ' + c.title + ' WhatsApp group' }))
                                                  : el('p', { class: 'ac-muted', text: 'The WhatsApp group link will appear here shortly and we will also email it to you.' }); }
             function render(data) {
                 app.textContent = ''; var c = data && data.cohort, i = data && data.invite, a = data && data.application;
                 if (!c) return app.appendChild(el('p', { class: 'ac-muted', text: 'This cohort could not be found.' }));
+                CUR = c;
                 document.getElementById('j-eyebrow').textContent = c.title + ' · Data Science from Scratch';
                 if (i) {
                     if (i.status === 'invited' || i.status === 'declined') {

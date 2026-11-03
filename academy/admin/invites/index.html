@@ -250,6 +250,7 @@
                         el('td', {}, el('span', { style: 'display:inline-block;border-radius:99px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;color:' + st[1] + ';background:' + st[2], text: st[0] }),
                             x.stage === 'applied' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Meets the laptop/tablet rule' : 'Will be declined: no own laptop or tablet' }) : null,
                             x.ineligible_reason ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;color:#6D28D9', text: 'Not eligible by default: ' + x.ineligible_reason }) : null,
+                            x.possible_match ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:#B45309', text: '⚠ Check: ' + x.possible_match }) : null,
                             x.stage === 'approval' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Has own laptop or tablet' : 'No own laptop or tablet' }) : null,
                             x.stage === 'approval' ? el('div', { class: 'mvp-cta', style: 'margin-top:.5rem' },
                                 el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Approve', onclick: function () { decide(x, true); } }),
