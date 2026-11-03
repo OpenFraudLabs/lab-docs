@@ -177,7 +177,7 @@
             document.getElementById('rl-summary').textContent = r.summary;
             document.getElementById('rl-eyebrow').textContent = 'Open Fraud Labs Academy \u00b7 ' + (r.paid ? 'Paid ' : 'Unpaid ') + r.kind;
             var facts = document.getElementById('rl-facts');
-            [[r.paid ? 'Paid' : 'Unpaid', r.paid ? '' : 'Experience and a recommendation letter'], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
+            [[r.paid ? 'Paid' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Unpaid + data allowance' : 'Unpaid'), r.paid ? '' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Experience, a recommendation letter and data reimbursed' : 'Experience and a recommendation letter')], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
                 .forEach(function (f) { if (f[0]) facts.appendChild(el('li', {}, el('b', { text: f[0] }), el('span', { text: f[1] }))); });
             var body = document.getElementById('rl-body');
             function list(title, items) { if (!items || !items.length) return; var ul = el('ul', { class: 'ac-outcomes' }); items.forEach(function (t) { ul.appendChild(el('li', { text: t })); }); body.append(el('h2', { text: title }), ul); }
