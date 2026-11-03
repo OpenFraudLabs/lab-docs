@@ -200,6 +200,27 @@
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
+            (async function pace() {
+                var pr = await sb.rpc('my_pace', { p_course: course }); if (pr.error || !pr.data || !pr.data.in_cohort || st.done >= st.total) return; var p = pr.data;
+                var col = p.state === 'on_track' ? ['#046C4A', '#E7F7F0', '✅ You are on track'] : p.state === 'slightly_behind' ? ['#B45309', '#FEF4E6', '⏳ Slightly behind: ' + p.behind + ' lesson' + (p.behind === 1 ? '' : 's') + ' to catch up'] : ['#B42318', '#FEF0EE', '⚠️ Behind schedule: ' + p.behind + ' lessons to catch up'];
+                var due = p.next_due ? new Date(p.next_due.due_at).toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) : '';
+                var pct = Math.round(100 * p.done / p.total);
+                var box = el('div', { style: 'margin-top:1rem;border:1px solid #E3E7EF;border-radius:14px;padding:1.2rem 1.3rem;background:#fff' },
+                    el('div', { style: 'display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center' },
+                        el('h2', { style: 'margin:0;font-size:1.15rem', text: 'Your pace to the certificate' }),
+                        el('span', { style: 'border-radius:99px;padding:.25rem .75rem;font-size:.85rem;font-weight:700;color:' + col[0] + ';background:' + col[1], text: col[2] })),
+                    el('div', { style: 'height:12px;border-radius:99px;background:#EDF2FF;overflow:hidden;margin:.8rem 0 .4rem' }, el('div', { style: 'height:100%;width:' + pct + '%;background:#2453E6' })),
+                    el('p', { style: 'margin:0 0 .6rem', text: p.done + ' of ' + p.total + ' lessons done · schedule says ' + p.expected + ' by now' }),
+                    el('div', { class: 'rv-grid', style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;margin:.4rem 0 .8rem' },
+                        el('div', { style: 'background:#F7F8FB;border-radius:10px;padding:.7rem .8rem' }, el('b', { style: 'display:block;font-size:1.4rem', text: p.week_todo ? String(p.week_todo) : '✓' }), el('span', { style: 'font-size:.85rem;color:#5B6782', text: p.week_todo ? 'lessons to reach Lesson ' + p.week_target + ' by ' + due : 'This week’s target reached' })),
+                        el('div', { style: 'background:#F7F8FB;border-radius:10px;padding:.7rem .8rem' }, el('b', { style: 'display:block;font-size:1.4rem', text: String(p.per_week_needed) }), el('span', { style: 'font-size:.85rem;color:#5B6782', text: 'lessons a week to finish all lessons with two weeks left for your capstone' })),
+                        el('div', { style: 'background:#F7F8FB;border-radius:10px;padding:.7rem .8rem' }, el('b', { style: 'display:block;font-size:1.4rem', text: '31 Dec' }), el('span', { style: 'font-size:.85rem;color:#5B6782', text: 'cohort ends: capstone approved by then to earn your certificate' }))),
+                    el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem' },
+                        st.next ? el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: '/academy/lesson/?course=' + course + '&n=' + st.next.n, text: 'Continue with Lesson ' + st.next.n }) : null,
+                        el('a', { class: 'ac-btn ac-btn--sm', href: '/academy/capstone/?course=' + course, text: 'Read the capstone brief now' }),
+                        el('a', { class: 'ac-btn ac-btn--sm', href: '/academy/tutor/', text: 'Stuck? Book a 1-to-1 with a tutor' })));
+                next.appendChild(box);
+            })();
             (async function referral() {
                 var rr = await sb.rpc('my_referral'); if (rr.error || !rr.data) return; var d = rr.data;
                 var wa = 'https://wa.me/?text=' + encodeURIComponent('Cohort 2 of Data Science from Scratch at Open Fraud Labs Academy is open: free, online, 9 January to 9 April 2027 (you need your own laptop or tablet). Apply here: ' + d.link);
