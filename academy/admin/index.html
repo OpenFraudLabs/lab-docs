@@ -435,7 +435,7 @@
                     var t = document.getElementById('adm-title'); t.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + nm.split(' ')[0] : '');
                     var sub = document.getElementById('admin-sub'); var dl = el('span', { class: 'adm-date', text: new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Lagos time' });
                     var plain = [].slice.call(sub.childNodes).filter(function (n) { return n.nodeType === 3; }); plain.forEach(function (n) { n.remove(); }); sub.appendChild(dl);
-                    var Q = [['Add a position', '/academy/admin/positions/', 'manage_applications'], ['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Rewards', '/academy/admin/rewards/', 'manage_rewards'], ['Cohort 2 invitations', '/academy/admin/invites/', 'manage_invites'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
+                    var Q = [['Add a position', '/academy/admin/positions/', 'manage_applications'], ['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Rewards', '/academy/admin/rewards/', 'manage_rewards'], ['Cohort 2 invitations', '/academy/admin/invites/', 'manage_invites'], ['Referrals', '/academy/admin/referrals/', 'manage_invites'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
                              ['Review applications', '#app-sec', 'manage_applications'], ['Staff pay and leave', '/academy/admin/pay/', 'pay_or_leave'], ['Add a document', '#doc-sec', 'manage_applications'], ['Give a scholarship', '#sch-sec', 'manage_scholarships']];
                     var qb = document.getElementById('adm-quick');
                     Q.filter(function (q) { return can(q[2]); }).forEach(function (q) { qb.appendChild(el('a', { class: 'adm-quick__btn', href: q[1], text: q[0] })); });
@@ -457,7 +457,7 @@
                 var GROUPS = [
                     ['Today', [['overview-sec', 'Overview']]],
                     ['Founding Cohort', [['prog-sec', 'Cohort progress'], ['app-sec', 'Applications'], ['inc-sec', 'Signed up, not applied']]],
-                    ['Cohort 2', [['link:/academy/admin/invites/', 'Invitations and applications', 'manage_invites']]],
+                    ['Cohort 2', [['link:/academy/admin/invites/', 'Invitations and applications', 'manage_invites'], ['link:/academy/admin/referrals/', 'Referrals', 'manage_invites']]],
                     ['Learners', [['learners-sec', 'Learners'], ['reviews-sec', 'Project reviews'], ['sch-sec', 'Scholarships']]],
                     ['Content', [['courses-sec', 'Courses and lessons'], ['doc-sec', 'Documents']]],
                     ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
