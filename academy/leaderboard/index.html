@@ -14,9 +14,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard | Open Fraud Labs Academy</title>
-    <meta name="description" content="Who is making the most progress in Data Science from Scratch this week and of all time.">
+    <meta name="description" content="Who is making the most progress in Data Science from Scratch this month, this week and of all time.">
     <meta property="og:title" content="Leaderboard | Open Fraud Labs Academy">
-    <meta property="og:description" content="Who is making the most progress in Data Science from Scratch this week and of all time.">
+    <meta property="og:description" content="Who is making the most progress in Data Science from Scratch this month, this week and of all time.">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
@@ -60,7 +60,8 @@
                     <p class="ac-muted">Points for verified progress: every lesson you pass, every practice exercise you solve, every peer review, project and certificate.</p>
                 </div>
                 <div class="ofl-tabs lb-tabs" role="tablist" aria-label="Period">
-                    <button type="button" class="ofl-tab is-active" data-p="week" role="tab" aria-selected="true">This week</button>
+                    <button type="button" class="ofl-tab is-active" data-p="month" role="tab" aria-selected="true">This month</button>
+                    <button type="button" class="ofl-tab" data-p="week" role="tab" aria-selected="false">This week</button>
                     <button type="button" class="ofl-tab" data-p="all" role="tab" aria-selected="false">All time</button>
                 </div>
             </div>
@@ -117,14 +118,14 @@
     <script src="/assets/js/academy.js?v=20261016b"></script>
     <script>
         (async function () {
-            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), period = 'week';
+            var sb = OFL.sb, el = OFL.el, msg = document.getElementById('msg'), period = 'month';
             var list = document.getElementById('lb-list'), meBox = document.getElementById('lb-me');
             function medal(r) { return r === 1 ? 'lb-1' : r === 2 ? 'lb-2' : r === 3 ? 'lb-3' : ''; }
             async function load() {
                 var r = await sb.rpc('leaderboard', { p_course: 'data-science', p_period: period, p_limit: 100 });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
                 var d = r.data || {}; list.textContent = '';
-                if (!(d.rows || []).length) list.appendChild(el('li', { class: 'lb-empty' }, period === 'week' ? 'No points yet this week. Pass a lesson to be the first on the board.' : 'No points yet. Pass your first lesson to get on the board.'));
+                if (!(d.rows || []).length) list.appendChild(el('li', { class: 'lb-empty' }, period === 'week' ? 'No points yet this week. Pass a lesson to be the first on the board.' : period === 'month' ? 'No points yet this month. Pass a lesson to be the first on the board.' : 'No points yet. Pass your first lesson to get on the board.'));
                 (d.rows || []).forEach(function (x) {
                     list.appendChild(el('li', { class: 'lb-row ' + medal(x.rank) + (x.me ? ' is-me' : '') },
                         el('span', { class: 'lb-rank num', text: String(x.rank) }),
@@ -133,7 +134,7 @@
                         el('b', { class: 'lb-pts num', text: x.points.toLocaleString('en-GB') + ' XP' })));
                 });
                 meBox.textContent = '';
-                if (d.me) { meBox.hidden = false; meBox.append(el('span', { text: 'Your position' }), el('b', { class: 'num', text: '#' + d.me.rank + ' of ' + d.learners }), el('span', { text: d.me.points.toLocaleString('en-GB') + ' XP ' + (period === 'week' ? 'this week' : 'in total') })); }
+                if (d.me) { meBox.hidden = false; meBox.append(el('span', { text: 'Your position' }), el('b', { class: 'num', text: '#' + d.me.rank + ' of ' + d.learners }), el('span', { text: d.me.points.toLocaleString('en-GB') + ' XP ' + (period === 'week' ? 'this week' : period === 'month' ? 'this month' : 'in total') })); }
                 else meBox.hidden = true;
             }
             document.querySelectorAll('.lb-tabs .ofl-tab').forEach(function (b) { b.addEventListener('click', function () {
