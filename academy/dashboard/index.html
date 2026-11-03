@@ -173,7 +173,11 @@
             }
             A.renderLedger(document.getElementById('ledger'), st, { course: course, title: false });
             var cap = ((await sb.from('capstone_submissions').select('status, feedback, submitted_at').eq('course_slug', course).eq('assignment', 'capstone').order('submitted_at', { ascending: false }).limit(1)).data || [])[0];
-            var cert = ((await sb.from('certificates').select('id').eq('course_slug', course)).data || [])[0];
+            var cs = ((await sb.rpc('my_certificate_status', { p_course: course })).data) || { state: 'none' };
+            var cert = cs.state === 'issued' ? { id: cs.id, issued_at: cs.issued_at } : null, held = cs.state === 'held';
+            var relDate = cs.release_on ? new Date(cs.release_on + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+            function liAdd(c) { var iss = new Date(c.issued_at), vurl = 'https://openfraudlabs.com/verify/?id=' + encodeURIComponent(c.id);
+                return 'https://www.linkedin.com/profile/add?' + new URLSearchParams({ startTask: 'CERTIFICATION_NAME', name: (st.course && st.course.title) || 'Data Science from Scratch', organizationName: 'Open Fraud Labs Academy', issueYear: String(iss.getUTCFullYear()), issueMonth: String(iss.getUTCMonth() + 1), certUrl: vurl, certId: c.id }).toString(); }
 
             var next = document.getElementById('next');
             var released = st.lessons.filter(function (l) { return l.released; }).length;
@@ -186,7 +190,9 @@
             } else if (!cap || cap.status === 'changes_requested') {
                 title = 'All lessons complete'; text = 'Submit your capstone project to earn your certificate.'; href = '/academy/capstone/?course=' + course; label = 'Go to the capstone';
             } else if (cert) {
-                title = 'Course complete'; text = 'Your certificate is ready to share.'; href = '/verify/?id=' + cert.id; label = 'View certificate';
+                title = 'Course complete'; text = 'Your certificate is ready. Add it to your LinkedIn profile from the certificate page.'; href = '/verify/?id=' + cert.id; label = 'View certificate';
+            } else if (held) {
+                title = 'Certificate earned 🎓'; text = 'Congratulations! Cohort certificates are released together when the cohort ends. Yours will be emailed to you and appear here on ' + relDate + '.'; href = '/academy/capstone/?course=' + course; label = 'View capstone';
             } else {
                 title = 'Capstone ' + (cap.status === 'approved' ? 'approved' : 'under review'); text = cap.status === 'approved' ? 'Claim your certificate below.' : 'You’ll see the result here.'; href = '/academy/capstone/?course=' + course; label = 'View submission';
             }
@@ -202,14 +208,17 @@
             item(st.done >= st.total, 'Complete all ' + st.total + ' lessons and projects (' + st.done + ' done, ' + released + ' released)');
             var capText = !cap ? 'Submit your capstone project' : cap.status === 'approved' ? 'Capstone approved' : cap.status === 'submitted' ? 'Capstone under review' : 'Capstone: changes requested';
             item(cap && cap.status === 'approved', capText, el('a', { href: '/academy/capstone/?course=' + course, text: cap ? 'View' : 'Brief' }));
-            item(!!cert, cert ? 'Certificate issued' : 'Claim your certificate');
+            item(!!cert, cert ? 'Certificate issued' : held ? 'Certificate earned: released on ' + relDate : (cs.release_on ? 'Certificate (released when your cohort ends, ' + relDate + ')' : 'Claim your certificate'));
             var ca = document.getElementById('cert-action');
-            if (cert) ca.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/verify/?id=' + cert.id, text: 'View certificate' }));
+            if (cert) { ca.appendChild(el('a', { class: 'ac-btn ac-btn--primary', href: '/verify/?id=' + cert.id, text: 'View certificate' }));
+                ca.appendChild(el('a', { class: 'ac-btn ac-btn--secondary', href: liAdd(cert), target: '_blank', rel: 'noopener noreferrer', text: 'Add to LinkedIn profile' })); }
+            else if (held) ca.appendChild(el('p', { class: 'ac-muted', text: 'Your certificate is secured. It will be released on ' + relDate + ', when your cohort ends, and emailed to you with a one-click Add to LinkedIn button.' }));
             else if (st.done >= st.total && cap && cap.status === 'approved') {
                 ca.appendChild(el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Claim your certificate', onclick: async function (e) {
                     e.target.disabled = true;
                     var r = await sb.rpc('claim_certificate', { p_course: course });
                     if (r.error) { e.target.disabled = false; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
+                    if (r.data && r.data.held) { OFL.notice(msg, 'Congratulations, you have earned your certificate! Cohort certificates are released together when the cohort ends, so yours will be emailed to you on ' + new Date(r.data.release_on + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + '.', 'success'); e.target.remove(); return; }
                     location.href = '/verify/?id=' + r.data.id;
                 } }));
             }
