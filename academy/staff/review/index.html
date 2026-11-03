@@ -14,10 +14,10 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review checklist | Open Fraud Labs Academy</title>
-    <meta name="description" content="Staff review checklist.">
-    <meta property="og:title" content="Review checklist | Open Fraud Labs Academy">
-    <meta property="og:description" content="Staff review checklist.">
+    <title>Activity checklist | Open Fraud Labs Academy</title>
+    <meta name="description" content="Staff activity checklist.">
+    <meta property="og:title" content="Activity checklist | Open Fraud Labs Academy">
+    <meta property="og:description" content="Staff activity checklist.">
     <meta property="og:site_name" content="Open Fraud Labs Academy">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://openfraudlabs.com/assets/og-academy.png">
@@ -77,8 +77,8 @@
     </header>
     <main id="main">
         <div class="ac-wrap rv">
-            <p class="rv-eyebrow">Staff · 7-day review</p>
-            <h1>Review checklist</h1>
+            <p class="rv-eyebrow">Staff portal</p>
+            <h1>Activity checklist</h1>
             <div id="msg"></div>
             <div id="app"><p class="ac-muted">Loading…</p></div>
         </div>
@@ -126,14 +126,14 @@
                 return [el('div', { class: 'rv-score' },
                     el('div', { class: 'rv-big', text: String(s.score) }, el('small', { text: ' / ' + s.max })),
                     el('div', { class: 'rv-bar' },
-                        el('div', { text: day(s.starts_on) + ' to ' + day(s.ends_on) + ' · target ' + s.target + ' of ' + s.max + ' (90%)' }),
+                        el('div', { text: day(s.starts_on) + ' to ' + day(s.ends_on) + ' · target ' + s.target + ' of ' + s.max + ' (90%)' + (s.status && s.status !== 'active' ? ' · ' + ({ passed: 'Passed', not_met: 'Not met', cancelled: 'Cancelled' })[s.status] : '') }),
                         el('div', { class: 'rv-track' }, el('div', { class: 'rv-fill', style: 'width:' + pct + '%' })),
                         el('span', { class: 'rv-tag ' + (s.met ? 'ok' : 'no'), text: s.met ? 'Target met' : (s.target - s.score) + ' more to reach the target' }))),
                     el('div', { class: 'rv-grid' },
-                        el('div', { class: 'rv-c' }, el('b', { text: s.whatsapp + '/7' }), el('span', { text: 'WhatsApp posts (1 a day)' })),
-                        el('div', { class: 'rv-c' }, el('b', { text: s.portal + '/3' }), el('span', { text: 'Portal messages (counted automatically)' })),
+                        el('div', { class: 'rv-c' }, el('b', { text: s.whatsapp + '/' + s.days }), el('span', { text: 'WhatsApp posts (1 a day)' })),
+                        el('div', { class: 'rv-c' }, el('b', { text: s.portal + '/' + s.portal_max }), el('span', { text: 'Portal messages (counted automatically)' })),
                         el('div', { class: 'rv-c' }, el('b', { text: s.followup + '/1' }), el('span', { text: 'Follow-up list by ' + day(s.followup_due) })),
-                        el('div', { class: 'rv-c' }, el('b', { text: s.checkins + '/7' }), el('span', { text: 'Evening check-ins (1 a day)' })))];
+                        el('div', { class: 'rv-c' }, el('b', { text: s.checkins + '/' + s.days }), el('span', { text: 'Evening check-ins (1 a day)' })))];
             }
             function itemList(items, canReject, reload) {
                 if (!items.length) return el('p', { class: 'ac-muted', text: 'Nothing submitted yet.' });
@@ -150,13 +150,49 @@
                 });
                 return ul;
             }
+            async function assignCard() {
+                var pr = await sb.rpc('staff_review_people'); if (pr.error) return el('p', { class: 'ac-muted', text: OFL.friendlyError(pr.error) });
+                var today = new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
+                var sel = el('select', { name: 'who', required: true }, el('option', { value: '', text: 'Choose a team member…' }));
+                (pr.data || []).forEach(function (p) { sel.appendChild(el('option', { value: p.id, text: p.name + (p.role ? ' (' + p.role + ')' : '') })); });
+                var f = el('form', { class: 'rv-form', novalidate: true },
+                    el('label', {}, el('span', { text: 'Staff member' }), sel),
+                    el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(3,1fr);margin:0' },
+                        el('label', {}, el('span', { text: 'Start date' }), el('input', { type: 'date', name: 'start', min: today, required: true })),
+                        el('label', {}, el('span', { text: 'End date' }), el('input', { type: 'date', name: 'end', min: today, required: true })),
+                        el('label', {}, el('span', { text: 'Follow-up list due' }), el('input', { type: 'date', name: 'due' }))),
+                    el('label', {}, el('span', { text: 'Note to include in their email (optional)' }), el('textarea', { name: 'note', maxlength: 2000, style: 'min-height:80px' })),
+                    el('p', { class: 'ac-muted ac-small', text: 'They get an email straight away and the checklist appears on their staff portal. Points: 1 WhatsApp post and 1 check-in a day, 1 portal message every 2 days, plus the follow-up list (due 3 days after the start if left empty). Target: 90%. Assigning replaces any active checklist they have.' }),
+                    el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Assign checklist and email them' }));
+                f.addEventListener('submit', async function (e) {
+                    e.preventDefault(); msg.textContent = '';
+                    if (!f.who.value || !f.start.value || !f.end.value) return OFL.notice(msg, 'Choose a staff member, a start date and an end date.', 'error');
+                    var b = f.querySelector('button'); b.disabled = true;
+                    var r = await sb.rpc('staff_review_assign', { p_user: f.who.value, p_starts: f.start.value, p_ends: f.end.value, p_followup_due: f.due.value || null, p_note: f.note.value || null });
+                    b.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    OFL.notice(msg, 'Checklist assigned and emailed. Target ' + r.data.target + ' of ' + r.data.max + '.', 'success');
+                    loadAdmin();
+                });
+                return el('details', { class: 'rv-card' }, el('summary', { style: 'cursor:pointer;font-weight:700', text: '+ Assign a checklist to a staff member' }), el('div', { style: 'margin-top:1rem' }, f));
+            }
             async function loadAdmin() {
                 var r = await sb.rpc('staff_review_admin'); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
                 app.textContent = '';
-                if (!(r.data || []).length) return app.appendChild(el('p', { class: 'ac-muted', text: 'No staff reviews yet.' }));
+                app.appendChild(await assignCard());
+                if (!(r.data || []).length) return app.appendChild(el('p', { class: 'ac-muted', text: 'No checklists yet.' }));
                 r.data.forEach(function (s) {
                     app.appendChild(el('h2', { text: s.name }));
                     scoreBlock(s).forEach(function (n) { app.appendChild(n); });
+                    var acts = el('div', { class: 'mvp-cta', style: 'display:flex;gap:.5rem;flex-wrap:wrap;margin:-.5rem 0 1rem' });
+                    [['passed', 'Mark passed'], ['not_met', 'Mark not met'], ['cancelled', 'Cancel'], ['active', 'Reopen']].forEach(function (a) {
+                        if (a[0] === s.status) return;
+                        acts.appendChild(el('button', { class: 'ac-btn ac-btn--sm', type: 'button', text: a[1], onclick: async function () {
+                            if (!confirm(a[1] + ' for ' + s.name + '?')) return;
+                            var x = await sb.rpc('staff_review_set_status', { p_review: s.review_id, p_status: a[0] });
+                            if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); loadAdmin(); } }));
+                    });
+                    app.appendChild(acts);
                     app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Submissions' }), itemList(s.items, true, loadAdmin)));
                 });
             }
@@ -187,7 +223,7 @@
                 });
                 app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Submit an item' }),
                     el('ul', { class: 'rv-help' },
-                        el('li', { text: 'One WhatsApp post and one check-in count per day.' }),
+                        el('li', { text: 'One WhatsApp post and one check-in count per day, from ' + day(s.starts_on) + ' to ' + day(s.ends_on) + '.' }),
                         el('li', { text: 'Portal messages count automatically when you send them from Messages (at least one every two days).' }),
                         el('li', { text: 'Submit the follow-up list by ' + day(s.followup_due) + '.' })), f));
                 app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Your submissions' }), itemList(s.items, false)));

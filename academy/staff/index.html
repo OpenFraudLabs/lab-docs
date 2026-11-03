@@ -53,6 +53,7 @@
     </header>
     <main id="main">
         <div class="ac-wrap sp">
+            <a id="sp-checklist" href="/academy/staff/review/" hidden style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1.1rem;margin-bottom:1rem;border-radius:12px;background:linear-gradient(135deg,#0E1A2B,#2453E6);color:#fff;text-decoration:none"><span style="font-size:1.5rem" aria-hidden="true">✅</span><span><b style="display:block" id="sp-cl-t">Your activity checklist</b><span style="opacity:.85;font-size:.9rem" id="sp-cl-s"></span></span></a>
             <div class="ac-dash-head"><div><h1>Pay and leave</h1><p class="ac-muted" id="sp-sub">Your allowances, how you'd like to be paid, your payments and your leave.</p></div>
                 <div><a class="ac-btn ac-btn--secondary ac-btn--sm" href="/academy/team/">Team calendar</a></div></div>
             <div id="msg"></div>
@@ -253,6 +254,13 @@
             });
             load();
         })();
+    </script>
+    <script>
+        (async function () { try {
+            var r = await OFL.sb.rpc('staff_review_mine'); var d = r.data; if (r.error || !d || !d.active || d.status !== 'active') return;
+            var a = document.getElementById('sp-checklist'); a.hidden = false; a.style.display = 'flex';
+            document.getElementById('sp-cl-s').textContent = 'Score ' + d.score + ' of ' + d.max + ' · target ' + d.target + ' · open your checklist →';
+        } catch (e) {} })();
     </script>
 </body>
 </html>
