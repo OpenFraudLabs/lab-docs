@@ -219,6 +219,7 @@
                 box.append(OFL.el('div', { class: 'ap-up-row' }, pick, state), input);
             }
 
+            if (!OFL.qs('c')) { location.replace('/academy/join/?c=cohort-2-2027'); return; }
             var info = (await sb.rpc('cohort_public', { p_slug: OFL.qs('c') || null })).data;
             var cta = document.getElementById('ap-cta'), form = document.getElementById('ap-form'), status = document.getElementById('ap-status');
             var KINDS = [['tiktok', 'TikTok: @_drhola'], ['linkedin-founder', 'LinkedIn: Ayodele Odugbile'], ['linkedin-page', 'LinkedIn: Open Fraud Labs']];

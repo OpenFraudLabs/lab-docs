@@ -166,7 +166,7 @@
                         el('img', { src: '/assets/academy/lesson-frame.jpg', alt: '', width: '320', height: '180', loading: 'lazy' }),
                         el('div', {}, el('h3', { text: 'Data Science from Scratch' }),
                             el('p', { class: 'ac-muted', text: 'From your first dataset to machine learning models you can explain. ' + st.total + ' lessons and projects for beginners, with a certificate.' }),
-                            el('a', { class: 'ac-btn ac-btn--primary', href: st.course && st.course.enrol_mode === 'application' ? '/academy/apply/' : '/academy/courses/data-science/', text: st.course && st.course.enrol_mode === 'application' ? 'Apply for the Founding Cohort' : 'View course and enrol' }))),
+                            el('a', { class: 'ac-btn ac-btn--primary', href: st.course && st.course.enrol_mode === 'application' ? '/academy/join/?c=cohort-2-2027' : '/academy/courses/data-science/', text: st.course && st.course.enrol_mode === 'application' ? 'Apply for the Founding Cohort' : 'View course and enrol' }))),
                     el('p', { class: 'ac-muted ac-small' }, others.length ? '' : 'More courses are on the way, starting with Data Analysis. ', el('a', { href: '/academy/courses/', text: 'See all courses' }))));
                 otherCourses(document.getElementById('next'), mine.length ? 'Your other courses' : 'Also open for enrolment');
                 return;

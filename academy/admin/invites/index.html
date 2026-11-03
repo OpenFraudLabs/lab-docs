@@ -119,8 +119,8 @@
     <main id="main">
         <div class="ac-wrap rv" style="max-width:1100px">
             <p class="rv-eyebrow">Staff dashboard</p>
-            <h1>Cohort 2 invitations</h1>
-            <p class="ac-muted">People who signed up but never applied get an invitation with an Accept or Decline button. Accepting sends their offer at once, then a short onboarding form. When they submit, they see the WhatsApp link. On 8 January everyone onboarded joins Cohort 2 automatically.</p>
+            <h1>Cohort 2: invitations and stages</h1>
+            <p class="ac-muted">Everyone invited to Cohort 2, or who claimed a place from the careers page, and the stage they have reached: 1 invited, 2 accepted (offer sent, form not done), 3 onboarded (has the WhatsApp link), 4 joined the cohort on 8 January. No CV, TikTok or LinkedIn post is required.</p>
             <div id="msg"></div>
             <div id="app"><p class="ac-muted">Loading…</p></div>
             <p><a href="/academy/admin/">← Back to the staff dashboard</a></p>
@@ -159,42 +159,63 @@
     <script src="/assets/js/academy.js?v=20261016b"></script>
     <script>
         (async function () {
-            var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg'), SLUG = 'cohort-2-2027';
+            var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg'), SLUG = 'cohort-2-2027', FILTER = 'all';
             var user = await OFL.requireUser('/academy/admin/invites/'); if (!user) return;
-            var ST = { invited: 'Invited', accepted: 'Accepted, form not done', declined: 'Declined', onboarded: 'Onboarded', admitted: 'Joined cohort' };
+            var STAGES = [['invited', '1 · Invited, no answer yet', '#B45309', '#FEF4E6'], ['accepted', '2 · Accepted, form not done', '#1A3DB0', '#EDF2FF'],
+                          ['onboarded', '3 · Onboarded (has WhatsApp link)', '#046C4A', '#E7F7F0'], ['admitted', '4 · Joined the cohort', '#046C4A', '#E7F7F0'], ['declined', 'Declined', '#B42318', '#FEF0EE']];
+            var SN = {}; STAGES.forEach(function (x) { SN[x[0]] = x; });
             var Q = { full_name: 'Name', phone: 'Phone', gender: 'Gender', age_range: 'Age', education: 'Education', field: 'Field', country: 'Country', state: 'State/city', employment: 'Now', laptop: 'Laptop', internet: 'Internet', hours: 'Hours/week', experience: 'Experience', goal: 'Goal', heard_from: 'Heard from' };
+            function dt(x) { return x ? new Date(x).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; }
+            function badge(st) { var x = SN[st] || [st, st, '#33415C', '#F2F4F8']; return el('span', { style: 'display:inline-block;border-radius:99px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;white-space:nowrap;color:' + x[2] + ';background:' + x[3], text: x[1] }); }
+            async function remind(stage, n) {
+                if (!confirm('Email a reminder to ' + n + ' ' + (n === 1 ? 'person' : 'people') + ' at this stage? (Anyone reminded in the last 20 hours is skipped.)')) return;
+                var x = await sb.rpc('cohort_invites_remind', { p_slug: SLUG, p_stage: stage });
+                if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error');
+                OFL.notice(msg, x.data.reminded + ' reminder' + (x.data.reminded === 1 ? '' : 's') + ' sent.', 'success'); load();
+            }
             async function load() {
                 var r = await sb.rpc('cohort_invites_admin', { p_slug: SLUG }); if (r.error) { app.textContent = ''; return OFL.notice(msg, OFL.friendlyError(r.error), 'error'); }
-                var d = r.data, rows = d.rows || [], cnt = {}; rows.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
+                var d = r.data, all = d.rows || [], rows = all.filter(function (x) { return !x.is_staff; }), cnt = {};
+                rows.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
                 app.textContent = '';
-                app.appendChild(el('div', { class: 'rv-grid' },
-                    el('div', { class: 'rv-c' }, el('b', { text: String(rows.length) }), el('span', { text: 'Invited' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: String((cnt.accepted || 0) + (cnt.onboarded || 0) + (cnt.admitted || 0)) }), el('span', { text: 'Accepted' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: String((cnt.onboarded || 0) + (cnt.admitted || 0)) }), el('span', { text: 'Onboarding done' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: String(cnt.declined || 0) }), el('span', { text: 'Declined' }))));
-                var wa = el('input', { type: 'url', value: d.cohort.whatsapp_url || '', placeholder: 'https://chat.whatsapp.com/…' });
-                app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Settings' }),
-                    el('p', { text: d.cohort.title + ': ' + d.cohort.starts_on + ' to ' + d.cohort.ends_on }),
-                    el('div', { class: 'rv-form' }, el('label', {}, el('span', { text: 'Cohort 2 WhatsApp group link (shown after onboarding)' }), wa),
-                        el('div', { class: 'mvp-cta' },
-                            el('button', { class: 'ac-btn', type: 'button', text: 'Save WhatsApp link', onclick: async function () {
-                                var x = await sb.rpc('cohort_set_whatsapp', { p_slug: SLUG, p_url: wa.value.trim() });
-                                if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, 'WhatsApp link saved.', 'success'); } }),
-                            d.can_invite ? el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Invite ' + d.can_invite + ' people who signed up but never applied', onclick: async function () {
-                                if (!d.cohort.whatsapp_url && !confirm('No WhatsApp link is saved yet. People who finish onboarding will be told the link is coming. Send the invitations anyway?')) return;
-                                if (!confirm('Email ' + d.can_invite + ' people an invitation to ' + d.cohort.title + '?')) return;
-                                var x = await sb.rpc('cohort_invite_signups', { p_slug: SLUG });
-                                if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, x.data.invited + ' invitations sent.', 'success'); load(); } })
-                            : el('span', { class: 'ac-muted', text: 'Everyone who signed up without applying has been invited.' })))));
-                var t = el('table', { class: 'ac-table' }), tb = el('tbody');
-                t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Name' }), el('th', { text: 'Email' }), el('th', { text: 'Status' }), el('th', { text: 'Onboarding answers' }))));
-                rows.forEach(function (x) {
-                    var ans = el('td'); if (x.onboarding) { var dl = el('div', { style: 'font-size:.85rem;line-height:1.5' });
-                        Object.keys(Q).forEach(function (k) { if (x.onboarding[k]) dl.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.onboarding[k])); }); ans.appendChild(dl); }
-                    tb.appendChild(el('tr', {}, el('td', { text: x.name || '—' }), el('td', { text: x.email }), el('td', { text: ST[x.status] || x.status }), ans));
+                var funnel = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(5,1fr)' });
+                [['all', 'Everyone', rows.length]].concat(STAGES.map(function (x) { return [x[0], x[1].replace(/^\d · /, ''), cnt[x[0]] || 0]; })).forEach(function (f) {
+                    funnel.appendChild(el('button', { type: 'button', class: 'rv-c', style: 'text-align:left;cursor:pointer;' + (FILTER === f[0] ? 'outline:2px solid #2453E6;' : ''),
+                        onclick: function () { FILTER = f[0]; load(); } }, el('b', { text: String(f[2]) }), el('span', { text: f[1] })));
                 });
-                if (!rows.length) tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'No invitations sent yet.' })));
-                t.appendChild(tb); app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'People' }), el('div', { class: 'ac-table-wrap' }, t)));
+                app.appendChild(el('p', { class: 'ac-muted ac-small', text: 'Click a box to filter the list by stage. Your own test entry is hidden.' }));
+                app.appendChild(funnel);
+                var acts = el('div', { class: 'mvp-cta', style: 'margin-bottom:1rem' });
+                if (cnt.invited) acts.appendChild(el('button', { class: 'ac-btn', type: 'button', text: 'Remind ' + cnt.invited + ' who haven’t answered', onclick: function () { remind('invited', cnt.invited); } }));
+                if (cnt.accepted) acts.appendChild(el('button', { class: 'ac-btn', type: 'button', text: 'Remind ' + cnt.accepted + ' to finish the form', onclick: function () { remind('accepted', cnt.accepted); } }));
+                if (d.can_invite) acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Invite ' + d.can_invite + ' new sign-ups', onclick: async function () {
+                    if (!confirm('Email ' + d.can_invite + ' people who signed up but never applied an invitation to ' + d.cohort.title + '?')) return;
+                    var x = await sb.rpc('cohort_invite_signups', { p_slug: SLUG });
+                    if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, x.data.invited + ' invitations sent.', 'success'); load(); } }));
+                app.appendChild(acts);
+                var t = el('table', { class: 'ac-table' }), tb = el('tbody');
+                t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Name' }), el('th', { text: 'Stage' }), el('th', { text: 'Timeline' }), el('th', { text: 'Onboarding answers' }))));
+                var shown = rows.filter(function (x) { return FILTER === 'all' || x.status === FILTER; });
+                shown.forEach(function (x) {
+                    var tl = el('div', { style: 'font-size:.82rem;line-height:1.55;color:#33415C' },
+                        el('div', { text: (x.source === 'self' ? 'Claimed a place: ' : 'Invited: ') + dt(x.invited_at) }),
+                        x.responded_at ? el('div', { text: (x.status === 'declined' ? 'Declined: ' : 'Accepted (offer sent): ') + dt(x.responded_at) }) : null,
+                        x.onboarded_at ? el('div', { text: 'Form submitted: ' + dt(x.onboarded_at) }) : null,
+                        x.admitted_at ? el('div', { text: 'Joined cohort: ' + dt(x.admitted_at) }) : null,
+                        x.reminders ? el('div', { text: x.reminders + ' reminder' + (x.reminders === 1 ? '' : 's') + ', last ' + dt(x.last_reminder) }) : null);
+                    var ans = el('td'); if (x.onboarding) { var dl = el('div', { style: 'font-size:.82rem;line-height:1.5' });
+                        Object.keys(Q).forEach(function (k) { if (x.onboarding[k]) dl.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.onboarding[k])); }); ans.appendChild(dl); }
+                    else ans.appendChild(el('span', { class: 'ac-muted', text: '—' }));
+                    tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })), el('td', {}, badge(x.status)), el('td', {}, tl), ans));
+                });
+                if (!shown.length) tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'Nobody at this stage.' })));
+                t.appendChild(tb); app.appendChild(el('div', { class: 'rv-card' }, el('div', { class: 'ac-table-wrap' }, t)));
+                var wa = el('input', { type: 'url', value: d.cohort.whatsapp_url || '', placeholder: 'https://chat.whatsapp.com/…' });
+                app.appendChild(el('details', { class: 'rv-card' }, el('summary', { style: 'cursor:pointer;font-weight:700', text: 'Settings: WhatsApp group link' }),
+                    el('div', { class: 'rv-form', style: 'margin-top:1rem' }, el('label', {}, el('span', { text: 'Shown to people after they submit the onboarding form' }), wa),
+                        el('button', { class: 'ac-btn', type: 'button', text: 'Save WhatsApp link', onclick: async function () {
+                            var x = await sb.rpc('cohort_set_whatsapp', { p_slug: SLUG, p_url: wa.value.trim() });
+                            if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, 'WhatsApp link saved.', 'success'); } }))));
             }
             load();
         })();

@@ -263,9 +263,9 @@
             document.querySelectorAll('[data-released]').forEach(function (e) { e.textContent = rel; });
             var btn = document.getElementById('start-btn'), note = document.getElementById('start-note');
             if (!st.enrolled && st.course && st.course.enrol_mode === 'application') {
-                btn.textContent = 'Apply for the Founding Cohort'; btn.href = '/academy/apply/';
-                var cps = document.getElementById('cp-status'); if (cps) cps.textContent = 'Pre-launch: applications open';
-                note.textContent = 'Pre-launch: places are free and limited. Browse the outline, then apply.';
+                btn.textContent = 'Join Cohort 2 (free)'; btn.href = '/academy/join/?c=cohort-2-2027';
+                var cps = document.getElementById('cp-status'); if (cps) cps.textContent = 'Cohort 2: free places open';
+                note.textContent = 'Cohort 2 runs from 9 January to 9 April 2027. Places are free: claim yours, then complete a short onboarding form.';
                 return;
             }
             if (!st.user) return;

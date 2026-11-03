@@ -151,7 +151,7 @@
             document.getElementById('gc-outline').hidden = !st.lessons.length;
             var cta = document.getElementById('gc-cta'), note = document.getElementById('gc-note');
             if (c.status !== 'live') { cta.replaceWith(el('span', { class: 'ac-btn ac-btn--secondary cp-card__cta', 'aria-disabled': 'true', text: c.status === 'coming_soon' ? 'In preparation' : 'Not published' })); note.textContent = c.status === 'coming_soon' ? 'Enrolment opens when the first lessons are ready.' : 'Only staff who manage content can see this page.'; return; }
-            if (!st.enrolled && c.enrol_mode === 'application') { cta.href = '/academy/apply/'; cta.textContent = 'Apply for a place'; note.textContent = 'Pre-launch: places are limited and shortlisted from applications.'; return; }
+            if (!st.enrolled && c.enrol_mode === 'application') { cta.href = '/academy/join/?c=cohort-2-2027'; cta.textContent = 'Join Cohort 2 (free)'; note.textContent = 'Cohort 2 runs from 9 January to 9 April 2027. Places are free.'; return; }
             if (!st.user) { cta.href = '/account/?next=' + encodeURIComponent(location.pathname + location.search); cta.textContent = 'Create a free account to enrol'; return; }
             if (!st.enrolled) {
                 var b = el('button', { class: 'ac-btn ac-btn--primary cp-card__cta', type: 'button', text: c.access === 'paid' ? 'Enrol' : 'Enrol for free' });

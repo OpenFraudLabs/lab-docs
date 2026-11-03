@@ -52,7 +52,7 @@
         </div>
     </header>
     <main id="main">
-        <a class="ap-banner" id="ap-banner" href="/academy/apply/" hidden><span class="ap-banner__tag">Pre&#8209;launch</span><span id="ap-banner-text">Applications are open for the free Founding Cohort</span><span aria-hidden="true">&rarr;</span></a>
+        <a class="ap-banner" id="ap-banner" href="/academy/join/?c=cohort-2-2027"><span class="ap-banner__tag">Cohort 2</span><span id="ap-banner-text">Free places open in Cohort 2: 9 January to 9 April 2027</span><span aria-hidden="true">&rarr;</span></a>
         <section class="lp-hero">
             <div class="ac-wrap lp-hero__grid">
                 <div class="lp-hero__copy">
@@ -264,6 +264,7 @@ Monthly    0.250</pre></div>
         })();
         (async function cohort() {
             var c = (await OFL.sb.rpc('cohort_public', { p_slug: null })).data;
+            var hs0 = document.getElementById('home-ds-status'); if (hs0) { hs0.textContent = 'Cohort 2: free places open'; var hl0 = hs0.parentNode.querySelector('a.ac-btn'); if (hl0) { hl0.textContent = 'View course and join'; } }
             if (!c || c.status !== 'open') return;
             var b = document.getElementById('ap-banner'); b.href = '/academy/apply/?c=' + encodeURIComponent(c.slug);
             var hs = document.getElementById('home-ds-status'); if (hs && c.course === 'data-science') { hs.textContent = 'Pre-launch: applications open'; var hl = hs.parentNode.querySelector('a.ac-btn'); if (hl) { hl.textContent = 'View course and apply'; } }
