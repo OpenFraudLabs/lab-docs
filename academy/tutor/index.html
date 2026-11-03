@@ -161,7 +161,7 @@
         (async function () {
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var user = await OFL.requireUser('/academy/tutor/'); if (!user) return;
-            var MODE = { google_meet: 'Google Meet (video)', whatsapp_call: 'WhatsApp call', phone_call: 'Phone call' };
+            var MODE = { google_meet: 'Video call (link sent to you automatically)', whatsapp_call: 'WhatsApp call', phone_call: 'Phone call' };
             var ST = { requested: ['Waiting for the tutor', '#B45309', '#FEF4E6'], accepted: ['Confirmed', '#046C4A', '#E7F7F0'], rescheduled: ['New time suggested: please confirm', '#6D28D9', '#F3E8FF'],
                        declined: ['Declined', '#B42318', '#FEF0EE'], cancelled: ['Cancelled', '#33415C', '#F2F4F8'], done: ['Done', '#1A3DB0', '#EDF2FF'] };
             function when(t) { return new Date(t).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) + ' (Lagos)'; }

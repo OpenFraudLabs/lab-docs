@@ -121,7 +121,7 @@
         <div class="ac-wrap rv" style="max-width:1000px">
             <p class="rv-eyebrow">Staff dashboard</p>
             <h1>1-to-1 meetings</h1>
-            <p class="ac-muted">Learners ask for a 1-to-1 when they are stuck. For each request: accept one of their times, suggest a new date and time, or decline. The learner is emailed every time and sees the status on their 1-to-1 page. Each card shows how far behind the learner is, so you can help them catch up.</p>
+            <p class="ac-muted">Learners ask for a 1-to-1 when they are stuck. For each request: accept one of their times, suggest a new date and time, or decline. A video meeting link is created automatically and the meeting is added to your calendar and the learner’s, with a calendar invitation emailed to both of you. Each card shows how far behind the learner is, so you can help them catch up.</p>
             <div id="msg"></div>
             <div id="app"><p class="ac-muted">Loading…</p></div>
             <p><a href="/academy/admin/">← Back to the staff dashboard</a></p>
@@ -162,7 +162,7 @@
         (async function () {
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var user = await OFL.requireUser('/academy/admin/meetings/'); if (!user) return;
-            var MODE = { google_meet: 'Google Meet (video)', whatsapp_call: 'WhatsApp call', phone_call: 'Phone call' };
+            var MODE = { google_meet: 'Video call', whatsapp_call: 'WhatsApp call', phone_call: 'Phone call' };
             var ST = { requested: ['New request', '#B45309', '#FEF4E6'], accepted: ['Confirmed', '#046C4A', '#E7F7F0'], rescheduled: ['New time sent, waiting for learner', '#6D28D9', '#F3E8FF'],
                        declined: ['Declined', '#B42318', '#FEF0EE'], cancelled: ['Cancelled by learner', '#33415C', '#F2F4F8'], done: ['Done', '#1A3DB0', '#EDF2FF'] };
             function when(t) { return new Date(t).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + ' (Lagos)'; }
@@ -186,7 +186,7 @@
                         el('p', { style: 'margin:.2rem 0', text: m.scheduled_at ? 'Scheduled: ' + when(m.scheduled_at) : 'Preferred: ' + when(m.preferred_1) + (m.preferred_2 ? '  or  ' + when(m.preferred_2) : '') }),
                         m.meeting_link ? el('p', { style: 'margin:.2rem 0' }, el('a', { href: m.meeting_link, target: '_blank', rel: 'noopener', text: m.meeting_link })) : null);
                     if (m.status === 'requested' || m.status === 'accepted' || m.status === 'rescheduled') {
-                        var link = el('input', { type: 'url', placeholder: m.mode === 'google_meet' ? 'Google Meet link (https://meet.google.com/…)' : 'Link (optional)', value: m.meeting_link || '' });
+                        var link = el('input', { type: 'url', placeholder: m.mode === 'google_meet' ? 'Optional: paste your own link. Leave empty and a video link is created for you' : 'Link (optional)', value: m.meeting_link || '' });
                         var note = el('input', { type: 'text', maxlength: '300', placeholder: 'Optional note to the learner' });
                         var newt = el('input', { type: 'datetime-local' });
                         var f = el('div', { class: 'rv-form', style: 'margin-top:.8rem' }, link, note);
