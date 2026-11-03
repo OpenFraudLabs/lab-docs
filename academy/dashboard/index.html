@@ -200,6 +200,19 @@
                 el('div', {}, el('h2', { text: title }), el('p', { text: text })),
                 el('a', { class: 'ac-btn ac-btn--primary', href: href, text: label, target: href.indexOf('http') === 0 ? '_blank' : null, rel: href.indexOf('http') === 0 ? 'noopener noreferrer' : null })));
 
+            (async function referral() {
+                var rr = await sb.rpc('my_referral'); if (rr.error || !rr.data) return; var d = rr.data;
+                var wa = 'https://wa.me/?text=' + encodeURIComponent('Cohort 2 of Data Science from Scratch at Open Fraud Labs Academy is open: free, online, 9 January to 9 April 2027 (you need your own laptop or tablet). Apply here: ' + d.link);
+                var copyBtn = el('button', { class: 'ac-btn ac-btn--sm', type: 'button', style: 'background:#fff;color:#0E1A2B', text: 'Copy my link', onclick: function () {
+                    try { navigator.clipboard.writeText(d.link).then(function () { copyBtn.textContent = 'Copied ✓'; setTimeout(function () { copyBtn.textContent = 'Copy my link'; }, 2000); }); } catch (e) { window.prompt('Copy your link:', d.link); } } });
+                next.appendChild(el('div', { style: 'margin-top:1rem;border-radius:14px;padding:1.2rem 1.3rem;color:#fff;background:linear-gradient(135deg,#0E1A2B,#1A3DB0 60%,#2453E6)' },
+                    el('h2', { style: 'color:#fff;margin:0 0 .35rem;font-size:1.15rem', text: '🤝 Invite friends to Cohort 2 and earn XP' }),
+                    el('p', { style: 'margin:0 0 .8rem;opacity:.9', text: 'Share your personal link. You earn 50 XP for every person who applies with it and qualifies. Referral XP counts towards the monthly MVP and the Ambassador programme.' }),
+                    el('div', { style: 'background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:.6rem .8rem;font-family:IBM Plex Mono,monospace;font-size:.85rem;word-break:break-all;margin-bottom:.8rem', text: d.link }),
+                    el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem;align-items:center' }, copyBtn,
+                        el('a', { class: 'ac-btn ac-btn--sm', style: 'background:#25D366;color:#fff;border-color:#25D366', href: wa, target: '_blank', rel: 'noopener', text: 'Share on WhatsApp' }),
+                        el('span', { style: 'margin-left:auto;font-size:.9rem;opacity:.9', text: d.applied + ' applied · ' + d.qualified + ' qualified · ' + d.xp + ' XP earned' }))));
+            })();
             otherCourses(document.querySelector('.ac-two').parentNode.appendChild(el('div', { class: 'ac-more-wrap' })), 'More courses');
             var list = document.getElementById('checklist');
             function item(isDone, text, link) {

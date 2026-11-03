@@ -159,6 +159,8 @@
         (async function () {
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var slug = new URLSearchParams(location.search).get('c') || 'cohort-2-2027';
+            var REF = (new URLSearchParams(location.search).get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            try { if (REF) localStorage.setItem('ofl_ref', REF); else REF = localStorage.getItem('ofl_ref') || ''; } catch (e) {}
             var user = await OFL.requireUser('/academy/join/?c=' + encodeURIComponent(slug)); if (!user) return;
             var FIELDS = ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours','experience','goal','heard_from'];
             var REQUIRED = FIELDS.slice(0, 12);
@@ -197,7 +199,7 @@
                 if (prefill) FIELDS.forEach(function (k) { if (prefill[k] && f[k]) f[k].value = prefill[k]; });
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); msg.textContent = '';
-                    var data = {}; FIELDS.forEach(function (k) { data[k] = (f[k].value || '').trim(); });
+                    var data = {}; FIELDS.forEach(function (k) { data[k] = (f[k].value || '').trim(); }); if (REF) data.ref = REF;
                     if (appeal) { data.appeal = (f.appeal.value || '').trim(); if (data.appeal.length < 20) { f.appeal.focus(); return OFL.notice(msg, 'Please tell us in a few sentences why you would like to be considered.', 'error'); } }
                     var miss = REQUIRED.filter(function (k) { return !data[k]; });
                     if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question (only the last three are optional).', 'error'); }
