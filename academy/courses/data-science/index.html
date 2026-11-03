@@ -265,7 +265,7 @@
             if (!st.enrolled && st.course && st.course.enrol_mode === 'application') {
                 btn.textContent = 'Join Cohort 2 (free)'; btn.href = '/academy/join/?c=cohort-2-2027';
                 var cps = document.getElementById('cp-status'); if (cps) cps.textContent = 'Cohort 2: free places open';
-                note.textContent = 'Cohort 2 runs from 9 January to 9 April 2027. Places are free: claim yours, then complete a short onboarding form.';
+                note.textContent = 'Cohort 2 runs from 9 January to 9 April 2027. Places are free; you need your own laptop or tablet. Apply with a short form.';
                 return;
             }
             if (!st.user) return;

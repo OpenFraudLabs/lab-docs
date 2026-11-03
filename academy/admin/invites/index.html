@@ -119,8 +119,8 @@
     <main id="main">
         <div class="ac-wrap rv" style="max-width:1100px">
             <p class="rv-eyebrow">Staff dashboard</p>
-            <h1>Cohort 2: invitations and stages</h1>
-            <p class="ac-muted">Everyone invited to Cohort 2, or who claimed a place from the careers page, and the stage they have reached: 1 invited, 2 accepted (offer sent, form not done), 3 onboarded (has the WhatsApp link), 4 joined the cohort on 8 January. No CV, TikTok or LinkedIn post is required.</p>
+            <h1>Cohort 2: invitations and applications</h1>
+            <p class="ac-muted">Invited people: 1 invited, 2 accepted (offer sent, form not done), 3 onboarded (has the WhatsApp link), 4 joined on 8 January. Applicants: apply with the same short form, are screened automatically 24 hours later (own laptop or tablet required) and are emailed a shortlist or decline message. No CV, TikTok or LinkedIn post is required.</p>
             <div id="msg"></div>
             <div id="app"><p class="ac-muted">Loading…</p></div>
             <p><a href="/academy/admin/">← Back to the staff dashboard</a></p>
@@ -206,16 +206,45 @@
                     var ans = el('td'); if (x.onboarding) { var dl = el('div', { style: 'font-size:.82rem;line-height:1.5' });
                         Object.keys(Q).forEach(function (k) { if (x.onboarding[k]) dl.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.onboarding[k])); }); ans.appendChild(dl); }
                     else ans.appendChild(el('span', { class: 'ac-muted', text: '—' }));
-                    tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })), el('td', {}, badge(x.status)), el('td', {}, tl), ans));
+                    tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })), el('td', {}, badge(x.status), x.no_device ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:#B42318', text: 'No own laptop or tablet' }) : null), el('td', {}, tl), ans));
                 });
                 if (!shown.length) tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'Nobody at this stage.' })));
-                t.appendChild(tb); app.appendChild(el('div', { class: 'rv-card' }, el('div', { class: 'ac-table-wrap' }, t)));
+                t.appendChild(tb); app.appendChild(el('h2', { text: 'Invited people', style: 'margin:1.5rem 0 .5rem' })); app.appendChild(el('div', { class: 'rv-card' }, el('div', { class: 'ac-table-wrap' }, t)));
+                await loadApps();
                 var wa = el('input', { type: 'url', value: d.cohort.whatsapp_url || '', placeholder: 'https://chat.whatsapp.com/…' });
                 app.appendChild(el('details', { class: 'rv-card' }, el('summary', { style: 'cursor:pointer;font-weight:700', text: 'Settings: WhatsApp group link' }),
                     el('div', { class: 'rv-form', style: 'margin-top:1rem' }, el('label', {}, el('span', { text: 'Shown to people after they submit the onboarding form' }), wa),
                         el('button', { class: 'ac-btn', type: 'button', text: 'Save WhatsApp link', onclick: async function () {
                             var x = await sb.rpc('cohort_set_whatsapp', { p_slug: SLUG, p_url: wa.value.trim() });
                             if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); OFL.notice(msg, 'WhatsApp link saved.', 'success'); } }))));
+            }
+            var AFILTER = 'all';
+            var AST = { applied: ['Applied: screening in progress', '#B45309', '#FEF4E6'], shortlisted: ['Shortlisted (has WhatsApp link)', '#046C4A', '#E7F7F0'],
+                        not_selected: ['Not selected: no own laptop or tablet', '#B42318', '#FEF0EE'], admitted: ['Joined the cohort', '#046C4A', '#E7F7F0'] };
+            async function loadApps() {
+                var r = await sb.rpc('cohort_applications_admin', { p_slug: SLUG }); if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                var rows = (r.data || []).filter(function (x) { return !x.is_staff; }), cnt = {}; rows.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
+                var wrap = el('div'); app.appendChild(el('h2', { text: 'Applications (screened 24 hours after applying)', style: 'margin:1.75rem 0 .5rem' })); app.appendChild(wrap);
+                var g = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(5,1fr)' });
+                [['all', 'All applications', rows.length], ['applied', 'Screening', cnt.applied || 0], ['shortlisted', 'Shortlisted', cnt.shortlisted || 0], ['not_selected', 'Not selected', cnt.not_selected || 0], ['admitted', 'Joined', cnt.admitted || 0]].forEach(function (f) {
+                    g.appendChild(el('button', { type: 'button', class: 'rv-c', style: 'text-align:left;cursor:pointer;' + (AFILTER === f[0] ? 'outline:2px solid #2453E6;' : ''), onclick: function () { AFILTER = f[0]; load(); } }, el('b', { text: String(f[2]) }), el('span', { text: f[1] })));
+                });
+                wrap.appendChild(g);
+                var t = el('table', { class: 'ac-table' }), tb = el('tbody');
+                t.appendChild(el('thead', {}, el('tr', {}, el('th', { text: 'Name' }), el('th', { text: 'Stage' }), el('th', { text: 'Timeline' }), el('th', { text: 'Application answers' }))));
+                var shown = rows.filter(function (x) { return AFILTER === 'all' || x.status === AFILTER; });
+                shown.forEach(function (x) {
+                    var st = AST[x.status] || [x.status, '#33415C', '#F2F4F8'];
+                    var tl = el('div', { style: 'font-size:.82rem;line-height:1.55;color:#33415C' }, el('div', { text: 'Applied: ' + dt(x.applied_at) }),
+                        x.screened_at ? el('div', { text: 'Screened: ' + dt(x.screened_at) + ' (' + x.screen_reason + ')' }) : el('div', { text: 'Screening email due: ' + dt(x.screen_at) }));
+                    var ans = el('div', { style: 'font-size:.82rem;line-height:1.5' }); Object.keys(Q).forEach(function (k) { if (x.answers && x.answers[k]) ans.appendChild(el('div', {}, el('b', { text: Q[k] + ': ' }), x.answers[k])); });
+                    tb.appendChild(el('tr', {}, el('td', {}, el('b', { text: x.name || '—' }), el('div', { class: 'ac-small ac-muted', text: x.email })),
+                        el('td', {}, el('span', { style: 'display:inline-block;border-radius:99px;padding:.2rem .65rem;font-size:.8rem;font-weight:700;color:' + st[1] + ';background:' + st[2], text: st[0] }),
+                            x.status === 'applied' ? el('div', { style: 'margin-top:.35rem;font-size:.8rem;font-weight:700;color:' + (x.meets ? '#046C4A' : '#B42318'), text: x.meets ? 'Meets the laptop/tablet rule' : 'Will be declined: no own laptop or tablet' }) : null),
+                        el('td', {}, tl), el('td', {}, ans)));
+                });
+                if (!shown.length) tb.appendChild(el('tr', {}, el('td', { colspan: '4', class: 'ac-muted', text: 'No applications at this stage yet.' })));
+                t.appendChild(tb); wrap.appendChild(el('div', { class: 'rv-card' }, el('div', { class: 'ac-table-wrap' }, t)));
             }
             load();
         })();

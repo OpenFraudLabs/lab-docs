@@ -14,7 +14,7 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your place in Cohort 2 | Open Fraud Labs Academy</title>
+    <title>Cohort 2 | Open Fraud Labs Academy</title>
     <meta name="description" content="Accept your place in the next cohort of Data Science from Scratch.">
     <meta property="og:title" content="Your place in Cohort 2 | Open Fraud Labs Academy">
     <meta property="og:description" content="Accept your place in the next cohort of Data Science from Scratch.">
@@ -160,81 +160,105 @@
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var slug = new URLSearchParams(location.search).get('c') || 'cohort-2-2027';
             var user = await OFL.requireUser('/academy/join/?c=' + encodeURIComponent(slug)); if (!user) return;
+            var FIELDS = ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours','experience','goal','heard_from'];
+            var REQUIRED = FIELDS.slice(0, 12);
             function d(x) { return new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
-            function sel(name, label, opts, req) { var s = el('select', { name: name }, el('option', { value: '', text: req ? 'Choose…' : 'Prefer not to say' }));
-                opts.forEach(function (o) { s.appendChild(el('option', { text: o })); }); return el('label', {}, el('span', { text: label + (req ? '' : ' (optional)') }), s); }
-            function inp(name, label, attrs, req) { attrs = attrs || {}; attrs.name = name; return el('label', {}, el('span', { text: label + (req === false ? ' (optional)' : '') }), el('input', attrs)); }
-            async function render(data) {
-                app.textContent = ''; var c = data && data.cohort, i = data && data.invite;
+            function short(x) { return new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+            function title(t) { document.getElementById('j-title').textContent = t; }
+            function sel(name, label, opts, hint) { var s = el('select', { name: name }, el('option', { value: '', text: 'Choose…' }));
+                opts.forEach(function (o) { s.appendChild(el('option', { text: o })); }); return el('label', {}, el('span', { text: label }), hint ? el('small', { class: 'ac-muted', style: 'display:block;margin:-.2rem 0 .35rem', text: hint }) : null, s); }
+            function inp(name, label, attrs, optional) { attrs = attrs || {}; attrs.name = name; return el('label', {}, el('span', { text: label + (optional ? ' (optional)' : '') }), el('input', attrs)); }
+            function osel(name, label, opts) { var s = el('select', { name: name }, el('option', { value: '', text: 'Choose…' })); opts.forEach(function (o) { s.appendChild(el('option', { text: o })); });
+                return el('label', {}, el('span', { text: label + ' (optional)' }), s); }
+            function datesBox(c) { return el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(3,1fr)' },
+                el('div', { class: 'rv-c' }, el('b', { text: short(c.starts_on) }), el('span', { text: 'Start date' })),
+                el('div', { class: 'rv-c' }, el('b', { text: short(c.ends_on) }), el('span', { text: 'End date' })),
+                el('div', { class: 'rv-c' }, el('b', { text: '3 months' }), el('span', { text: 'Free · online' }))); }
+            function form(heading, buttonText, onSubmit) {
+                var f = el('form', { class: 'rv-form', novalidate: true, style: 'margin-top:1rem' },
+                    el('h2', { text: heading, style: 'margin:0' }),
+                    inp('full_name', 'Full name', { maxlength: '120', autocomplete: 'name' }),
+                    inp('phone', 'Phone number (WhatsApp)', { type: 'tel', inputmode: 'tel', placeholder: '+234…', autocomplete: 'tel' }),
+                    sel('gender', 'Gender', ['Female', 'Male', 'Prefer not to say']),
+                    sel('age_range', 'Age range', ['18–24', '25–34', '35–44', '45 and above']),
+                    sel('education', 'Highest level of education', ['Secondary school (SSCE/WAEC)', 'OND / NCE / Diploma', 'HND', 'Bachelor’s degree', 'Master’s degree', 'PhD', 'Other']),
+                    inp('field', 'Course or field of study', { maxlength: '120' }),
+                    inp('country', 'Country', { maxlength: '80', autocomplete: 'country-name', value: 'Nigeria' }),
+                    inp('state', 'State or city', { maxlength: '80' }),
+                    sel('employment', 'What do you do now?', ['Student', 'NYSC corps member', 'Employed', 'Self-employed', 'Looking for work', 'Other']),
+                    sel('laptop', 'Do you have a personal laptop or tablet?', ['Yes, my own laptop', 'Yes, my own tablet', 'I share a laptop or tablet', 'No laptop or tablet'], 'You need your own laptop or tablet to take part in the coding practice.'),
+                    sel('internet', 'Internet access', ['Reliable', 'Sometimes unreliable', 'Mostly on mobile data']),
+                    sel('hours', 'Time you can give each week', ['Less than 3 hours', '3–5 hours', '5–10 hours', 'More than 10 hours']),
+                    osel('experience', 'Experience with data or coding', ['None, I am a complete beginner', 'A little (Excel, some tutorials)', 'Some (I have written code before)']),
+                    inp('goal', 'What do you hope to achieve?', { maxlength: '300' }, true),
+                    osel('heard_from', 'How did you hear about us?', ['TikTok', 'LinkedIn', 'WhatsApp', 'A friend', 'Other']),
+                    el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: buttonText }));
+                f.addEventListener('submit', async function (e) {
+                    e.preventDefault(); msg.textContent = '';
+                    var data = {}; FIELDS.forEach(function (k) { data[k] = (f[k].value || '').trim(); });
+                    var miss = REQUIRED.filter(function (k) { return !data[k]; });
+                    if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question (only the last three are optional).', 'error'); }
+                    var b = f.querySelector('button[type=submit]'); b.disabled = true;
+                    var r = await onSubmit(data); b.disabled = false;
+                    if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+                    render(r.data); window.scrollTo(0, 0);
+                });
+                return f;
+            }
+            function whatsapp(url, c) { return url ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: url, target: '_blank', rel: 'noopener', text: 'Join the ' + c.title + ' WhatsApp group' }))
+                                                 : el('p', { class: 'ac-muted', text: 'The WhatsApp group link will appear here shortly and we will also email it to you.' }); }
+            function render(data) {
+                app.textContent = ''; var c = data && data.cohort, i = data && data.invite, a = data && data.application;
                 if (!c) return app.appendChild(el('p', { class: 'ac-muted', text: 'This cohort could not be found.' }));
                 document.getElementById('j-eyebrow').textContent = c.title + ' · Data Science from Scratch';
-                var dates = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(3,1fr)' },
-                    el('div', { class: 'rv-c' }, el('b', { text: new Date(c.starts_on + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }), el('span', { text: 'Start date' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: new Date(c.ends_on + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }), el('span', { text: 'End date' })),
-                    el('div', { class: 'rv-c' }, el('b', { text: '3 months' }), el('span', { text: 'Free · online' })));
-                if (!i) { document.getElementById('j-title').textContent = 'Join ' + c.title;
-                    app.appendChild(el('p', { class: 'mvp-quote', text: c.title + ' of Data Science from Scratch is free: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify.' }));
-                    app.appendChild(dates);
-                    return app.appendChild(el('div', { class: 'mvp-cta' }, el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Claim my free place', onclick: async function () {
-                        msg.textContent = ''; var x = await sb.rpc('cohort_self_invite', { p_slug: slug });
-                        if (x.error) return OFL.notice(msg, OFL.friendlyError(x.error), 'error'); render(x.data); } }))); }
-                if (i.status === 'invited' || i.status === 'declined') {
-                    document.getElementById('j-title').textContent = 'A place for you in ' + c.title;
-                    app.appendChild(el('p', { class: 'mvp-quote', text: (i.status === 'declined' ? 'You declined this place earlier. If you have changed your mind, you can still accept it below. ' : '') +
-                        'We are holding a free place for you in ' + c.title + ' of Data Science from Scratch: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify.' }));
-                    app.appendChild(dates);
-                    var acts = el('div', { class: 'mvp-cta' },
-                        el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Accept my place', onclick: function () { respond(true); } }),
-                        i.status === 'declined' ? null : el('button', { class: 'ac-btn', type: 'button', text: 'Decline', onclick: function () { if (confirm('Decline your place in ' + c.title + '?')) respond(false); } }));
-                    return app.appendChild(acts);
+                if (i) {
+                    if (i.status === 'invited' || i.status === 'declined') {
+                        title('A place for you in ' + c.title);
+                        app.appendChild(el('p', { class: 'mvp-quote', text: (i.status === 'declined' ? 'You declined this place earlier. If you have changed your mind, you can still accept it below. ' : '') +
+                            'You have been invited to a free place in ' + c.title + ' of Data Science from Scratch: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify.' }));
+                        app.appendChild(datesBox(c));
+                        return app.appendChild(el('div', { class: 'mvp-cta' },
+                            el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Accept my place', onclick: function () { respond(true); } }),
+                            i.status === 'declined' ? null : el('button', { class: 'ac-btn', type: 'button', text: 'Decline', onclick: function () { if (confirm('Decline your place in ' + c.title + '?')) respond(false); } })));
+                    }
+                    if (i.status === 'accepted') {
+                        title('Your offer: ' + c.title);
+                        app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '🎉 Congratulations, your place is confirmed' }),
+                            el('p', { text: c.title + ' starts on ' + d(c.starts_on) + ' and ends on ' + d(c.ends_on) + '. We have emailed you your offer. One last step: tell us a little about yourself.' })));
+                        app.appendChild(datesBox(c));
+                        return app.appendChild(form('Onboarding form', 'Submit and get the WhatsApp link', function (x) { return sb.rpc('cohort_onboarding_submit', { p_slug: slug, p_data: x }); }));
+                    }
+                    title('Welcome to ' + c.title + '!');
+                    app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '✅ You are all set' }),
+                        el('p', { text: 'Thank you for completing your onboarding. ' + c.title + ' starts on ' + d(c.starts_on) + '. Join the WhatsApp group now for updates and to meet your cohort.' })));
+                    app.appendChild(datesBox(c)); return app.appendChild(whatsapp(i.whatsapp_url, c));
                 }
-                if (i.status === 'accepted') {
-                    document.getElementById('j-title').textContent = 'Your offer: ' + c.title;
-                    app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '🎉 Congratulations, your place is confirmed' }),
-                        el('p', { text: c.title + ' starts on ' + d(c.starts_on) + ' and ends on ' + d(c.ends_on) + '. We have emailed you your offer. One last step: tell us a little about yourself.' })));
-                    app.appendChild(dates);
-                    var f = el('form', { class: 'rv-form', novalidate: true, style: 'margin-top:1rem' },
-                        el('h2', { text: 'Onboarding form', style: 'margin:0' }),
-                        inp('full_name', 'Full name', { maxlength: '120', autocomplete: 'name' }),
-                        inp('phone', 'Phone number (WhatsApp)', { type: 'tel', inputmode: 'tel', placeholder: '+234…', autocomplete: 'tel' }),
-                        sel('gender', 'Gender', ['Female', 'Male', 'Prefer not to say'], true),
-                        sel('age_range', 'Age range', ['18–24', '25–34', '35–44', '45 and above'], true),
-                        sel('education', 'Highest level of education', ['Secondary school (SSCE/WAEC)', 'OND / NCE / Diploma', 'HND', 'Bachelor’s degree', 'Master’s degree', 'PhD', 'Other'], true),
-                        inp('field', 'Course or field of study', { maxlength: '120' }),
-                        inp('country', 'Country', { maxlength: '80', autocomplete: 'country-name', value: 'Nigeria' }),
-                        inp('state', 'State or city', { maxlength: '80' }),
-                        sel('employment', 'What do you do now?', ['Student', 'NYSC corps member', 'Employed', 'Self-employed', 'Looking for work', 'Other'], true),
-                        sel('laptop', 'Do you have a personal laptop?', ['Yes, my own laptop', 'I share a laptop', 'No laptop yet'], true),
-                        sel('internet', 'Internet access', ['Reliable', 'Sometimes unreliable', 'Mostly on mobile data'], true),
-                        sel('hours', 'Time you can give each week', ['Less than 3 hours', '3–5 hours', '5–10 hours', 'More than 10 hours'], true),
-                        sel('experience', 'Experience with data or coding', ['None, I am a complete beginner', 'A little (Excel, some tutorials)', 'Some (I have written code before)'], false),
-                        inp('goal', 'What do you hope to achieve?', { maxlength: '300' }, false),
-                        sel('heard_from', 'How did you hear about us?', ['TikTok', 'LinkedIn', 'WhatsApp', 'A friend', 'Other'], false),
-                        el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Submit and get the WhatsApp link' }));
-                    f.addEventListener('submit', async function (e) {
-                        e.preventDefault(); msg.textContent = '';
-                        var data = {}; ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours','experience','goal','heard_from'].forEach(function (k) { data[k] = (f[k].value || '').trim(); });
-                        var miss = ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours'].filter(function (k) { return !data[k]; });
-                        if (miss.length) { var fld = f[miss[0]]; fld && fld.focus(); return OFL.notice(msg, 'Please answer every question marked as required (all questions except the last three).', 'error'); }
-                        var b = f.querySelector('button[type=submit]'); b.disabled = true;
-                        var r = await sb.rpc('cohort_onboarding_submit', { p_slug: slug, p_data: data }); b.disabled = false;
-                        if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                        OFL.celebrate && OFL.celebrate(); render(r.data); window.scrollTo(0, 0);
-                    });
-                    return app.appendChild(f);
+                if (a) {
+                    if (a.status === 'applied') {
+                        title('Application received');
+                        app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Thank you for applying' }),
+                            el('p', { text: 'We review every application. You will hear from us by email by ' + new Date(a.screen_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) + ' (Lagos time).' })));
+                        return app.appendChild(datesBox(c));
+                    }
+                    if (a.status === 'not_selected') {
+                        title('Your application');
+                        return app.appendChild(el('p', { class: 'mvp-quote', text: 'Thank you for applying. The course needs a personal laptop or tablet, so we were not able to offer you a place in ' + c.title + '. Once you have one, you are welcome to apply for a future cohort.' }));
+                    }
+                    title(a.status === 'admitted' ? 'Welcome to ' + c.title + '!' : 'You have been shortlisted for ' + c.title + ' 🎉');
+                    app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: 'Congratulations, you have a place' }),
+                        el('p', { text: c.title + ' starts on ' + d(c.starts_on) + ' and ends on ' + d(c.ends_on) + '. Join the WhatsApp group now for onboarding details and to meet your cohort.' })));
+                    app.appendChild(datesBox(c)); return app.appendChild(whatsapp(a.whatsapp_url, c));
                 }
-                document.getElementById('j-title').textContent = 'Welcome to ' + c.title + '!';
-                app.appendChild(el('div', { class: 'mvp-done' }, el('h2', { text: '✅ You are all set' }),
-                    el('p', { text: 'Thank you for completing your onboarding. ' + c.title + ' starts on ' + d(c.starts_on) + '. Join the WhatsApp group now for updates and to meet your cohort.' })));
-                app.appendChild(dates);
-                if (i.whatsapp_url) app.appendChild(el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: i.whatsapp_url, target: '_blank', rel: 'noopener', text: 'Join the ' + c.title + ' WhatsApp group' })));
-                else app.appendChild(el('p', { class: 'ac-muted', text: 'The WhatsApp group link will appear here shortly and we will also email it to you.' }));
+                title('Apply for ' + c.title);
+                app.appendChild(el('p', { class: 'mvp-quote', text: c.title + ' of Data Science from Scratch is free: three months of video lessons, coding practice in your browser, projects and a certificate anyone can verify. You need your own laptop or tablet. We review every application and reply by email within 24 hours.' }));
+                app.appendChild(datesBox(c));
+                app.appendChild(form('Application form', 'Submit my application', function (x) { return sb.rpc('cohort_apply', { p_slug: slug, p_data: x }); }));
             }
             async function respond(accept) {
                 msg.textContent = '';
                 var r = await sb.rpc('cohort_invite_respond', { p_slug: slug, p_accept: accept });
                 if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
-                if (!accept) { OFL.notice(msg, 'You have declined your place. If you change your mind, you can accept it here later.', 'info'); }
+                if (!accept) OFL.notice(msg, 'You have declined your place. If you change your mind, you can accept it here later.', 'info');
                 render(r.data); window.scrollTo(0, 0);
             }
             var r = await sb.rpc('cohort_invite_mine', { p_slug: slug });
