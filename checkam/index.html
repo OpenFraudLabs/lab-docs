@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CheckAm by Open Fraud Labs: forward a suspicious message, link, phone number or account number on WhatsApp and find out if it looks like a scam, and why.">
+<meta property="og:title" content="CheckAm: check before you pay">
+<meta property="og:description" content="Free WhatsApp scam checker from Open Fraud Labs. Send +234 703 831 7433 a suspicious message, link or account number.">
+<link rel="icon" href="/assets/logo.png">
+<title>CheckAm by OpenFraudLabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one strong hero (claim + live chat proof), then plain bands that answer "how", "report", "business", "trust" */
+:root{
+  --bg:#F4F7F5; --paper:#FFFFFF; --ink:#0E1D18; --muted:#55665F; --line:#D5DFDA;
+  --accent:#0C7A5E; --accent-ink:#FFFFFF; --accent-soft:#D9EEE7; --chat:#E6EFEA; --bubble-in:#FFFFFF; --bubble-out:#D8F3E4;
+  --scam:#B9382C; --caution:#A6680F; --fine:#2A7A4A;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1311; --paper:#131C19; --ink:#E4EDE9; --muted:#97A7A0; --line:#25312D;
+  --accent:#45BC9C; --accent-ink:#05231B; --accent-soft:#17362D; --chat:#0F1916; --bubble-in:#1A2622; --bubble-out:#143A2B;
+  --scam:#F2806F; --caution:#E5AE55; --fine:#66C590; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1311; --paper:#131C19; --ink:#E4EDE9; --muted:#97A7A0; --line:#25312D;
+  --accent:#45BC9C; --accent-ink:#05231B; --accent-soft:#17362D; --chat:#0F1916; --bubble-in:#1A2622; --bubble-out:#143A2B;
+  --scam:#F2806F; --caution:#E5AE55; --fine:#66C590; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:17px/1.6 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.015em}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.draft{background:var(--accent-soft);color:var(--ink);font-size:14px;text-align:center;padding-block:8px}
+header.top{padding-block:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font:800 20px var(--f-display)}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-style:normal;font-size:16px}
+.logo small{font:500 13px var(--f-body);color:var(--muted)}
+.links{display:flex;gap:18px;font-size:15px;flex-wrap:wrap}
+.links a{color:var(--muted);text-decoration:none}.links a:hover{color:var(--ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center;padding-block:40px 64px}
+.hero h1{font-size:clamp(42px,6.4vw,76px);line-height:1;font-weight:800}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.lede{margin-top:20px;font-size:19px;color:var(--muted);max-width:34ch}
+.cta{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 16px var(--f-body);padding:13px 20px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn[aria-disabled="true"]{cursor:default}
+.note{font-size:14px;color:var(--muted)}
+.uses{margin-top:28px;display:flex;flex-wrap:wrap;gap:8px}
+.uses span{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--muted);background:var(--paper)}
+
+.phone{background:var(--chat);border:1px solid var(--line);border-radius:28px;padding:18px 14px 20px;max-width:390px;width:100%;justify-self:end;display:grid;gap:10px}
+.phone .bar{display:flex;align-items:center;gap:10px;padding:0 6px 8px;border-bottom:1px solid var(--line)}
+.phone .bar i{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:800 15px var(--f-display);font-style:normal}
+.phone .bar b{display:block;font-size:15px}.phone .bar small{color:var(--muted);font-size:12.5px}
+.msg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:14.5px;line-height:1.45}
+.msg.out{justify-self:end;background:var(--bubble-out);border-bottom-right-radius:4px}
+.msg.in{justify-self:start;background:var(--bubble-in);border-bottom-left-radius:4px;border:1px solid var(--line)}
+.msg .v{font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.msg .v::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--scam)}
+.msg ul{margin:4px 0 6px;padding-left:18px}
+.example{font-size:12px;color:var(--muted);text-align:center}
+
+section.band{padding-block:72px;border-top:1px solid var(--line)}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.band h2{font-size:clamp(30px,4vw,44px);line-height:1.08;margin-top:8px;max-width:22ch}
+.band .intro{margin-top:14px;color:var(--muted);max-width:60ch}
+
+.flows{margin-top:36px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.flow{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:10px;align-content:start}
+.flow h3{font-size:19px}
+.flow p{font-size:15px;color:var(--muted)}
+.flow code{font:500 13px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:block;color:var(--ink);white-space:pre-wrap}
+.levels{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px}
+.lv{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--line)}
+.lv::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start}
+.scams{display:grid;gap:12px;margin-top:28px}
+.scam{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.scam b{display:block;font-size:16.5px}
+.scam p{font-size:15px;color:var(--muted);margin-top:4px}
+.scam span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--caution)}
+
+form.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:14px}
+label{display:grid;gap:6px;font-size:14px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.formmsg{font-size:14.5px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+
+.biz{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
+.biz ul{margin:20px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.biz li{padding-left:28px;position:relative}
+.biz li::before{content:"";position:absolute;left:0;top:.55em;width:14px;height:2px;background:var(--accent)}
+pre.api{margin:0;background:var(--ink);color:var(--bg);border-radius:16px;padding:20px;font:500 13.5px/1.6 var(--f-mono);overflow-x:auto}
+.mail{margin-top:24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mail code{font:500 15px var(--f-mono);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 14px;user-select:all}
+
+.trust{margin-top:32px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.trust h3{font-size:18px}
+.trust p{font-size:15.5px;color:var(--muted);margin-top:6px}
+footer{border-top:1px solid var(--line);padding-block:28px 40px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .hero,.split,.biz{grid-template-columns:1fr;gap:36px}
+  .phone{justify-self:start}
+  .flows{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trust{grid-template-columns:1fr}
+}
+@media (max-width:560px){ .flows{grid-template-columns:1fr} .links{display:none} section.band{padding-block:52px} }
+body{margin:0}a{color:inherit}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><i>C</i>CheckAm <small>by OpenFraudLabs</small></div>
+    <nav class="links" aria-label="Page"><a href="#how">How it works</a><a href="#report">Report a scam</a><a href="#business">For businesses</a><a href="#trust">How we decide</a></nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Before you click, pay or release goods, <em>CheckAm.</em></h1>
+      <p class="lede">Forward a suspicious message, link, phone number or account number on WhatsApp. CheckAm tells you if it looks like a scam, and why, in seconds.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://wa.me/2347038317433?text=Hi%20CheckAm" target="_blank" rel="noopener">Chat on WhatsApp</a>
+        <span class="note">or save <b>+234 703 831 7433</b> as CheckAm</span>
+      </div>
+      <div class="uses"><span>Fake bank alerts</span><span>BVN &amp; OTP links</span><span>Instagram vendors</span><span>Promo &amp; prize messages</span><span>Job offers with fees</span></div>
+    </div>
+    <div class="phone" aria-label="Example WhatsApp chat with CheckAm">
+      <div class="bar"><i>C</i><div><b>CheckAm</b><small>OpenFraudLabs · scam checker</small></div></div>
+      <div class="msg out">Dear customer, your BVN has been restricted. Verify within 24 hours at gtbank-verify.xyz/login or your account will be blocked.</div>
+      <div class="msg in"><div class="v">Likely scam</div>
+        <ul><li>The link uses the name "gtbank" but is not its official website.</li><li>It asks for your BVN. Banks never ask for this by message.</li></ul>
+        <b>What to do:</b> Don't click. Block the sender. If you already shared details, call your bank now.</div>
+      <div class="example">Example conversation</div>
+    </div>
+  </section>
+</div>
+
+<section class="band" id="how"><div class="wrap">
+  <div class="kicker">How it works</div>
+  <h2>Four things you can send CheckAm</h2>
+  <p class="intro">No app to install. Save the number, then message it like a friend.</p>
+  <div class="flows">
+    <div class="flow"><h3>A suspicious message</h3><p>Forward the text or link. We check the link, the wording and what others have reported.</p><code>Your account will be blocked. Click bit.ly/…</code></div>
+    <div class="flow"><h3>An account before you pay</h3><p>Send the account number and bank. See if other people have reported it.</p><code>0123456789 OPay</code></div>
+    <div class="flow"><h3>A phone number</h3><p>Check the number that called or messaged you about a "promo" or "job".</p><code>08031234567</code></div>
+    <div class="flow"><h3>A scam report</h3><p>Got scammed? Report it so the next person is warned.</p><code>REPORT 0123456789 OPay, fake phone seller</code></div>
+  </div>
+  <div class="levels" aria-label="Verdict levels">
+    <span class="lv" style="--c:var(--scam)">Likely scam</span><span class="lv" style="--c:var(--caution)">Caution</span><span class="lv" style="--c:var(--muted)">Unverified</span><span class="lv" style="--c:var(--fine)">Looks fine</span>
+  </div>
+</div></section>
+
+<section class="band" id="report"><div class="wrap split">
+  <div>
+    <div class="kicker">This week's scams</div>
+    <h2>Scams Nigerians are seeing right now</h2>
+    <div class="scams">
+      <div class="scam"><span>Phishing</span><b>BVN or NIN "verification" link</b><p>A message says your account is restricted and you must verify through a link. Banks never ask for your BVN, PIN or OTP this way.</p></div>
+      <div class="scam"><span>Payment fraud</span><b>Fake transfer receipt</b><p>A buyer shows a "successful transfer" screenshot and rushes you. Confirm the money in your own bank app before releasing goods.</p></div>
+      <div class="scam"><span>Job scam</span><b>Job offer with an upfront fee</b><p>You're "shortlisted" but must pay for training first. Genuine employers do not charge you to start work.</p></div>
+    </div>
+  </div>
+  <div>
+    <div class="kicker">Report a scam</div>
+    <h2>Got scammed? Warn the next person</h2>
+    <div class="card" style="margin-top:24px;display:grid;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px">
+      <p>Send <b>REPORT</b> on WhatsApp, followed by the account number and bank, phone number or link, and what happened.</p>
+      <code style="font:500 14px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px">REPORT 0123456789 OPay, fake phone seller on Instagram</code>
+      <a class="btn primary" href="https://wa.me/2347038317433?text=REPORT%20" target="_blank" rel="noopener" style="justify-self:start">Report on WhatsApp</a>
+      <p class="note">Reports are reviewed before they count. One report alone never flags anyone.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="band" id="business"><div class="wrap biz">
+  <div>
+    <div class="kicker">For businesses</div>
+    <h2>Check an account before you pay out</h2>
+    <p class="intro">Marketplaces, lenders, PAYG providers and logistics companies can call the same engine through an API, with a plain-English reason on every result.</p>
+    <ul>
+      <li>Shared fraud intelligence from the public checker and partners</li>
+      <li>Explainable results your ops team can act on and defend</li>
+      <li>No flag on a single report, and an appeal route for owners</li>
+    </ul>
+    <div class="mail"><span class="note">Founding-partner pilots are open:</span><code>hello@openfraudlabs.com</code></div>
+  </div>
+  <pre class="api" aria-label="Example API response">GET /v1/risk?account=0123456789&amp;bank=opay
+
+{
+  "level": "caution",
+  "unique_reporters": 3,
+  "last_reported": "2026-10-29",
+  "reasons": [
+    "Reported for non-delivery by 3 users in 14 days"
+  ]
+}</pre>
+</div></section>
+
+<section class="band" id="trust"><div class="wrap">
+  <div class="kicker">How we decide</div>
+  <h2>Every verdict comes with its reasons</h2>
+  <div class="trust">
+    <div><h3>Evidence, not guesses</h3><p>Verdicts come from reviewed reports, link checks and known scam scripts. We say "reported by 3 people", never "this person is a fraudster".</p></div>
+    <div><h3>Honest about limits</h3><p>No warning signs is not a guarantee. We can't see bank records, so a screenshot check can never confirm that a payment happened.</p></div>
+    <div><h3>Your data stays minimal</h3><p>We store your number only as a scrambled code, never publish names of reported people, and are built to follow the Nigeria Data Protection Act.</p></div>
+  </div>
+  <p class="intro" style="margin-top:28px">Think your account or link was flagged wrongly? Email <span class="mono" style="font-family:var(--f-mono)">hello@openfraudlabs.com</span> with the details and we'll review it.</p>
+</div></section>
+
+<div class="wrap"><footer><span>CheckAm is a project of <a href="/" style="color:inherit">Open Fraud Labs</a>, Nigeria.</span><span><a href="/checkam/privacy/" style="color:inherit">Privacy policy</a> · hello@openfraudlabs.com</span></footer></div>
+
+
+
+</body>
+</html>
