@@ -186,7 +186,10 @@ textarea{min-height:76px;resize:vertical}
 (function(){
 const SB_URL='https://ifbkvqazedhghtguanjf.supabase.co', SB_KEY='sb_publishable_9I-s_mRycqI_gv4i7mXN4Q_l0zph5nq';
 if(!window.supabase){document.body.insertAdjacentHTML('afterbegin','<p style="padding:24px 16px">The admin desk could not load. Check your internet connection and reload the page.</p>');return;}
-const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}});
+const MEM={};const store={getItem:k=>{try{const v=localStorage.getItem(k);if(v!=null)return v;}catch(e){}return k in MEM?MEM[k]:null;},
+  setItem:(k,v)=>{MEM[k]=v;try{localStorage.setItem(k,v);}catch(e){}},removeItem:k=>{delete MEM[k];try{localStorage.removeItem(k);}catch(e){}}};
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit',storage:store}});
+let lastSession=null;
 const LEVELS={likely_scam:'Likely scam',caution:'Caution',unverified:'Unverified',looks_fine:'Looks fine'};
 const TYPES={account:'Bank account',phone:'Phone number',url:'Link',domain:'Domain',social:'Social media page',name:'Person or business name'};
 let view='overview', ready=false, state={reportsFilter:'pending', q:'', editing:null, confirm:null};
@@ -230,6 +233,7 @@ $('#signout').addEventListener('click',async()=>{await sb.auth.signOut();ready=f
 
 async function enter(session){
   if(!session){ready=false;showLogin();return;}
+  lastSession=session;
   if(ready)return;
   let who=null;try{who=(await run(sb.rpc('admin_whoami'))).data;}catch(e){}
   if(!who||!who.is_admin){await sb.auth.signOut();showLogin('<b>Not an admin</b>'+esc(session.user.email)+' is signed in but is not a CheckAm admin.');return;}
@@ -480,8 +484,13 @@ $('#main').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector('button[type=submit]');
   if(f.id==='esearch'){state.q=$('#eq').value;render();return;}
   if(f.id==='pwSet'){const a=$('#pw1').value,b2=$('#pw2').value;if(a.length<8){toast('Use at least 8 characters.');return;}if(a!==b2){toast('The two passwords do not match.');return;}
-    btn.disabled=true;const {error}=await sb.auth.updateUser({password:a});btn.disabled=false;
-    if(error){toast(errText(error));return;}f.reset();toast('Password saved. You can now sign in with it.');return;}
+    btn.disabled=true;
+    let {data:cur}=await sb.auth.getSession();
+    if(!cur.session&&lastSession){await sb.auth.setSession({access_token:lastSession.access_token,refresh_token:lastSession.refresh_token}).catch(()=>{});}
+    let {error}=await sb.auth.updateUser({password:a});
+    if(error&&/session/i.test(error.message)&&lastSession){const r=await sb.auth.refreshSession({refresh_token:lastSession.refresh_token});if(!r.error){({error}=await sb.auth.updateUser({password:a}));}}
+    btn.disabled=false;
+    if(error){toast(/session/i.test(error.message)?'Your sign-in has expired. Sign out, sign in again with an email link, then set your password.':errText(error));return;}f.reset();toast('Password saved. You can now sign in with it.');return;}
   if(f.id==='addReport'){const t=$('#ar-type').value;if(!TYPES[t])return;const v=norm(t,$('#ar-value').value);if(!v){toast('Enter what you are reporting.');return;}
     const bank=t==='account'?$('#ar-bank').value.trim():'', scam=$('#ar-scam').value.trim(), desc=$('#ar-desc').value.trim();
     const ok=await act(async()=>{
