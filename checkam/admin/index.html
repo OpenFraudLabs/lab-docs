@@ -132,7 +132,7 @@ textarea{min-height:76px;resize:vertical}
     <div class="brand"><div class="mark">C</div><div><b>CheckAm</b><small>Admin desk</small></div></div>
     <div id="login-step1">
       <h1>Sign in</h1>
-      <p style="margin:6px 0 14px">Enter your admin email. We'll email you a sign-in link and a 6-digit code.</p>
+      <p style="margin:6px 0 14px">Enter your admin email. We'll email you a sign-in link.</p>
       <form class="f" id="loginForm">
         <label>Email<input id="lg-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
         <button class="btn primary" type="submit">Email me a sign-in link</button>
@@ -140,11 +140,8 @@ textarea{min-height:76px;resize:vertical}
     </div>
     <div id="login-step2" hidden>
       <h1>Check your email</h1>
-      <p style="margin:6px 0 14px">We sent a message to <b id="lg-sent"></b>. Tap the link in it, or type the 6-digit code here.</p>
-      <form class="f" id="codeForm">
-        <label>6-digit code<input id="lg-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" placeholder="123456"></label>
-        <div class="row"><button class="btn primary" type="submit">Sign in</button><button class="btn" type="button" id="lg-back">Use another email</button></div>
-      </form>
+      <p style="margin:6px 0 14px">We sent a sign-in link to <b id="lg-sent"></b>. Open the email on this device and tap the link. It can take a minute to arrive; check spam too.</p>
+      <button class="btn" type="button" id="lg-back">Use another email</button>
     </div>
     <div class="banner" data-k="err" id="lg-err" hidden></div>
   </div>
@@ -204,10 +201,7 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
   btn.disabled=false;
   if(error){showLogin(/admin|database error|not allowed|signups/i.test(error.message)?'<b>Not an admin email</b>Only approved CheckAm admins can sign in here.':/rate|seconds|too many/i.test(error.message)?'<b>Please wait</b>Too many emails were requested. Wait a few minutes and try again.':'<b>Could not send the email</b>'+esc(error.message));return;}
-  $('#lg-sent').textContent=email;$('#login-step1').hidden=true;$('#login-step2').hidden=false;$('#lg-code').focus();});
-$('#codeForm').addEventListener('submit',async e=>{e.preventDefault();const code=$('#lg-code').value.trim();if(!code)return;const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;
-  const {error}=await sb.auth.verifyOtp({email:$('#lg-sent').textContent,token:code,type:'email'});btn.disabled=false;
-  if(error)showLogin('<b>That code did not work</b>It may have expired. Use the link in the email, or request a new one.');});
+  $('#lg-sent').textContent=email;$('#login-step1').hidden=true;$('#login-step2').hidden=false;});
 $('#lg-back').addEventListener('click',()=>{$('#login-step2').hidden=true;$('#login-step1').hidden=false;$('#lg-err').hidden=true;});
 $('#signout').addEventListener('click',async()=>{await sb.auth.signOut();ready=false;$('#login-step2').hidden=true;$('#login-step1').hidden=false;showLogin();});
 
