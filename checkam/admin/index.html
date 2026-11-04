@@ -229,14 +229,14 @@ $('#pwForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.
   btn.disabled=false;$('#lg-pw').value='';
   if(error)showLogin(/invalid/i.test(error.message)?'<b>Email or password is wrong</b>If you haven\'t set a password yet, use the email link, then set one under Settings.':'<b>Could not sign in</b>'+esc(error.message));});
 $('#lg-back').addEventListener('click',()=>{$('#login-step2').hidden=true;$('#login-step1').hidden=false;$('#lg-err').hidden=true;});
-$('#signout').addEventListener('click',async()=>{await sb.auth.signOut();ready=false;$('#login-step2').hidden=true;$('#login-step1').hidden=false;showLogin();});
+$('#signout').addEventListener('click',async()=>{await sb.auth.signOut({scope:'local'});ready=false;$('#login-step2').hidden=true;$('#login-step1').hidden=false;showLogin();});
 
 async function enter(session){
   if(!session){ready=false;showLogin();return;}
   lastSession=session;
   if(ready)return;
   let who=null;try{who=(await run(sb.rpc('admin_whoami'))).data;}catch(e){}
-  if(!who||!who.is_admin){await sb.auth.signOut();showLogin('<b>Not an admin</b>'+esc(session.user.email)+' is signed in but is not a CheckAm admin.');return;}
+  if(!who||!who.is_admin){await sb.auth.signOut({scope:'local'});showLogin('<b>Not an admin</b>'+esc(session.user.email)+' is signed in but is not a CheckAm admin.');return;}
   ready=true;$('#login').hidden=true;$('#app').hidden=false;setConn('ok','Signed in as '+who.email);render();counts();
 }
 
@@ -490,7 +490,8 @@ $('#main').addEventListener('submit',async e=>{
     let {error}=await sb.auth.updateUser({password:a});
     if(error&&/session/i.test(error.message)&&lastSession){const r=await sb.auth.refreshSession({refresh_token:lastSession.refresh_token});if(!r.error){({error}=await sb.auth.updateUser({password:a}));}}
     btn.disabled=false;
-    if(error){toast(/session/i.test(error.message)?'Your sign-in has expired. Sign out, sign in again with an email link, then set your password.':errText(error));return;}f.reset();toast('Password saved. You can now sign in with it.');return;}
+    if(error&&/session/i.test(error.message)){await sb.auth.signOut({scope:'local'});ready=false;showLogin('<b>Please sign in again</b>Your sign-in on this device had ended. Sign in with an email link, then set your password straight away under Settings.');return;}
+    if(error){toast(errText(error));return;}f.reset();toast('Password saved. You can now sign in with it.');return;}
   if(f.id==='addReport'){const t=$('#ar-type').value;if(!TYPES[t])return;const v=norm(t,$('#ar-value').value);if(!v){toast('Enter what you are reporting.');return;}
     const bank=t==='account'?$('#ar-bank').value.trim():'', scam=$('#ar-scam').value.trim(), desc=$('#ar-desc').value.trim();
     const ok=await act(async()=>{
