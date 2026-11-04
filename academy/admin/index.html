@@ -436,7 +436,7 @@
                     var t = document.getElementById('adm-title'); t.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + nm.split(' ')[0] : '');
                     var sub = document.getElementById('admin-sub'); var dl = el('span', { class: 'adm-date', text: new Date().toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Lagos time' });
                     var plain = [].slice.call(sub.childNodes).filter(function (n) { return n.nodeType === 3; }); plain.forEach(function (n) { n.remove(); }); sub.appendChild(dl);
-                    var Q = [['1-to-1 meetings', '/academy/admin/meetings/', 'manage_tutoring'], ['Add a position', '/academy/admin/positions/', 'manage_applications'], ['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Rewards', '/academy/admin/rewards/', 'manage_rewards'], ['Cohort 2 invitations', '/academy/admin/invites/', 'manage_invites'], ['Referrals', '/academy/admin/referrals/', 'manage_invites'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
+                    var Q = [['CheckAm admin', '/checkam/admin/', 'manage_roles'], ['1-to-1 meetings', '/academy/admin/meetings/', 'manage_tutoring'], ['Add a position', '/academy/admin/positions/', 'manage_applications'], ['Staff checklists', '/academy/staff/review/', 'manage_checklists'], ['Rewards', '/academy/admin/rewards/', 'manage_rewards'], ['Cohort 2 invitations', '/academy/admin/invites/', 'manage_invites'], ['Referrals', '/academy/admin/referrals/', 'manage_invites'], ['Email learners', '/academy/admin/messages/', 'send_messages'], ['Post in learner chat', '/academy/chat/', 'send_messages'], ['Take attendance', '/academy/team/', 'manage_applications'],
                              ['Review applications', '#app-sec', 'manage_applications'], ['Staff pay and leave', '/academy/admin/pay/', 'pay_or_leave'], ['Add a document', '#doc-sec', 'manage_applications'], ['Give a scholarship', '#sch-sec', 'manage_scholarships']];
                     var qb = document.getElementById('adm-quick');
                     Q.filter(function (q) { return can(q[2]); }).forEach(function (q) { qb.appendChild(el('a', { class: 'adm-quick__btn', href: q[1], text: q[0] })); });
@@ -464,7 +464,8 @@
                     ['Insights', [['funnel-sec', 'Lesson funnel'], ['who-sec', 'Who is learning']]],
                     ['Team', [['link:/academy/admin/positions/', 'Positions (careers page)', 'manage_applications'], ['roles-sec', 'Internship applications'], ['staff-sec', 'Staff and roles'], ['link:/academy/staff/review/', 'Staff checklists', 'manage_checklists'], ['link:/academy/admin/rewards/', 'Rewards', 'manage_rewards'], ['link:/academy/admin/pay/', 'Staff pay and leave', 'pay_or_leave'], ['link:/academy/team/', 'Team calendar']]],
                     ['Messages', [['link:/academy/admin/messages/', 'Email learners', 'send_messages'], ['link:/academy/chat/', 'Learner chat']]],
-                    ['Money', [['finance-sec', 'Finance']]]];
+                    ['Money', [['finance-sec', 'Finance']]],
+                    ['Products', [['link:/checkam/admin/', 'CheckAm scam checker', 'manage_roles']]]];
                 var act = document.getElementById('activity-sec'), ovs = document.getElementById('overview-sec');
                 if (act && ovs && !act.hidden) { ovs.appendChild(act); act.classList.add('adm-embed'); }
                 ['mail-sec', 'pay-sec'].forEach(function (id) { var s = document.getElementById(id); if (s) s.hidden = true; });
