@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>CheckAm Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --sunk:#E9EFED; --ink:#18251F; --muted:#5A6A64; --line:#D7E0DC;
+  --accent:#0E6B58; --accent-ink:#FFFFFF; --accent-soft:#DDEFEA;
+  --scam:#B93A2E; --scam-soft:#F8E3E0; --caution:#A86A12; --caution-soft:#F7ECD8;
+  --unver:#5F6E69; --unver-soft:#E6ECEA; --fine:#2B7A4B; --fine-soft:#DDF0E4;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1412; --surface:#151D1A; --sunk:#1B2521; --ink:#E3ECE8; --muted:#94A49E; --line:#27332E;
+  --accent:#43B79B; --accent-ink:#06231C; --accent-soft:#183A31;
+  --scam:#F07B6E; --scam-soft:#3A1F1C; --caution:#E2AC52; --caution-soft:#3A2D17;
+  --unver:#9DABA6; --unver-soft:#222C29; --fine:#62C48E; --fine-soft:#183424; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1412; --surface:#151D1A; --sunk:#1B2521; --ink:#E3ECE8; --muted:#94A49E; --line:#27332E;
+  --accent:#43B79B; --accent-ink:#06231C; --accent-soft:#183A31;
+  --scam:#F07B6E; --scam-soft:#3A1F1C; --caution:#E2AC52; --caution-soft:#3A2D17;
+  --unver:#9DABA6; --unver-soft:#222C29; --fine:#62C48E; --fine-soft:#183424; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+.rail{border-right:1px solid var(--line);background:var(--surface);padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 15px var(--f-display)}
+.brand b{font:700 18px var(--f-display)}
+.brand small{display:block;color:var(--muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;color:var(--muted);font-weight:500}
+nav button:hover{background:var(--sunk);color:var(--ink)}
+nav button[aria-current="true"]{background:var(--accent-soft);color:var(--ink)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.count{font:500 12px var(--f-mono);background:var(--sunk);border-radius:999px;padding:1px 8px;color:var(--ink)}
+.count[data-hot]{background:var(--caution-soft);color:var(--caution)}
+.conn{margin-top:auto;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--unver);margin-top:6px;flex:none}
+.dot[data-s="ok"]{background:var(--fine)} .dot[data-s="err"]{background:var(--scam)}
+main{min-width:0;padding-block:28px 48px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px))}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.head h1{font-size:28px}
+.head p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.banner{border:1px solid var(--line);border-left:4px solid var(--caution);background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.banner[data-k="err"]{border-left-color:var(--scam)}
+.banner b{display:block;margin-bottom:2px}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat span{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat b{font:600 28px var(--f-mono);display:block;margin-top:4px}
+.stat small{color:var(--muted);font-size:12.5px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.panel>header{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel>header h2{font-size:17px}
+.panel .body{padding:14px 16px}
+.two{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);margin-top:14px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td .sub{color:var(--muted);font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.l-likely_scam{color:var(--scam);background:var(--scam-soft)}
+.l-caution{color:var(--caution);background:var(--caution-soft)}
+.l-unverified{color:var(--unver);background:var(--unver-soft)}
+.l-looks_fine{color:var(--fine);background:var(--fine-soft)}
+.btn{font:600 13.5px var(--f-body);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px;cursor:pointer}
+.btn:hover{background:var(--sunk)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--scam)}
+.btn[disabled]{opacity:.55;cursor:progress}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-weight:600;margin-bottom:4px}
+form.f{display:grid;gap:12px}
+.fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+label{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:15px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:76px;resize:vertical}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:110px 1fr 44px;gap:10px;align-items:center;font-size:13.5px}
+.track{height:10px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:5px}
+.pat{border-bottom:1px solid var(--line);padding:14px 16px;display:grid;gap:6px}
+.pat:last-child{border-bottom:0}
+.pat p{margin:0;font-size:14px}
+.pat .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.tag{font-size:12px;font-weight:600;color:var(--muted);background:var(--sunk);border-radius:6px;padding:1px 8px}
+.toast{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:8px;font-weight:600;font-size:14px;max-width:min(360px,calc(100vw - 36px))}
+.confirm{background:var(--scam-soft);border-radius:8px;padding:8px 10px;font-size:13.5px}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-right:max(16px,env(safe-area-inset-right,0px));gap:12px}
+  nav{flex-direction:row;overflow-x:auto;gap:4px}
+  nav button{white-space:nowrap;gap:8px}
+  .conn{margin-top:0}
+  main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+  .two{grid-template-columns:1fr}
+  .bar{grid-template-columns:90px 1fr 36px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.login{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.card{width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 24px;display:grid;gap:16px}
+.card h1{font-size:24px}
+.card p{margin:0;color:var(--muted)}
+.who{font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+.who button{justify-self:start}
+</style>
+</head>
+<body>
+<div class="login" id="login" hidden>
+  <div class="card">
+    <div class="brand"><div class="mark">C</div><div><b>CheckAm</b><small>Admin desk</small></div></div>
+    <div id="login-step1">
+      <h1>Sign in</h1>
+      <p style="margin:6px 0 14px">Enter your admin email. We'll email you a sign-in link and a 6-digit code.</p>
+      <form class="f" id="loginForm">
+        <label>Email<input id="lg-email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <button class="btn primary" type="submit">Email me a sign-in link</button>
+      </form>
+    </div>
+    <div id="login-step2" hidden>
+      <h1>Check your email</h1>
+      <p style="margin:6px 0 14px">We sent a message to <b id="lg-sent"></b>. Tap the link in it, or type the 6-digit code here.</p>
+      <form class="f" id="codeForm">
+        <label>6-digit code<input id="lg-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" placeholder="123456"></label>
+        <div class="row"><button class="btn primary" type="submit">Sign in</button><button class="btn" type="button" id="lg-back">Use another email</button></div>
+      </form>
+    </div>
+    <div class="banner" data-k="err" id="lg-err" hidden></div>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="rail">
+    <div class="brand"><div class="mark">C</div><div><b>CheckAm</b><small>Admin desk</small></div></div>
+    <nav id="nav" aria-label="Sections">
+      <button data-v="overview" aria-current="true">Overview</button>
+      <button data-v="reports">Reports <span class="count" id="c-reports">–</span></button>
+      <button data-v="entities">Accounts &amp; links</button>
+      <button data-v="appeals">Appeals <span class="count" id="c-appeals">–</span></button>
+      <button data-v="patterns">Scam patterns</button>
+      <button data-v="settings">Settings</button>
+    </nav>
+    <div class="conn who"><span><span class="dot" id="dot" style="display:inline-block;margin:0 6px 0 0"></span><span id="conn">Connecting…</span></span><button class="btn" id="signout">Sign out</button></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+const SB_URL='https://ifbkvqazedhghtguanjf.supabase.co', SB_KEY='sb_publishable_9I-s_mRycqI_gv4i7mXN4Q_l0zph5nq';
+if(!window.supabase){document.body.insertAdjacentHTML('afterbegin','<p style="padding:24px 16px">The admin desk could not load. Check your internet connection and reload the page.</p>');return;}
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}});
+const LEVELS={likely_scam:'Likely scam',caution:'Caution',unverified:'Unverified',looks_fine:'Looks fine'};
+const TYPES={account:'Bank account',phone:'Phone number',url:'Link',domain:'Domain',social:'Social media page',name:'Person or business name'};
+let view='overview', ready=false, state={reportsFilter:'pending', q:'', editing:null, confirm:null};
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const when=t=>{if(!t)return '–';const d=new Date(t);return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});};
+const pill=l=>`<span class="pill l-${esc(l)}">${esc(LEVELS[l]||l)}</span>`;
+const now=()=>new Date().toISOString();
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600);}
+function norm(type,v){v=String(v||'').trim();
+  if(type==='account')return v.replace(/\D/g,'');
+  if(type==='phone'){let d=v.replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return d;}
+  if(type==='domain')return v.toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0];
+  if(type==='url')return v.toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/+$/,'');
+  if(type==='social'){const h=(v.match(/(?:instagram\.com|facebook\.com|fb\.com|tiktok\.com\/@?|x\.com|twitter\.com|t\.me)\/(@?[\w.]{2,40})/i)||[])[1]||(v.match(/@([\w.]{2,40})/)||[])[1]||v.split(/\s+/)[0];
+    let app=((v.match(/instagram|facebook|tiktok|telegram|twitter|\bx\b|snapchat|whatsapp/i)||[])[0]||'').toLowerCase();if(app==='x')app='twitter';
+    const hv=h.replace(/^@/,'').toLowerCase();return app?app+':'+hv:hv;}
+  return v.replace(/\s+/g,' ').toLowerCase();}
+async function run(p){const r=await p;if(r.error)throw r.error;return r;}
+const rows=async p=>(await run(p)).data||[];
+const count=async p=>(await run(p)).count||0;
+const cnt=t=>sb.from(t).select('*',{count:'exact',head:true});
+function errText(e){return (e&&e.message)||'Something went wrong. Reload and try again.';}
+function setConn(s,text){$('#dot').dataset.s=s;$('#conn').textContent=text;}
+
+/* ---------- login ---------- */
+function showLogin(msg){$('#app').hidden=true;$('#login').hidden=false;const e=$('#lg-err');if(msg){e.innerHTML=msg;e.hidden=false;}else e.hidden=true;}
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.target.querySelector('button');const email=$('#lg-email').value.trim().toLowerCase();btn.disabled=true;$('#lg-err').hidden=true;
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
+  btn.disabled=false;
+  if(error){showLogin(/admin|database error|not allowed|signups/i.test(error.message)?'<b>Not an admin email</b>Only approved CheckAm admins can sign in here.':/rate|seconds|too many/i.test(error.message)?'<b>Please wait</b>Too many emails were requested. Wait a few minutes and try again.':'<b>Could not send the email</b>'+esc(error.message));return;}
+  $('#lg-sent').textContent=email;$('#login-step1').hidden=true;$('#login-step2').hidden=false;$('#lg-code').focus();});
+$('#codeForm').addEventListener('submit',async e=>{e.preventDefault();const code=$('#lg-code').value.trim();if(!code)return;const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;
+  const {error}=await sb.auth.verifyOtp({email:$('#lg-sent').textContent,token:code,type:'email'});btn.disabled=false;
+  if(error)showLogin('<b>That code did not work</b>It may have expired. Use the link in the email, or request a new one.');});
+$('#lg-back').addEventListener('click',()=>{$('#login-step2').hidden=true;$('#login-step1').hidden=false;$('#lg-err').hidden=true;});
+$('#signout').addEventListener('click',async()=>{await sb.auth.signOut();ready=false;$('#login-step2').hidden=true;$('#login-step1').hidden=false;showLogin();});
+
+async function enter(session){
+  if(!session){ready=false;showLogin();return;}
+  if(ready)return;
+  let who=null;try{who=(await run(sb.rpc('admin_whoami'))).data;}catch(e){}
+  if(!who||!who.is_admin){await sb.auth.signOut();showLogin('<b>Not an admin</b>'+esc(session.user.email)+' is signed in but is not a CheckAm admin.');return;}
+  ready=true;$('#login').hidden=true;$('#app').hidden=false;setConn('ok','Signed in as '+who.email);render();counts();
+}
+
+/* ---------- views ---------- */
+function shell(title,sub,inner){$('#main').innerHTML=`<div class="head"><div><h1>${title}</h1><p>${sub}</p></div></div>${inner}`;}
+const loading=`<div class="empty">Loading from the checkam database…</div>`;
+
+async function vOverview(){
+  const sub='What CheckAm users did in the last 7 days, and what is waiting for you.';
+  shell('Overview',sub,loading);
+  const d1=new Date(Date.now()-864e5).toISOString(), d7=new Date(Date.now()-7*864e5).toISOString();
+  const [c24,c7,users,pend,appeals,flagged,helpful,fb,last7,recent]=await Promise.all([
+    count(cnt('checks').gte('created_at',d1)), count(cnt('checks').gte('created_at',d7)), count(cnt('users')),
+    count(cnt('reports').eq('status','pending')), count(cnt('appeals').eq('status','open')),
+    count(cnt('entity_risk').in('level',['likely_scam','caution'])), count(cnt('feedback').eq('helpful',true)), count(cnt('feedback')),
+    rows(sb.from('checks').select('verdict').gte('created_at',d7).limit(10000)),
+    rows(sb.from('checks').select('created_at,input_type,verdict,reasons').order('created_at',{ascending:false}).limit(12))]);
+  counts({pend,appeals});
+  const by={};last7.forEach(r=>by[r.verdict]=(by[r.verdict]||0)+1);
+  const total=last7.length, col={likely_scam:'var(--scam)',caution:'var(--caution)',unverified:'var(--unver)',looks_fine:'var(--fine)'};
+  const help=fb>0?Math.round(100*helpful/fb)+'%':'–';
+  shell('Overview',sub,`
+  <div class="grid stats">
+    <div class="stat"><span>Checks · 24 h</span><b>${c24}</b><small>${c7} in 7 days</small></div>
+    <div class="stat"><span>WhatsApp users</span><b>${users}</b><small>unique numbers, hashed</small></div>
+    <div class="stat"><span>Reports to review</span><b>${pend}</b><small>pending your decision</small></div>
+    <div class="stat"><span>Open appeals</span><b>${appeals}</b><small>owners disputing a flag</small></div>
+    <div class="stat"><span>Flagged entities</span><b>${flagged}</b><small>caution or likely scam</small></div>
+    <div class="stat"><span>Helpful rate</span><b>${help}</b><small>${fb} feedback replies</small></div>
+  </div>
+  <div class="grid two">
+    <section class="panel"><header><h2>Latest checks</h2></header>
+      ${recent.length?`<div class="tablewrap"><table><thead><tr><th>Time</th><th>Input</th><th>Verdict</th><th>Main reason</th></tr></thead><tbody>
+      ${recent.map(r=>{let rs=r.reasons;if(typeof rs==='string'){try{rs=JSON.parse(rs)}catch(e){rs=[]}}return `<tr><td class="mono">${esc(when(r.created_at))}</td><td>${esc(r.input_type)}</td><td>${pill(r.verdict)}</td><td class="sub">${esc((rs&&rs[0])||'')}</td></tr>`}).join('')}
+      </tbody></table></div>`:`<div class="empty"><b>No checks yet</b>Checks appear here when people message the WhatsApp bot.</div>`}
+    </section>
+    <section class="panel"><header><h2>Verdicts · 7 days</h2><span class="sub mono">${total} checks</span></header>
+      <div class="body">${total?`<div class="bars">${Object.keys(LEVELS).map(k=>{const n=by[k]||0;return `<div class="bar"><span>${LEVELS[k]}</span><span class="track"><i style="width:${100*n/total}%;background:${col[k]}"></i></span><span class="mono">${n}</span></div>`}).join('')}</div>`
+      :`<div class="empty" style="padding:12px 0"><b>Nothing to chart yet</b>The split of verdicts shows here after the first checks.</div>`}</div>
+    </section>
+  </div>`);
+}
+
+async function vReports(){
+  const f=state.reportsFilter;
+  const filt=`<div class="seg" role="group" aria-label="Status">${['pending','accepted','rejected'].map(k=>`<button data-act="rfilter" data-k="${k}" aria-pressed="${k===f}">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div>`;
+  const form=`<section class="panel" style="margin-bottom:14px"><header><h2>Add a report</h2><span class="sub">For scams reported to you by phone, email or in person. Saved as accepted.</span></header>
+    <div class="body"><form class="f" id="addReport"><div class="fields">
+      <label>Type<select id="ar-type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label>
+      <label>Account, number, link, page or name<input id="ar-value" required placeholder="e.g. 0123456789"></label>
+      <label>Bank (accounts only)<input id="ar-bank" placeholder="e.g. Opay"></label>
+      <label>Scam type<input id="ar-scam" placeholder="e.g. Fake vendor"></label>
+    </div><label>What happened<textarea id="ar-desc" placeholder="Short description and evidence you have seen"></textarea></label>
+    <div class="row"><button class="btn primary" type="submit">Save report</button></div></form></div></section>`;
+  shell('Reports','Scam reports from WhatsApp, the website and partners. Only accepted reports count toward a flag.',form+`<section class="panel" id="queue"><header><h2>Queue</h2>${filt}</header>${loading}</section>`);
+  const list=await rows(sb.from('reports').select('id,created_at,source,scam_type,description,status,entities(type,value_normalized,bank_name)').eq('status',f).order('created_at',{ascending:false}).limit(100));
+  const html=list.length?`<div class="tablewrap"><table><thead><tr><th>Reported</th><th>Entity</th><th>Scam</th><th>Source</th><th></th></tr></thead><tbody>
+    ${list.map(r=>{const e=r.entities||{};return `<tr><td class="mono">${esc(when(r.created_at))}</td>
+      <td><span class="mono">${esc(e.value_normalized)}</span><div class="sub">${esc(TYPES[e.type]||e.type)}${e.bank_name?' · '+esc(e.bank_name):''}</div></td>
+      <td>${esc(r.scam_type||'–')}<div class="sub">${esc(r.description||'')}</div></td><td>${esc(r.source)}</td>
+      <td><div class="row">${r.status!=='accepted'?`<button class="btn" data-act="rset" data-id="${esc(r.id)}" data-k="accepted">Accept</button>`:''}${r.status!=='rejected'?`<button class="btn danger" data-act="rset" data-id="${esc(r.id)}" data-k="rejected">Reject</button>`:''}</div></td></tr>`}).join('')}
+    </tbody></table></div>`:`<div class="empty"><b>No ${f} reports</b>${f==='pending'?'New reports from users land here for your decision.':'Reports you mark '+f+' show here.'}</div>`;
+  $('#queue').innerHTML=`<header><h2>Queue</h2>${filt}</header>${html}`;
+}
+
+async function vEntities(){
+  const search=`<form class="row" id="esearch" style="flex:1;justify-content:flex-end"><input id="eq" value="${esc(state.q)}" placeholder="Search account, number, link, page or name" style="max-width:300px"><button class="btn" type="submit">Search</button></form>`;
+  shell('Accounts &amp; links','Everything CheckAm knows about. Set an override when you have verified evidence; it wins over report counts.',`<section class="panel" id="ents"><header><h2>Entities</h2>${search}</header>${loading}</section>`);
+  const q=state.q.trim().replace(/[%_,()]/g,'');
+  let p=sb.from('entity_risk').select('entity_id,type,value_normalized,bank_name,unique_reporters,last_reported,level,admin_level,admin_note');
+  if(q)p=p.ilike('value_normalized','%'+q.toLowerCase()+'%');
+  const list=await rows(p.order('last_reported',{ascending:false,nullsFirst:false}).limit(100));
+  const ed=state.editing;
+  const html=list.length?`<div class="tablewrap"><table><thead><tr><th>Entity</th><th>Level</th><th>Reporters</th><th>Last report</th><th></th></tr></thead><tbody>
+    ${list.map(r=>`<tr><td><span class="mono">${esc(r.value_normalized)}</span><div class="sub">${esc(TYPES[r.type]||r.type)}${r.bank_name?' · '+esc(r.bank_name):''}</div></td>
+      <td>${pill(r.level)}${r.admin_level?`<div class="sub">Set by admin${r.admin_note?': '+esc(r.admin_note):''}</div>`:''}</td>
+      <td class="mono">${esc(r.unique_reporters)}</td><td class="mono">${esc(when(r.last_reported))}</td>
+      <td>${ed===r.entity_id?`<form class="f" data-form="override" data-id="${esc(r.entity_id)}" style="min-width:220px">
+        <select id="ov-level"><option value="">Automatic (from reports)</option>${Object.entries(LEVELS).map(([k,v])=>`<option value="${k}" ${r.admin_level===k?'selected':''}>${v}</option>`).join('')}</select>
+        <input id="ov-note" placeholder="Reason (kept internal)" value="${esc(r.admin_note||'')}">
+        <div class="row"><button class="btn primary" type="submit">Save</button><button class="btn" type="button" data-act="edit" data-id="">Cancel</button></div></form>`
+      :`<button class="btn" data-act="edit" data-id="${esc(r.entity_id)}">Override</button>`}</td></tr>`).join('')}
+    </tbody></table></div>`:`<div class="empty"><b>${q?'No match for “'+esc(q)+'”':'Nothing here yet'}</b>${q?'Try fewer characters.':'Entries are added when someone checks or reports them, or when you add a report.'}</div>`;
+  $('#ents').innerHTML=`<header><h2>Entities</h2>${search}</header>${html}`;
+}
+
+async function vAppeals(){
+  shell('Appeals','Owners who say their account or link was flagged wrongly. Upholding sets it back to Unverified.',`<section class="panel" id="apl">${loading}</section>`);
+  const list=await rows(sb.from('appeals').select('id,created_at,contact,explanation,entity_id,entities(type,value_normalized)').eq('status','open').order('created_at'));
+  const lv={};if(list.length)(await rows(sb.from('entity_risk').select('entity_id,level').in('entity_id',list.map(a=>a.entity_id)))).forEach(r=>lv[r.entity_id]=r.level);
+  $('#apl').innerHTML=list.length?`<div class="tablewrap"><table><thead><tr><th>Received</th><th>Entity</th><th>Their explanation</th><th>Your note</th><th></th></tr></thead><tbody>
+    ${list.map(a=>`<tr><td class="mono">${esc(when(a.created_at))}</td><td><span class="mono">${esc((a.entities||{}).value_normalized)}</span><div>${pill(lv[a.entity_id]||'unverified')}</div></td>
+      <td>${esc(a.explanation)}<div class="sub">Contact: ${esc(a.contact)}</div></td>
+      <td><input id="an-${esc(a.id)}" placeholder="Reason for decision"></td>
+      <td><div class="row"><button class="btn primary" data-act="appeal" data-k="upheld" data-id="${esc(a.id)}" data-e="${esc(a.entity_id)}">Uphold</button><button class="btn" data-act="appeal" data-k="rejected" data-id="${esc(a.id)}" data-e="${esc(a.entity_id)}">Reject</button></div></td></tr>`).join('')}
+    </tbody></table></div>`:`<div class="empty"><b>No open appeals</b>When an owner disputes a flag, it waits here for a decision.</div>`;
+}
+
+let patternsCache=[];
+async function vPatterns(){
+  shell('Scam patterns','Known scripts CheckAm recognises. Published patterns can go in the weekly “Top scams” broadcast.',`<section class="panel" id="pats">${loading}</section>`);
+  const list=patternsCache=await rows(sb.from('scam_patterns').select('*').order('is_published',{ascending:false}).order('updated_at',{ascending:false}));
+  const ed=state.editing, blank={id:'new',title:'',category:'',example_text:'',warning_signs:'',advice:''};
+  const formFor=p=>`<form class="f pat" data-form="pattern" data-id="${esc(p.id)}"><div class="fields">
+      <label>Title<input id="p-title" required value="${esc(p.title)}"></label><label>Category<input id="p-cat" required value="${esc(p.category)}" placeholder="e.g. Phishing"></label></div>
+      <label>Example message<textarea id="p-ex">${esc(p.example_text)}</textarea></label>
+      <label>Warning signs<textarea id="p-warn">${esc(p.warning_signs)}</textarea></label>
+      <label>Advice CheckAm gives<textarea id="p-adv">${esc(p.advice)}</textarea></label>
+      <div class="row"><button class="btn primary" type="submit">Save pattern</button><button class="btn" type="button" data-act="edit" data-id="">Cancel</button></div></form>`;
+  const item=p=>ed===p.id?formFor(p):`<div class="pat"><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(p.title)}</h3><span class="tag">${esc(p.category)}</span>${p.is_published?pill('looks_fine').replace('Looks fine','Published'):'<span class="tag">Draft</span>'}</div>
+      <div class="row"><button class="btn" data-act="edit" data-id="${esc(p.id)}">Edit</button><button class="btn" data-act="pub" data-id="${esc(p.id)}" data-k="${p.is_published?'false':'true'}">${p.is_published?'Unpublish':'Publish'}</button>
+      ${state.confirm===p.id?`<span class="confirm">Delete for good? <button class="btn danger" data-act="pdel" data-id="${esc(p.id)}">Delete</button> <button class="btn" data-act="cancel">Keep</button></span>`:`<button class="btn danger" data-act="ask" data-id="${esc(p.id)}">Delete</button>`}</div></div>
+      ${p.example_text?`<div><div class="lbl">Example</div><p>${esc(p.example_text)}</p></div>`:''}${p.warning_signs?`<div><div class="lbl">Warning signs</div><p>${esc(p.warning_signs)}</p></div>`:''}${p.advice?`<div><div class="lbl">Advice</div><p>${esc(p.advice)}</p></div>`:''}</div>`;
+  $('#pats').innerHTML=`<header><h2>${list.length} pattern${list.length===1?'':'s'}</h2>${ed==='new'?'':'<button class="btn primary" data-act="edit" data-id="new">New pattern</button>'}</header>
+    ${ed==='new'?formFor(blank):''}${list.length?list.map(item).join(''):(ed==='new'?'':`<div class="empty"><b>No patterns yet</b>Add the scam scripts you see most, with the advice CheckAm should give.</div>`)}`;
+}
+
+async function vSettings(){
+  shell('Settings','How many independent accepted reports it takes before CheckAm warns people.',`<section class="panel" id="set">${loading}</section>`);
+  const list=await rows(sb.from('settings').select('key,value')); const g=k=>(list.find(r=>r.key===k)||{}).value??'';
+  $('#set').innerHTML=`<header><h2>Flag thresholds</h2></header><div class="body"><form class="f" id="setForm"><div class="fields">
+    <label>Reporters for Caution<input id="s-c" type="number" min="1" required value="${esc(g('caution_min_reporters'))}"></label>
+    <label>Reporters for Likely scam<input id="s-l" type="number" min="1" required value="${esc(g('likely_scam_min_reporters'))}"></label>
+    <label>Count reports from the last (days)<input id="s-w" type="number" min="1" required value="${esc(g('report_window_days'))}"></label></div>
+    <p class="sub" style="margin:0">One report alone never flags anyone. Keep Caution at 2 or more.</p>
+    <div class="row"><button class="btn primary" type="submit">Save thresholds</button></div></form></div>`;
+}
+
+const VIEWS={overview:vOverview,reports:vReports,entities:vEntities,appeals:vAppeals,patterns:vPatterns,settings:vSettings};
+async function render(){
+  document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.v===view)));
+  try{await VIEWS[view]();}catch(e){$('#main').insertAdjacentHTML('afterbegin',`<div class="banner" data-k="err"><b>Could not load this section</b>${esc(errText(e))}</div>`);}
+}
+async function counts(s){
+  try{ if(!s){const [pend,appeals]=await Promise.all([count(cnt('reports').eq('status','pending')),count(cnt('appeals').eq('status','open'))]);s={pend,appeals};}
+    const r=$('#c-reports'),a=$('#c-appeals'); r.textContent=s.pend; a.textContent=s.appeals;
+    s.pend>0?r.setAttribute('data-hot',''):r.removeAttribute('data-hot'); s.appeals>0?a.setAttribute('data-hot',''):a.removeAttribute('data-hot');
+  }catch(e){}
+}
+async function act(fn,msg,btn){
+  if(btn)btn.disabled=true;
+  try{await fn();toast(msg);state.editing=null;state.confirm=null;await render();counts();return true;}
+  catch(e){toast(errText(e));if(btn)btn.disabled=false;return false;}
+}
+
+/* ---------- events ---------- */
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;view=b.dataset.v;state.editing=null;state.confirm=null;render();});
+$('#main').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  if(a==='rfilter'){state.reportsFilter=b.dataset.k;render();}
+  else if(a==='rset'){const k=b.dataset.k;if(!['accepted','rejected'].includes(k))return;act(()=>run(sb.from('reports').update({status:k,reviewed_at:now()}).eq('id',id)),k==='accepted'?'Report accepted':'Report rejected',b);}
+  else if(a==='edit'){state.editing=id||null;state.confirm=null;render();}
+  else if(a==='ask'){state.confirm=id;render();}
+  else if(a==='cancel'){state.confirm=null;render();}
+  else if(a==='pub'){const on=b.dataset.k==='true';act(()=>run(sb.from('scam_patterns').update({is_published:on,updated_at:now()}).eq('id',id)),on?'Pattern published':'Pattern unpublished',b);}
+  else if(a==='pdel'){act(()=>run(sb.from('scam_patterns').delete().eq('id',id)),'Pattern deleted',b);}
+  else if(a==='appeal'){const k=b.dataset.k;if(!['upheld','rejected'].includes(k))return;const note=($('#an-'+id)||{}).value||'';
+    act(async()=>{await run(sb.from('appeals').update({status:k,reviewer_note:note||null,resolved_at:now()}).eq('id',id));
+      if(k==='upheld')await run(sb.from('entities').update({admin_level:'unverified',admin_note:'Cleared on appeal'+(note?': '+note:'')}).eq('id',b.dataset.e));},
+      k==='upheld'?'Appeal upheld, flag cleared':'Appeal rejected',b);}
+});
+$('#main').addEventListener('submit',async e=>{
+  e.preventDefault();const f=e.target,btn=f.querySelector('button[type=submit]');
+  if(f.id==='esearch'){state.q=$('#eq').value;render();return;}
+  if(f.id==='addReport'){const t=$('#ar-type').value;if(!TYPES[t])return;const v=norm(t,$('#ar-value').value);if(!v){toast('Enter what you are reporting.');return;}
+    const bank=t==='account'?$('#ar-bank').value.trim():'', scam=$('#ar-scam').value.trim(), desc=$('#ar-desc').value.trim();
+    const ok=await act(async()=>{
+      let ent=(await run(sb.from('entities').select('id').eq('type',t).eq('value_normalized',v).limit(1).maybeSingle())).data;
+      if(!ent)ent=(await run(sb.from('entities').insert({type:t,value_normalized:v,bank_name:bank||null}).select('id').single())).data;
+      await run(sb.from('reports').insert({entity_id:ent.id,source:'admin',scam_type:scam||null,description:desc||null,status:'accepted',reviewed_at:now()}));
+    },'Report saved',btn);
+    if(ok)f.reset();return;}
+  if(f.dataset.form==='override'){const lv=$('#ov-level').value;if(lv&&!LEVELS[lv])return;
+    act(()=>run(sb.from('entities').update({admin_level:lv||null,admin_note:$('#ov-note').value.trim()||null}).eq('id',f.dataset.id)),'Override saved',btn);return;}
+  if(f.dataset.form==='pattern'){const v={title:$('#p-title').value.trim(),category:$('#p-cat').value.trim(),example_text:$('#p-ex').value.trim()||null,warning_signs:$('#p-warn').value.trim()||null,advice:$('#p-adv').value.trim()||null};
+    act(()=>f.dataset.id==='new'?run(sb.from('scam_patterns').insert(v)):run(sb.from('scam_patterns').update({...v,updated_at:now()}).eq('id',f.dataset.id)),'Pattern saved',btn);return;}
+  if(f.id==='setForm'){const n=x=>Math.max(1,parseInt($(x).value,10)||1);const c=n('#s-c'),l=n('#s-l'),w=n('#s-w');
+    if(l<c){toast('Likely scam needs at least as many reporters as Caution.');return;}
+    act(async()=>{for(const [key,value] of [['caution_min_reporters',c],['likely_scam_min_reporters',l],['report_window_days',w]])
+      await run(sb.from('settings').update({value,updated_at:now()}).eq('key',key));},'Thresholds saved',btn);}
+});
+
+/* ---------- boot ---------- */
+const hashErr=new URLSearchParams(location.hash.slice(1)).get('error_description');
+sb.auth.onAuthStateChange((ev,session)=>{ if(ev==='SIGNED_OUT'){ready=false;showLogin();} else if(session) setTimeout(()=>enter(session),0); });
+sb.auth.getSession().then(({data})=>{ if(!data.session) showLogin(hashErr?'<b>That sign-in link did not work</b>'+esc(hashErr)+'. Request a new one.':null); else enter(data.session); });
+})();
+</script>
+</body>
+</html>
