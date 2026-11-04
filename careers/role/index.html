@@ -192,12 +192,12 @@
             if (r.status !== 'open') { cta.appendChild(el('div', { class: 'ac-panel' }, el('h2', { text: 'This role isn’t taking applications' }), el('a', { href: '/careers/', text: 'See other roles' }))); return; }
             if (!user) {
                 cta.appendChild(el('div', { class: 'ap-cta' }, el('h2', { text: 'Apply' }), el('p', { class: 'ac-muted', text: 'Create a free Open Fraud Labs account, then fill in the form and attach your CV (about 10 minutes).' }),
-                    el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Create an account to apply' }),
-                    el('p', { class: 'ac-muted ac-small' }, 'Already have one? ', el('a', { href: '/account/?next=' + encodeURIComponent(next), text: 'Log in' }))));
+                    el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?mode=signup&next=' + encodeURIComponent(next), text: 'Create an account to apply' }),
+                    el('p', { class: 'ac-muted ac-small' }, 'Already have one? ', el('a', { href: '/account/?mode=login&next=' + encodeURIComponent(next), text: 'Log in' }))));
                 return;
             }
             var prof = (await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
-            if (!prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(next); return; }
+            if (!prof.terms_accepted_at) { document.getElementById('rl-cta').appendChild(el('div', { class: 'ap-cta' }, el('h2', { text: 'One step before you apply' }), el('p', { class: 'ac-muted', text: 'Please accept the Terms of Service on your account page. You will come straight back here to apply.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Accept the terms and continue' }))); return; }
             var form = document.getElementById('rl-form'), hasCv = false;
             cta.appendChild(el('h2', { class: 'rl-apply-h', text: 'Apply for this role' }));
             var OPTS = { stage: [['student', 'Student (university or polytechnic)'], ['graduate', 'Recent graduate'], ['corps', 'NYSC corps member'], ['other', 'Other']],

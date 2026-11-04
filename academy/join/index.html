@@ -162,7 +162,36 @@
             var slug = new URLSearchParams(location.search).get('c') || 'cohort-2-2027';
             var REF = (new URLSearchParams(location.search).get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
             try { if (REF) localStorage.setItem('ofl_ref', REF); else REF = localStorage.getItem('ofl_ref') || ''; } catch (e) {}
-            var user = await OFL.requireUser('/academy/join/?c=' + encodeURIComponent(slug)); if (!user) return;
+            var user = await OFL.getUser();
+            if (!user) {
+                // Visitors see the cohort details first; the account step comes at the bottom, when they choose to apply.
+                var next = '/academy/join/?c=' + encodeURIComponent(slug) + (REF ? '&ref=' + encodeURIComponent(REF) : '');
+                var pc = (await sb.rpc('cohort_public', { p_slug: slug })).data;
+                if (!pc) { app.textContent = ''; return app.appendChild(el('p', { class: 'ac-muted', text: 'This cohort could not be found.' })); }
+                var sd = function (x) { return new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); };
+                var longd = function (x) { return new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); };
+                document.getElementById('j-eyebrow').textContent = pc.title + ' \u00b7 ' + (pc.course_title || 'Data Science from Scratch');
+                document.getElementById('j-title').textContent = 'Join ' + pc.title + ' of ' + (pc.course_title || 'Data Science from Scratch');
+                document.title = pc.title + ': apply | Open Fraud Labs Academy';
+                function sec(h, items) { var ul = el('ul', { class: 'ac-outcomes' }); items.forEach(function (t) { ul.appendChild(el('li', { text: t })); }); return el('section', { style: 'margin-top:1.4rem' }, el('h2', { text: h, style: 'margin:0 0 .5rem' }), ul); }
+                app.textContent = '';
+                app.appendChild(el('p', { class: 'mvp-quote', text: pc.title + ' is a free, three-month online programme in ' + (pc.course_title || 'Data Science from Scratch') + ': video lessons, coding practice in your browser, projects and a certificate anyone can verify.' }));
+                if (pc.starts_on && pc.ends_on) app.appendChild(el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(3,1fr)' },
+                    el('div', { class: 'rv-c' }, el('b', { text: sd(pc.starts_on) }), el('span', { text: 'Start date' })),
+                    el('div', { class: 'rv-c' }, el('b', { text: sd(pc.ends_on) }), el('span', { text: 'End date' })),
+                    el('div', { class: 'rv-c' }, el('b', { text: 'Free' }), el('span', { text: 'Online, 3 months' }))));
+                app.appendChild(sec('What you get', ['Video lessons with study notes, released through the programme', 'Coding practice that runs in your browser, with quizzes after each lesson', 'Real projects reviewed by other learners', 'Office hours with the team and a cohort WhatsApp community', 'A certificate of completion anyone can verify online']));
+                app.appendChild(sec('Who it is for', ['Beginners: no coding or data experience needed', 'People who have not taken part in an Academy cohort before', 'You need your own laptop or tablet for the coding practice', 'Time to study each week, and reasonable internet access']));
+                app.appendChild(sec('How to apply', ['Create a free Open Fraud Labs account (about a minute)', 'Fill in the short application form (about 5 minutes)', 'We review every application and reply by email within 24 hours', 'If you are offered a place, sign your offer and join the cohort WhatsApp group' + (pc.starts_on ? ' before ' + longd(pc.starts_on) : '')]));
+                app.appendChild(el('p', { class: 'ac-muted ac-small', style: 'margin-top:.8rem' }, 'See every lesson in the course: ', el('a', { href: '/academy/courses/' + (pc.course || 'data-science') + '/', text: 'course outline' }), '.'));
+                var open = pc.status !== 'closed';
+                app.appendChild(el('div', { class: 'ac-panel', style: 'margin-top:1.4rem' },
+                    el('h2', { text: open ? 'Apply for ' + pc.title : pc.title + ' is closed', style: 'margin:0 0 .4rem' }),
+                    el('p', { class: 'ac-muted', text: open ? 'Create your free account to start your application. Already have one? Log in and you will come straight back here.' : 'Applications are closed for this cohort. Follow us to hear when the next one opens.' }),
+                    open ? el('div', { class: 'mvp-cta' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?mode=signup&next=' + encodeURIComponent(next), text: 'Create an account and apply' }),
+                        el('a', { class: 'ac-btn', href: '/account/?mode=login&next=' + encodeURIComponent(next), text: 'Log in to apply' })) : null));
+                return;
+            }
             var FIELDS = ['full_name','phone','gender','age_range','education','field','country','state','employment','laptop','internet','hours','experience','goal','heard_from'];
             var REQUIRED = FIELDS.slice(0, 12);
             function d(x) { return new Date(x + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }

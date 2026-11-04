@@ -270,12 +270,12 @@
             if (!info || info.status !== 'open') { if (user && info) { var m0 = (await sb.rpc('application_mine', { p_slug: info.slug })).data; if (m0) drawStatus(m0); } return; }
             var next = '/academy/apply/' + (OFL.qs('c') ? '?c=' + encodeURIComponent(OFL.qs('c')) : '');
             if (!user) {
-                cta.appendChild(el('div', { class: 'ap-cta' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Create a free account to apply' }),
-                    el('p', { class: 'ac-muted ac-small' }, 'Already have an account? ', el('a', { href: '/account/?next=' + encodeURIComponent(next), text: 'Log in' }))));
+                cta.appendChild(el('div', { class: 'ap-cta' }, el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?mode=signup&next=' + encodeURIComponent(next), text: 'Create a free account to apply' }),
+                    el('p', { class: 'ac-muted ac-small' }, 'Already have an account? ', el('a', { href: '/account/?mode=login&next=' + encodeURIComponent(next), text: 'Log in' }))));
                 return;
             }
             var prof = (await sb.from('profiles').select('terms_accepted_at').eq('id', user.id).maybeSingle()).data || {};
-            if (!prof.terms_accepted_at) { location.href = '/account/?next=' + encodeURIComponent(next); return; }
+            if (!prof.terms_accepted_at) { cta.appendChild(el('div', { class: 'ap-cta' }, el('h2', { text: 'One step before you apply' }), el('p', { class: 'ac-muted', text: 'Please accept the Terms of Service on your account page. You will come straight back here to apply.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Accept the terms and continue' }))); return; }
 
             // ---- screenshot uploads: resized and compressed in the browser, stored privately
             var uploaded = {};
