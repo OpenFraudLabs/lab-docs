@@ -160,7 +160,7 @@
         if (!items.length) list.appendChild(el('p', { class: 'ac-muted', text: 'No messages yet.' }));
         items.forEach(function (x) {
             list.appendChild(el(x.link ? 'a' : 'div', { class: 'ac-bell__item' + (x.read_at ? '' : ' is-new'), href: x.link || null },
-                el('b', { text: x.title }), el('span', { text: x.body }), el('small', { text: OFL.formatDate(x.created_at) })));
+                el('b', { text: x.title }), el('span', { text: String(x.body || '').replace(/\[([^\]\n]{1,80})\]\((https?:\/\/[^\s)]+)\)/g, '$1') }), el('small', { text: OFL.formatDate(x.created_at) })));
         });
         b.addEventListener('click', function (e) {
             e.stopPropagation(); list.hidden = !list.hidden; b.setAttribute('aria-expanded', String(!list.hidden));

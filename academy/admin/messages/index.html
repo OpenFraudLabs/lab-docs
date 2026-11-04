@@ -68,7 +68,7 @@
                         <h2 class="pp-h">2. Write the email</h2>
                         <label>Subject<input name="subject" maxlength="150" required placeholder="e.g. Lesson 2 is due on Sunday"></label>
                         <label>Message<textarea name="body" rows="10" maxlength="8000" required placeholder="Hi {first_name},&#10;&#10;Write your message here. Leave a blank line between paragraphs."></textarea></label>
-                        <p class="ac-muted ac-small"><code>{first_name}</code> becomes each person's first name. A greeting is added automatically if you don't start with one, and every email ends with a button to open the Academy.</p>
+                        <p class="ac-muted ac-small">Links: write <code>[Button text](https://...)</code> on its own line for a button, or inside a sentence for a hyperlink. <code>{first_name}</code> becomes each person's first name. A greeting is added automatically if you don't start with one, and every email ends with a button to open the Academy.</p>
                         <div class="ofl-actions"><button class="ac-btn ac-btn--secondary" type="button" id="mm-test">Send me a test</button><button class="ac-btn ac-btn--primary" type="submit" id="mm-send" disabled>Choose a list</button></div>
                     </form>
                     <aside class="mm-preview"><p class="mm-preview__lab">Preview</p>
@@ -150,7 +150,11 @@
                 var body = (form.body.value || '').replace(/\{first_name\}/g, first).replace(/\{name\}/g, me.full_name || first), pv = document.getElementById('mm-pv-body'); pv.textContent = '';
                 if (!body.trim()) return pv.appendChild(el('p', { class: 'ac-muted', text: 'Your message appears here as learners will see it.' }));
                 if (!/^(Dear |Hi |Hello )/.test(body)) pv.appendChild(el('p', { text: 'Hi ' + first + ',' }));
-                body.split(/\n\s*\n/).forEach(function (para) { if (para.trim()) { var p = el('p'); para.split('\n').forEach(function (line, i) { if (i) p.appendChild(el('br')); p.appendChild(document.createTextNode(line)); }); pv.appendChild(p); } });
+                var LRE = /\[([^\]\n]{1,80})\]\((https?:\/\/[^\s)]+)\)/g;
+                body.split(/\n\s*\n/).forEach(function (para) { if (!para.trim()) return;
+                    var solo = para.trim().match(/^\[([^\]\n]{1,80})\]\((https?:\/\/[^\s)]+)\)$/);
+                    if (solo) { pv.appendChild(el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: solo[2], target: '_blank', rel: 'noopener', text: solo[1] }))); return; }
+                    var p = el('p'); para.split('\n').forEach(function (line, i) { if (i) p.appendChild(el('br')); var last = 0; line.replace(LRE, function (m, t, u, at) { p.appendChild(document.createTextNode(line.slice(last, at))); p.appendChild(el('a', { href: u, target: '_blank', rel: 'noopener', text: t })); last = at + m.length; return m; }); p.appendChild(document.createTextNode(line.slice(last))); }); pv.appendChild(p); });
             }
             form.subject.addEventListener('input', preview); form.body.addEventListener('input', preview);
             async function send(test) {
