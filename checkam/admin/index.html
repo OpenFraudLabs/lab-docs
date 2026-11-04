@@ -405,6 +405,17 @@ async function vInsights(){
     <div class="stat"><span>Reports</span><b>${t.reports}</b><small>${t.reports_accepted} accepted</small></div>
     <div class="stat"><span>Flagged now</span><b>${t.entities_flagged}</b><small>accounts, numbers, links, pages</small></div>
   </div>
+  ${(()=>{const v=r.visits||{},goal=1000,u=v.unique_visitors||0,conv=u?Math.round(100*(v.wa_clicks+v.report_clicks)/u)+'%':'–';
+    return `<section class="panel" style="margin-top:14px"><header><h2>Website visits · openfraudlabs.com/checkam</h2><span class="sub mono">${v.all_time_unique||0} unique visitors all time</span></header><div class="body">
+    <div class="grid stats" style="margin-bottom:14px">
+      <div class="stat"><span>Visits</span><b>${v.views||0}</b><small>page opens in this period</small></div>
+      <div class="stat"><span>Unique visitors</span><b>${u}</b><small>different browsers</small></div>
+      <div class="stat"><span>Tapped WhatsApp</span><b>${(v.wa_clicks||0)+(v.report_clicks||0)}</b><small>${conv} of visitors</small></div>
+    </div>
+    <div class="it" style="display:grid;gap:6px;font-size:13.5px;margin-bottom:16px"><div class="top" style="display:flex;justify-content:space-between"><span>Launch goal: 1,000 unique visitors</span><span class="mono">${v.all_time_unique||0} / ${goal}</span></div>
+      <span class="track" style="height:12px"><i style="width:${Math.min(100,100*(v.all_time_unique||0)/goal)}%;background:var(--accent)"></i></span></div>
+    <h3 style="font-size:14px;margin:0 0 10px">Where visitors came from</h3>${hbars(r.visit_sources,null,l=>({direct:'Direct or unknown',facebook:'Facebook',linkedin:'LinkedIn',whatsapp:'WhatsApp',tiktok:'TikTok',google:'Google',openfraudlabs:'Open Fraud Labs website',email:'Academy email'}[l]||l))}
+    </div></section>`;})()}
   <section class="panel" style="margin-top:14px"><header><h2>Checks per day</h2><span class="sub mono">${t.checks} total</span></header><div class="body">${dailyChart(r.daily)}</div></section>
   <div class="grid three">
     <section class="panel"><header><h2>Scam types reported</h2></header><div class="body">${hbars(r.report_categories,'var(--scam)')}<p class="sub" style="margin:10px 0 0;font-size:12.5px">Grouped automatically from what reporters wrote. Rejected reports are left out.</p></div></section>
@@ -433,7 +444,7 @@ async function all(build){let out=[],from=0;for(;;){const d=await rows(build().r
 async function download(kind,btn){
   btn.disabled=true;const days=state.days||30,since=new Date(Date.now()-days*864e5).toISOString(),stamp=new Date().toISOString().slice(0,10);
   try{
-    if(kind==='daily'){save(`checkam-daily-${days}d-${stamp}.csv`,toCSV(lastInsights.daily,['day','checks','likely_scam','caution','reports']));}
+    if(kind==='daily'){save(`checkam-daily-${days}d-${stamp}.csv`,toCSV(lastInsights.daily,['day','visits','wa_clicks','checks','likely_scam','caution','reports']));}
     else if(kind==='reports'){const d=await all(()=>sb.from('reports').select('created_at,status,source,scam_type,description,entities(type,value_normalized,bank_name)').order('created_at',{ascending:false}));
       save(`checkam-reports-${stamp}.csv`,toCSV(d.map(r=>({date:r.created_at,status:r.status,source:r.source,entity_type:(r.entities||{}).type,value:(r.entities||{}).value_normalized,bank:(r.entities||{}).bank_name,scam_type:r.scam_type,description:r.description})),['date','status','source','entity_type','value','bank','scam_type','description']));}
     else if(kind==='entities'){const d=await all(()=>sb.from('entity_risk').select('type,value_normalized,bank_name,unique_reporters,pending_reports,level,last_reported').order('unique_reporters',{ascending:false}));

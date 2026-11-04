@@ -233,5 +233,19 @@ body{margin:0}a{color:inherit}</style>
 
 
 
+<script>
+/* Anonymous visit counter for CheckAm Insights: no cookies, no IP, no personal data. */
+(function(){
+  var U='https://ifbkvqazedhghtguanjf.supabase.co/rest/v1/rpc/log_visit',K='sb_publishable_9I-s_mRycqI_gv4i7mXN4Q_l0zph5nq',vid;
+  try{vid=localStorage.getItem('ckv');if(!vid){vid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('ckv',vid);}}catch(e){vid=null}
+  var q=new URLSearchParams(location.search),src=q.get('utm_source')||q.get('src')||'',ref='';
+  try{ref=document.referrer?new URL(document.referrer).hostname.replace(/^www\./,''):''}catch(e){}
+  if(!src&&ref){src=/facebook|fb\.|m\.facebook|l\.facebook/.test(ref)?'facebook':/linkedin|lnkd/.test(ref)?'linkedin':/whatsapp|wa\.me/.test(ref)?'whatsapp':/tiktok/.test(ref)?'tiktok':/google\./.test(ref)?'google':/openfraudlabs/.test(ref)?'openfraudlabs':ref;}
+  function log(ev){var b=JSON.stringify({p_event:ev,p_path:location.pathname,p_source:src||'direct',p_ref:ref||null,p_vid:vid});
+    try{fetch(U,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:b});}catch(e){}}
+  log('view');
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href*="wa.me"]');if(!a)return;log(/REPORT/i.test(a.href)?'report_click':'wa_click');});
+})();
+</script>
 </body>
 </html>
