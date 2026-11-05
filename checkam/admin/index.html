@@ -170,6 +170,7 @@ textarea{min-height:76px;resize:vertical}
       <button data-v="reports">Reports <span class="count" id="c-reports">–</span></button>
       <button data-v="entities">Accounts &amp; links</button>
       <button data-v="appeals">Appeals <span class="count" id="c-appeals">–</span></button>
+      <button data-v="leads">Business leads <span class="count" id="c-leads">–</span></button>
       <button data-v="insights">Insights &amp; data</button>
       <button data-v="patterns">Scam patterns</button>
       <button data-v="settings">Settings</button>
@@ -335,6 +336,23 @@ async function vAppeals(){
     </tbody></table></div>`:`<div class="empty"><b>No open appeals</b>When an owner disputes a flag, it waits here for a decision.</div>`;
 }
 
+const LSTAT={new:'New',contacted:'Contacted',in_talks:'In talks',won:'Won',lost:'Not now'};
+async function vLeads(){
+  const f=state.leadsFilter||'open';
+  shell('Business leads','Pilot requests from CheckAm for Business and enquiries from Fraud training for teams. Reply by email within two working days.',`<section class="panel" id="lds">${loading}</section>`);
+  let qy=sb.from('business_leads').select('*').order('created_at',{ascending:false}).limit(500);
+  if(f==='open')qy=qy.in('status',['new','contacted','in_talks']);else if(f!=='all')qy=qy.eq('kind',f);
+  const list=await rows(qy);
+  const tabs=`<div class="seg" role="group" aria-label="Show">${[['open','Open'],['pilot','Pilots'],['training','Training'],['all','All']].map(([k,l])=>`<button data-act="lfilter" data-k="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>`;
+  const card=l=>`<div class="pat"><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(l.company)}</h3><span class="tag">${l.kind==='pilot'?'CheckAm pilot':'Fraud training'}</span><span class="tag">${esc(LSTAT[l.status]||l.status)}</span></div><span class="sub mono">${esc(when(l.created_at))}</span></div>
+      <p><b>${esc(l.name)}</b>${l.role?' · '+esc(l.role):''} · <a href="mailto:${esc(l.email)}?subject=${encodeURIComponent(l.kind==='pilot'?'Your CheckAm for Business pilot request':'Your fraud training enquiry')}">${esc(l.email)}</a>${l.phone?' · '+esc(l.phone):''}</p>
+      <p class="sub">${[l.company_type,l.team_size?(l.kind==='pilot'?'Checks a month: ':'People: ')+l.team_size:'',(l.interest||[]).join(', '),l.source?'Came from: '+l.source:''].filter(Boolean).map(esc).join(' · ')}</p>
+      ${l.message?`<div><div class="lbl">Their message</div><p>${esc(l.message)}</p></div>`:''}
+      <form class="f" data-form="lead" data-id="${esc(l.id)}"><div class="fields"><label>Status<select id="ls-${esc(l.id)}">${Object.entries(LSTAT).map(([k,v])=>`<option value="${k}"${l.status===k?' selected':''}>${v}</option>`).join('')}</select></label>
+      <label>Your note<input id="ln-${esc(l.id)}" value="${esc(l.admin_note||'')}" placeholder="e.g. Call booked for Monday"></label></div><div class="row"><button class="btn primary" type="submit">Save</button></div></form></div>`;
+  $('#lds').innerHTML=`<header><h2>${list.length} lead${list.length===1?'':'s'}</h2>${tabs}</header>${list.length?list.map(card).join(''):`<div class="empty"><b>No leads here yet</b>Requests from openfraudlabs.com/checkam/business and /fraud-training appear here.</div>`}`;
+}
+
 let patternsCache=[];
 async function vPatterns(){
   shell('Scam patterns','Known scripts CheckAm recognises. Published patterns can go in the weekly “Top scams” broadcast.',`<section class="panel" id="pats">${loading}</section>`);
@@ -456,13 +474,14 @@ async function download(kind,btn){
   btn.disabled=false;
 }
 
-const VIEWS={insights:vInsights,overview:vOverview,reports:vReports,entities:vEntities,appeals:vAppeals,patterns:vPatterns,settings:vSettings};
+const VIEWS={leads:vLeads,insights:vInsights,overview:vOverview,reports:vReports,entities:vEntities,appeals:vAppeals,patterns:vPatterns,settings:vSettings};
 async function render(){
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.v===view)));
   try{await VIEWS[view]();}catch(e){$('#main').insertAdjacentHTML('afterbegin',`<div class="banner" data-k="err"><b>Could not load this section</b>${esc(errText(e))}</div>`);}
 }
 async function counts(s){
   try{ if(!s){const [pend,appeals]=await Promise.all([count(cnt('reports').eq('status','pending')),count(cnt('appeals').eq('status','open'))]);s={pend,appeals};}
+    try{const n=await count(cnt('business_leads').eq('status','new'));const c=$('#c-leads');c.textContent=n;n>0?c.setAttribute('data-hot',''):c.removeAttribute('data-hot');}catch(e){}
     const r=$('#c-reports'),a=$('#c-appeals'); r.textContent=s.pend; a.textContent=s.appeals;
     s.pend>0?r.setAttribute('data-hot',''):r.removeAttribute('data-hot'); s.appeals>0?a.setAttribute('data-hot',''):a.removeAttribute('data-hot');
   }catch(e){}
@@ -478,6 +497,7 @@ $('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
 $('#main').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='rfilter'){state.reportsFilter=b.dataset.k;render();}
+  else if(a==='lfilter'){state.leadsFilter=b.dataset.k;render();}
   else if(a==='days'){state.days=+b.dataset.k;render();}
   else if(a==='csv'){download(b.dataset.k,b);}
   else if(a==='rset'){const k=b.dataset.k;if(!['accepted','rejected'].includes(k))return;act(()=>run(sb.from('reports').update({status:k,reviewed_at:now()}).eq('id',id)),k==='accepted'?'Report accepted':'Report rejected',b);}
@@ -512,6 +532,8 @@ $('#main').addEventListener('submit',async e=>{
       await run(sb.from('reports').insert({entity_id:ent.id,source:'admin',scam_type:scam||null,description:desc||null,status:'accepted',reviewed_at:now()}));
     },'Report saved',btn);
     if(ok)f.reset();return;}
+  if(f.dataset.form==='lead'){const st=$('#ls-'+f.dataset.id).value;if(!LSTAT[st])return;
+    act(()=>run(sb.from('business_leads').update({status:st,admin_note:$('#ln-'+f.dataset.id).value.trim()||null,updated_at:now()}).eq('id',f.dataset.id)),'Lead updated',btn);return;}
   if(f.dataset.form==='override'){const lv=$('#ov-level').value;if(lv&&!LEVELS[lv])return;
     act(()=>run(sb.from('entities').update({admin_level:lv||null,admin_note:$('#ov-note').value.trim()||null}).eq('id',f.dataset.id)),'Override saved',btn);return;}
   if(f.dataset.form==='pattern'){const v={title:$('#p-title').value.trim(),category:$('#p-cat').value.trim(),example_text:$('#p-ex').value.trim()||null,warning_signs:$('#p-warn').value.trim()||null,advice:$('#p-adv').value.trim()||null};

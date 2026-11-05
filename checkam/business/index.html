@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CheckAm for Business | Open Fraud Labs</title>
+<meta name="description" content="Check bank accounts, phone numbers, links and social pages against scam reports before you pay out or onboard. Explainable results for fintechs, lenders and marketplaces in Nigeria. Founding-partner pilots open.">
+<meta property="og:title" content="CheckAm for Business: know who you are paying">
+<meta property="og:description" content="Scam checks for fintechs, lenders and marketplaces, with a plain reason on every result. Founding-partner pilots are open.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://openfraudlabs.com/checkam/business/">
+<meta property="og:site_name" content="Open Fraud Labs">
+<meta property="og:image" content="https://openfraudlabs.com/assets/checkam/launch.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://openfraudlabs.com/checkam/business/">
+<link rel="icon" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="/assets/checkam/biz.css?v=20261105">
+</head>
+<body data-track="1">
+
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="/" title="Visit the Open Fraud Labs website"><i>C</i>CheckAm for Business <small>by OpenFraudLabs</small></a>
+    <nav class="links" aria-label="Page"><a href="#use">Use cases</a><a href="#results">What you get</a><a href="#pilot">How the pilot works</a><a href="/checkam/">Free WhatsApp checker</a><a href="#apply">Request a pilot</a></nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="badge">Founding-partner pilots open</span>
+      <h1>Know who you are paying <em>before the money leaves.</em></h1>
+      <p class="lede">CheckAm for Business checks bank accounts, phone numbers, links and social pages against scam reports from the public and partners, and tells your team the risk with a plain reason they can act on and defend.</p>
+      <div class="cta"><a class="btn primary" href="#apply">Request a pilot</a><a class="btn" href="/checkam/">Try the free checker</a></div>
+      <p class="note" style="margin-top:14px">Built by Open Fraud Labs in Lagos, by a team with over six years in credit risk, collections and fraud detection.</p>
+    </div>
+    <div>
+      <pre class="api" aria-label="Example result">POST /v1/check
+{ "account": "0123456789", "bank": "opay" }
+
+{
+  "level": "caution",
+  "unique_reporters": 3,
+  "verified": true,
+  "reasons": [
+    "Reported for non-delivery by 3 different people",
+    "Same account appears in a fake-alert report"
+  ],
+  "advice": "Hold the payout and confirm the customer"
+}</pre>
+      <p class="cap">Example result, for illustration. The API is opening to pilot partners first.</p>
+    </div>
+  </section>
+</div>
+
+<section class="band" id="use"><div class="wrap">
+  <div class="kicker">Where it fits</div>
+  <h2>One check at the moment money or trust changes hands</h2>
+  <div class="cards">
+    <div class="card"><h3>Fintechs and wallets</h3><p>Check the beneficiary account before a customer sends money, and warn them in the app if it has been reported.</p></div>
+    <div class="card"><h3>Lenders and BNPL</h3><p>Screen phone numbers, accounts and links at onboarding and disbursement, before you lend into a fraud ring.</p></div>
+    <div class="card"><h3>Marketplaces and e-commerce</h3><p>Check sellers, vendor accounts and payment links before payouts, and spot fake store pages that copy your brand.</p></div>
+    <div class="card"><h3>Logistics, PAYG and solar</h3><p>Check agents, payment numbers and "customer care" pages that fraudsters use to divert customer payments.</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="results"><div class="wrap split">
+  <div>
+    <div class="kicker">What you get</div>
+    <h2>A risk level, and the reason behind it</h2>
+    <p class="intro">Every result says why. Your operations team never has to act on a score nobody can explain, and your customers get a fair answer.</p>
+    <div class="facts">
+      <div><h3>Shared scam reports</h3><p>Reports from the public on WhatsApp and the website, and from partners. Each report is reviewed, and one report alone never flags anyone.</p></div>
+      <div><h3>Link and website checks</h3><p>How new a website is, and whether it copies the address of a real bank or brand.</p></div>
+      <div><h3>Known scam scripts</h3><p>Messages matched against scam patterns we track, including fake alerts, OTP and PIN requests, job and task scams, and loan-fee scams.</p></div>
+    </div>
+  </div>
+  <div class="levels" aria-label="Risk levels">
+    <div class="lv" style="--c:var(--scam)"><b>Likely scam</b><span>Several different people reported it, and the reports were reviewed.</span></div>
+    <div class="lv" style="--c:var(--caution)"><b>Caution</b><span>Reports or warning signs worth checking before you pay.</span></div>
+    <div class="lv" style="--c:var(--unver)"><b>Unverified</b><span>Not enough information either way.</span></div>
+    <div class="lv" style="--c:var(--fine)"><b>Looks fine</b><span>No warning signs found. Not a guarantee, and we say so.</span></div>
+    <p class="note" style="margin-top:8px">Owners who think they were flagged wrongly can appeal, and we never reveal who made a report.</p>
+  </div>
+</div></section>
+
+<section class="band" id="pilot"><div class="wrap">
+  <div class="kicker">How the pilot works</div>
+  <h2>Start small, measure it, then connect</h2>
+  <div class="steps">
+    <div class="card"><h3>Tell us where fraud hurts</h3><p>A short call about your payouts, onboarding or customer complaints, and what a useful result looks like for your team.</p></div>
+    <div class="card"><h3>Test it on real cases</h3><p>Send us a sample of accounts, phone numbers or links, without customer names. We run them through CheckAm and return each result with its reasons.</p></div>
+    <div class="card"><h3>Connect and share back</h3><p>Pilot partners get API access as it opens, can send confirmed fraud cases back to strengthen everyone's checks, and help shape pricing.</p></div>
+  </div>
+  <p class="intro" style="margin-top:24px">We share risk levels, report counts and reasons, never the identity of reporters. CheckAm is built to follow the Nigeria Data Protection Act 2023. <a href="/checkam/privacy/">Read the privacy policy</a>.</p>
+</div></section>
+
+<section class="band"><div class="wrap split">
+  <div>
+    <div class="kicker">Why now</div>
+    <div class="stat" style="margin-top:14px">₦25.85bn</div>
+    <p class="intro">lost to digital payment fraud in Nigeria in 2025, across 67,518 reported cases. Social engineering, tricking people into paying or sharing details, was the most common method.</p>
+    <p class="note" style="margin-top:10px">Source: NIBSS figures, reported by <a href="https://techeconomy.ng/nibss-digital-payment-fraud-drops-51-to-25-85b-in-2025" target="_blank" rel="noopener">TechEconomy</a>.</p>
+  </div>
+  <div>
+    <h3 style="font-size:22px">Most of that fraud starts in a chat</h3>
+    <p class="intro">A fake alert, a "customer care" page, a cloned link. CheckAm already meets people in WhatsApp, where those messages arrive, and every check and report there feeds the same intelligence your business can use.</p>
+  </div>
+</div></section>
+
+<section class="band" id="apply"><div class="wrap split">
+  <div>
+    <div class="kicker">Request a pilot</div>
+    <h2>Become a founding partner</h2>
+    <p class="intro">We are working with a small number of founding partners. Tell us a little about your business and we will reply within two working days.</p>
+    <p class="intro">Prefer email? Write to <a href="mailto:hello@openfraudlabs.com?subject=CheckAm%20for%20Business%20pilot">hello@openfraudlabs.com</a>.</p>
+  </div>
+  <form class="lead" id="lead" data-kind="pilot" data-label="Request a pilot" data-need-tick="Choose at least one thing you want to check.">
+    <div class="fields">
+      <label>Your name<input name="name" required autocomplete="name" maxlength="120"></label>
+      <label>Company<input name="company" required autocomplete="organization" maxlength="160"></label>
+      <label>Work email<input name="email" type="email" required autocomplete="email" maxlength="200"></label>
+      <label>Phone or WhatsApp <span class="opt">(optional)</span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+      <label>Your role <span class="opt">(optional)</span><input name="role" autocomplete="organization-title" maxlength="120" placeholder="e.g. Head of Risk"></label>
+      <label>Type of business<select name="company_type" required><option value="">Choose one</option><option>Fintech or wallet</option><option>Bank or microfinance bank</option><option>Lender or BNPL</option><option>Marketplace or e-commerce</option><option>Logistics or delivery</option><option>PAYG, solar or utilities</option><option>Other</option></select></label>
+    </div>
+    <fieldset><legend>What do you want to check?</legend><div class="ticks">
+      <label><input type="checkbox" name="interest" value="Bank accounts">Bank accounts</label>
+      <label><input type="checkbox" name="interest" value="Phone numbers">Phone numbers</label>
+      <label><input type="checkbox" name="interest" value="Links and websites">Links and websites</label>
+      <label><input type="checkbox" name="interest" value="Social pages">Social pages</label>
+    </div></fieldset>
+    <label>Rough number of checks a month<select name="size"><option value="">Not sure yet</option><option>Under 1,000</option><option>1,000 to 10,000</option><option>10,000 to 100,000</option><option>Over 100,000</option></select></label>
+    <label>Where does fraud hurt you most? <span class="opt">(optional)</span><textarea name="message" maxlength="2000" placeholder="e.g. Customers paying fake vendors, agents diverting payments"></textarea></label>
+    <div class="hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <p class="formmsg" id="lead-msg" role="alert" hidden></p>
+    <button class="btn primary" type="submit">Request a pilot</button>
+    <p class="note">We use these details only to reply to you about CheckAm for Business.</p>
+  </form>
+</div></section>
+
+<div class="wrap"><footer><span>CheckAm is a project of <a href="/">Open Fraud Labs</a>, Nigeria. Also see <a href="/fraud-training/">fraud training for teams</a>.</span><span><a href="/checkam/privacy/">Privacy policy</a> · hello@openfraudlabs.com</span></footer></div>
+
+<script src="/assets/checkam/lead.js?v=20261105"></script>
+</body>
+</html>
