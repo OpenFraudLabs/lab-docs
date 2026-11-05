@@ -291,7 +291,7 @@ async function vReports(){
       <label>Scam type<input id="ar-scam" placeholder="e.g. Fake vendor"></label>
     </div><label>What happened<textarea id="ar-desc" placeholder="Short description and evidence you have seen"></textarea></label>
     <div class="row"><button class="btn primary" type="submit">Save report</button></div></form></div></section>`;
-  shell('Reports','Scam reports from WhatsApp, the website and partners. Only accepted reports count toward a flag.',form+`<section class="panel" id="queue"><header><h2>Queue</h2>${filt}</header>${loading}</section>`);
+  shell('Reports','Scam reports from WhatsApp, the website and partners. Pending reports from 2 or more different people already show a Caution marked “not yet verified”; accepting them makes the warning verified, and only accepted reports can reach Likely scam.',form+`<section class="panel" id="queue"><header><h2>Queue</h2>${filt}</header>${loading}</section>`);
   const list=await rows(sb.from('reports').select('id,created_at,source,scam_type,description,status,entities(type,value_normalized,bank_name)').eq('status',f).order('created_at',{ascending:false}).limit(100));
   const html=list.length?`<div class="tablewrap"><table><thead><tr><th>Reported</th><th>Entity</th><th>Scam</th><th>Source</th><th></th></tr></thead><tbody>
     ${list.map(r=>{const e=r.entities||{};return `<tr><td class="mono">${esc(when(r.created_at))}</td>

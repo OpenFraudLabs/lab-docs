@@ -104,6 +104,15 @@ form.card{background:var(--paper);border:1px solid var(--line);border-radius:16p
 label{display:grid;gap:6px;font-size:14px;font-weight:600;color:var(--muted)}
 input,select,textarea{font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
 textarea{min-height:90px;resize:vertical}
+#check .box{margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+#check form{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:14px}
+#check textarea{min-height:120px}
+.res{border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--paper);display:grid;gap:10px;min-height:120px;align-content:start}
+.res .lvl{display:inline-flex;align-items:center;gap:8px;font:800 22px var(--f-display)}
+.res .lvl::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c,var(--muted))}
+.res ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.res .muted{color:var(--muted);font-size:15px}
+@media (max-width:820px){#check .box{grid-template-columns:1fr}}
 .formmsg{font-size:14.5px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
 
 .biz{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
@@ -133,7 +142,7 @@ body{margin:0}a{color:inherit}</style>
 <div class="wrap">
   <header class="top">
     <a class="logo" href="/" title="Visit the Open Fraud Labs website"><i>C</i>CheckAm <small>by OpenFraudLabs</small></a>
-    <nav class="links" aria-label="Page"><a href="#how">How it works</a><a href="#report">Report a scam</a><a href="#business">For businesses</a><a href="#trust">How we decide</a></nav>
+    <nav class="links" aria-label="Page"><a href="#check">Check now</a><a href="#how">How it works</a><a href="#report">Report a scam</a><a href="#business">For businesses</a><a href="#trust">How we decide</a></nav>
   </header>
 
   <section class="hero">
@@ -157,6 +166,20 @@ body{margin:0}a{color:inherit}</style>
   </section>
 </div>
 
+<section class="band" id="check"><div class="wrap">
+  <div class="kicker">Check now</div>
+  <h2>Not on WhatsApp right now? Check here</h2>
+  <p class="intro">Paste a suspicious message, link, account number and bank, phone number, or a seller's @username. You get the same answer CheckAm gives on WhatsApp.</p>
+  <div class="box">
+    <form id="ck-form">
+      <label>What do you want to check?<textarea id="ck-text" maxlength="2000" required placeholder="e.g. Your BVN has been restricted. Verify at gtbank-verify.xyz&#10;or: 0123456789 OPay&#10;or: @cheapphones_ng on Instagram"></textarea></label>
+      <button class="btn primary" type="submit" id="ck-btn" style="justify-self:start">Check it</button>
+      <p class="note">Don't paste your PIN, OTP, password or BVN. We never need them.</p>
+    </form>
+    <div class="res" id="ck-res" aria-live="polite"><p class="muted">Your result appears here.</p></div>
+  </div>
+</div></section>
+
 <section class="band" id="how"><div class="wrap">
   <div class="kicker">How it works</div>
   <h2>Four things you can send CheckAm</h2>
@@ -164,7 +187,7 @@ body{margin:0}a{color:inherit}</style>
   <div class="flows">
     <div class="flow"><h3>A suspicious message</h3><p>Forward the text or link. We check the link, the wording and what others have reported.</p><code>Your account will be blocked. Click bit.ly/…</code></div>
     <div class="flow"><h3>An account before you pay</h3><p>Send the account number and bank. See if other people have reported it.</p><code>0123456789 OPay</code></div>
-    <div class="flow"><h3>A phone number</h3><p>Check the number that called or messaged you about a "promo" or "job".</p><code>08031234567</code></div>
+    <div class="flow"><h3>A number or seller's page</h3><p>Check the number that called you about a "promo" or "job", or a vendor's Instagram, Facebook or TikTok page.</p><code>@cheapphones_ng on Instagram</code></div>
     <div class="flow"><h3>A scam report</h3><p>Got scammed? Report it so the next person is warned.</p><code>REPORT 0123456789 OPay, fake phone seller</code></div>
   </div>
   <div class="levels" aria-label="Verdict levels">
@@ -189,7 +212,7 @@ body{margin:0}a{color:inherit}</style>
       <p>Send <b>REPORT</b> on WhatsApp, followed by the account number and bank, phone number or link, and what happened.</p>
       <code style="font:500 14px var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px">REPORT 0123456789 OPay, fake phone seller on Instagram</code>
       <a class="btn primary" href="https://wa.me/2347038317433?text=REPORT%20" target="_blank" rel="noopener" style="justify-self:start">Report on WhatsApp</a>
-      <p class="note">Reports are reviewed before they count. One report alone never flags anyone.</p>
+      <p class="note">One report alone never flags anyone. When 2 or more different people report the same account, number, page or name, CheckAm warns others and says the reports are not yet verified until our team reviews them.</p>
     </div>
   </div>
 </div></section>
@@ -222,7 +245,7 @@ body{margin:0}a{color:inherit}</style>
   <div class="kicker">How we decide</div>
   <h2>Every verdict comes with its reasons</h2>
   <div class="trust">
-    <div><h3>Evidence, not guesses</h3><p>Verdicts come from reviewed reports, link checks and known scam scripts. We say "reported by 3 people", never "this person is a fraudster".</p></div>
+    <div><h3>Evidence, not guesses</h3><p>Verdicts come from people's reports, link checks (including how new a website is and whether it copies a real bank's address) and known scam scripts. We say "reported by 3 people", never "this person is a fraudster".</p></div>
     <div><h3>Honest about limits</h3><p>No warning signs is not a guarantee. We can't see bank records, so a screenshot check can never confirm that a payment happened.</p></div>
     <div><h3>Your data stays minimal</h3><p>We store your number only as a scrambled code, never publish names of reported people, and are built to follow the Nigeria Data Protection Act.</p></div>
   </div>
@@ -234,6 +257,22 @@ body{margin:0}a{color:inherit}</style>
 
 
 <script>
+/* Website checker: same rules as the WhatsApp bot. */
+(function(){
+  var f=document.getElementById('ck-form'),out=document.getElementById('ck-res'),btn=document.getElementById('ck-btn');
+  var L={likely_scam:['Likely scam','var(--scam)'],caution:['Caution','var(--caution)'],unverified:['Unverified','var(--muted)'],looks_fine:['Looks fine','var(--fine)']};
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  f.addEventListener('submit',function(e){e.preventDefault();var t=document.getElementById('ck-text').value.trim();if(t.length<3)return;
+    btn.disabled=true;btn.textContent='Checking…';out.innerHTML='<p class="muted">Checking…</p>';
+    fetch('https://ifbkvqazedhghtguanjf.supabase.co/functions/v1/web-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})})
+      .then(function(r){return r.json();}).then(function(j){
+        if(j.error){out.innerHTML='<p>'+esc(j.error)+'</p>';return;}
+        var l=L[j.level]||L.unverified;
+        out.innerHTML='<span class="lvl" style="--c:'+l[1]+'">'+l[0]+'</span><b>Why:</b><ul>'+(j.reasons||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul><p><b>What to do:</b> '+esc(j.advice||'')+'</p><p class="muted">Scammed or spotted a scam? <a href="https://wa.me/2347038317433?text=REPORT" target="_blank" rel="noopener">Report it on WhatsApp</a> to warn others.</p>';
+      }).catch(function(){out.innerHTML='<p>Something went wrong. Please try again, or use CheckAm on WhatsApp.</p>';})
+      .then(function(){btn.disabled=false;btn.textContent='Check it';});
+  });
+})();
 /* Anonymous visit counter for CheckAm Insights: no cookies, no IP, no personal data. */
 (function(){
   var U='https://ifbkvqazedhghtguanjf.supabase.co/rest/v1/rpc/log_visit',K='sb_publishable_9I-s_mRycqI_gv4i7mXN4Q_l0zph5nq',vid;
