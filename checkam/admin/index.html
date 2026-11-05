@@ -347,7 +347,7 @@ async function vPatterns(){
       <label>Advice CheckAm gives<textarea id="p-adv">${esc(p.advice)}</textarea></label>
       <div class="row"><button class="btn primary" type="submit">Save pattern</button><button class="btn" type="button" data-act="edit" data-id="">Cancel</button></div></form>`;
   const item=p=>ed===p.id?formFor(p):`<div class="pat"><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(p.title)}</h3><span class="tag">${esc(p.category)}</span>${p.is_published?pill('looks_fine').replace('Looks fine','Published'):'<span class="tag">Draft</span>'}</div>
-      <div class="row"><button class="btn" data-act="edit" data-id="${esc(p.id)}">Edit</button><button class="btn" data-act="pub" data-id="${esc(p.id)}" data-k="${p.is_published?'false':'true'}">${p.is_published?'Unpublish':'Publish'}</button>
+      <div class="row"><button class="btn" data-act="edit" data-id="${esc(p.id)}">Edit</button>${p.is_published?(state.confirm==='unpub:'+p.id?`<span class="confirm">Stop CheckAm using this pattern? <button class="btn danger" data-act="pub" data-id="${esc(p.id)}" data-k="false">Unpublish</button> <button class="btn" data-act="cancel">Keep</button></span>`:`<button class="btn" data-act="askunpub" data-id="${esc(p.id)}">Unpublish</button>`):`<button class="btn" data-act="pub" data-id="${esc(p.id)}" data-k="true">Publish</button>`}
       ${state.confirm===p.id?`<span class="confirm">Delete for good? <button class="btn danger" data-act="pdel" data-id="${esc(p.id)}">Delete</button> <button class="btn" data-act="cancel">Keep</button></span>`:`<button class="btn danger" data-act="ask" data-id="${esc(p.id)}">Delete</button>`}</div></div>
       ${p.example_text?`<div><div class="lbl">Example</div><p>${esc(p.example_text)}</p></div>`:''}${p.warning_signs?`<div><div class="lbl">Warning signs</div><p>${esc(p.warning_signs)}</p></div>`:''}${p.advice?`<div><div class="lbl">Advice</div><p>${esc(p.advice)}</p></div>`:''}</div>`;
   $('#pats').innerHTML=`<header><h2>${list.length} pattern${list.length===1?'':'s'}</h2>${ed==='new'?'':'<button class="btn primary" data-act="edit" data-id="new">New pattern</button>'}</header>
@@ -483,6 +483,7 @@ $('#main').addEventListener('click',e=>{
   else if(a==='rset'){const k=b.dataset.k;if(!['accepted','rejected'].includes(k))return;act(()=>run(sb.from('reports').update({status:k,reviewed_at:now()}).eq('id',id)),k==='accepted'?'Report accepted':'Report rejected',b);}
   else if(a==='edit'){state.editing=id||null;state.confirm=null;render();}
   else if(a==='ask'){state.confirm=id;render();}
+  else if(a==='askunpub'){state.confirm='unpub:'+id;render();}
   else if(a==='cancel'){state.confirm=null;render();}
   else if(a==='pub'){const on=b.dataset.k==='true';act(()=>run(sb.from('scam_patterns').update({is_published:on,updated_at:now()}).eq('id',id)),on?'Pattern published':'Pattern unpublished',b);}
   else if(a==='pdel'){act(()=>run(sb.from('scam_patterns').delete().eq('id',id)),'Pattern deleted',b);}
