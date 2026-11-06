@@ -120,7 +120,7 @@
       <label>Your name<input name="name" required autocomplete="name" maxlength="120"></label>
       <label>Company<input name="company" required autocomplete="organization" maxlength="160"></label>
       <label>Work email<input name="email" type="email" required autocomplete="email" maxlength="200"></label>
-      <label>Phone or WhatsApp <span class="opt">(optional)</span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+      <label>Phone or WhatsApp number<input name="phone" type="tel" required autocomplete="tel" maxlength="40" minlength="7" placeholder="e.g. 0803 123 4567"></label>
       <label>Your role <span class="opt">(optional)</span><input name="role" autocomplete="organization-title" maxlength="120" placeholder="e.g. Head of Risk"></label>
       <label>Type of business<select name="company_type" required><option value="">Choose one</option><option>Fintech or wallet</option><option>Bank or microfinance bank</option><option>Lender or BNPL</option><option>Marketplace or e-commerce</option><option>Logistics or delivery</option><option>PAYG, solar or utilities</option><option>Other</option></select></label>
     </div>
@@ -130,7 +130,7 @@
       <label><input type="checkbox" name="interest" value="Links and websites">Links and websites</label>
       <label><input type="checkbox" name="interest" value="Social pages">Social pages</label>
     </div></fieldset>
-    <label>Rough number of checks a month<select name="size"><option value="">Not sure yet</option><option>Under 1,000</option><option>1,000 to 10,000</option><option>10,000 to 100,000</option><option>Over 100,000</option></select></label>
+    <label>Rough number of checks a month<select name="size" required><option value="">Choose one</option><option>Not sure yet</option><option>Under 1,000</option><option>1,000 to 10,000</option><option>10,000 to 100,000</option><option>Over 100,000</option></select></label>
     <label>Where does fraud hurt you most? <span class="opt">(optional)</span><textarea name="message" maxlength="2000" placeholder="e.g. Customers paying fake vendors, agents diverting payments"></textarea></label>
     <div class="hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
     <p class="formmsg" id="lead-msg" role="alert" hidden></p>

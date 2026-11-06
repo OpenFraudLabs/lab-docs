@@ -92,9 +92,9 @@
       <label>Your name<input name="name" required autocomplete="name" maxlength="120"></label>
       <label>Organisation<input name="company" required autocomplete="organization" maxlength="160"></label>
       <label>Work email<input name="email" type="email" required autocomplete="email" maxlength="200"></label>
-      <label>Phone or WhatsApp <span class="opt">(optional)</span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+      <label>Phone or WhatsApp number<input name="phone" type="tel" required autocomplete="tel" maxlength="40" minlength="7" placeholder="e.g. 0803 123 4567"></label>
       <label>Type of organisation<select name="company_type" required><option value="">Choose one</option><option>Bank or microfinance bank</option><option>Lender or fintech</option><option>SME or retailer</option><option>School or university</option><option>Church, NGO or association</option><option>Government or public body</option><option>Other</option></select></label>
-      <label>Number of people<select name="size"><option value="">Not sure yet</option><option>1 to 10</option><option>11 to 50</option><option>51 to 200</option><option>Over 200</option></select></label>
+      <label>Number of people<select name="size" required><option value="">Choose one</option><option>Not sure yet</option><option>1 to 10</option><option>11 to 50</option><option>51 to 200</option><option>Over 200</option></select></label>
     </div>
     <fieldset><legend>What are you interested in?</legend><div class="ticks">
       <label><input type="checkbox" name="interest" value="Scam-awareness session">Scam-awareness session</label>

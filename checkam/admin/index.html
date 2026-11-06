@@ -137,6 +137,8 @@ textarea{min-height:76px;resize:vertical}
 .dl{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .dl button{text-align:left;display:grid;gap:2px;padding:12px 14px}
 .dl button small{font-weight:400;color:var(--muted)}
+.compose{border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:12px 14px;display:grid;gap:10px}
+.compose textarea{min-height:90px}
 </style>
 </head>
 <body>
@@ -336,22 +338,104 @@ async function vAppeals(){
     </tbody></table></div>`:`<div class="empty"><b>No open appeals</b>When an owner disputes a flag, it waits here for a decision.</div>`;
 }
 
-const LSTAT={new:'New',contacted:'Contacted',in_talks:'In talks',won:'Won',lost:'Not now'};
+const LSTAT={new:'New',contacted:'Contacted',call_booked:'Call booked',proposal:'Proposal sent',won:'Won',lost:'Not now'};
+const LTPL={call_invite:'Invite to a call',call_confirm:'Confirm the call',proposal:'Send proposal',nudge:'Follow up',won:'Mark as won',lost:'Close this lead',custom:'Write an email',ack:'Automatic confirmation',admin_alert:'Alert to you',digest:'Daily digest'};
+const LACTS={
+  new:[['call_invite','Invite to a call',1],['call_confirm','Confirm a call time'],['custom','Write an email'],['lost','Close']],
+  contacted:[['call_confirm','Confirm the call',1],['nudge','Follow up now'],['replied','They replied'],['custom','Write an email'],['lost','Close']],
+  call_booked:[['proposal','Send proposal',1],['call_confirm','Change call time'],['custom','Write an email'],['lost','Close']],
+  proposal:[['won','Mark as won',1],['nudge','Follow up now'],['proposal','Send updated proposal'],['replied','They replied'],['custom','Write an email'],['lost','Close']],
+  won:[['custom','Write an email']],
+  lost:[['reopen','Reopen'],['custom','Write an email']]};
+const naira=v=>v==null||v===''?'':'₦'+Number(v).toLocaleString('en-NG',{maximumFractionDigits:0});
+const dayOf=t=>t?new Date(t).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}):'';
+const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(d.length<7)return '';if(/^0\d{10}$/.test(d))d='234'+d.slice(1);return d;};
+function leadNext(l){
+  const auto=l.auto_follow_up, na=l.next_action_at;
+  if(l.stage==='new')return 'Next: invite them to a call. Waiting since '+dayOf(l.created_at)+'.';
+  if(l.stage==='contacted'||l.stage==='proposal'){
+    if(na)return auto?'No reply yet: an automatic follow-up goes out on '+dayOf(na)+'. Click "They replied" if they have answered.':'Follow up by '+dayOf(na)+' (automatic follow-ups are off).';
+    if(l.follow_ups>=2)return 'No reply after two follow-ups. Try WhatsApp or a phone call, or close the lead.';
+    return l.stage==='contacted'?'They replied. Next: confirm the call time.':'They replied. Next: agree the details, then mark as won.';}
+  if(l.stage==='call_booked')return l.call_at&&new Date(l.call_at)>new Date()?'Call on '+when(l.call_at)+'.':'Call done? Next: send the proposal.';
+  if(l.stage==='won')return 'Won on '+dayOf(l.won_at)+(l.deal_value!=null?' · '+naira(l.deal_value):'')+'.';
+  if(l.stage==='lost')return 'Closed'+(l.lost_reason?': '+l.lost_reason:'')+'.';
+  return '';}
+function composeHtml(l){
+  const c=state.compose;if(!c||c.id!==l.id)return '';
+  const t=c.tpl, id=esc(l.id), v=c.vars||{};
+  const inp=(k,label,attrs='')=>`<label>${label}<input data-cv="${k}" value="${esc(v[k]||'')}" ${attrs}></label>`;
+  const ta=(k,label,ph)=>`<label>${label}<textarea data-cv="${k}" placeholder="${esc(ph)}">${esc(v[k]||'')}</textarea></label>`;
+  let fields='';
+  if(t==='call_invite')fields=ta('times','Times you can offer (optional)','e.g. Tuesday 11 Nov, 10am\nWednesday 12 Nov, 2pm')+inp('link','Booking link (optional)','placeholder="https://calendly.com/…"');
+  else if(t==='call_confirm')fields=inp('when_iso','Date and time (Lagos)','type="datetime-local"')+inp('link','Meeting link (optional)','placeholder="https://meet.google.com/…"');
+  else if(t==='proposal')fields=ta('summary','What you are proposing','e.g. A 30-day pilot of CheckAm for Business for your payouts team: up to 5,000 checks, setup and training included, weekly results report.')+inp('amount','Price in naira (optional)','inputmode="numeric" placeholder="e.g. 250000"')+inp('price_note','Price note (optional)','placeholder="e.g. per month, or one-off"')+inp('link','Proposal, invoice or payment link (optional)','placeholder="https://…"');
+  else if(t==='won')fields=inp('amount','Deal value in naira','inputmode="numeric" value="'+esc(v.amount||l.deal_value||'')+'"')+ta('next_steps','Next steps for them (optional)','Leave empty for the standard welcome text.');
+  else if(t==='lost')fields=inp('reason','Reason (only you see this)','placeholder="e.g. No budget this quarter"')+`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-cv="send" style="width:auto" ${v.send===false?'':'checked'}>Send them a polite closing email</label>`;
+  const needsWrite=!c.preview&&!(t==='lost'&&v.send===false);
+  const prev=c.preview?`<label>To<input value="${esc(l.email)}" disabled></label><label>Subject<input id="cs-${id}" value="${esc(c.preview.subject)}" maxlength="200"></label>
+     <label>Email (edit anything before sending)<textarea id="cb-${id}" rows="14">${esc(c.preview.body)}</textarea></label>
+     <p class="sub" style="margin:0">A line written as [Button text](https://link) becomes a button. Replies come to hello@openfraudlabs.com, and you get a copy.</p>`:'';
+  return `<div class="compose" id="cp-${id}"><div class="lbl">${esc(LTPL[t]||t)}</div>${fields?`<div class="fields">${fields}</div>`:''}${prev}
+    <div class="row">${needsWrite?`<button class="btn primary" data-act="lprev" data-id="${id}">Write the email</button>`:''}
+    ${c.preview||(t==='lost'&&v.send===false)?`<button class="btn primary" data-act="lsend" data-id="${id}">${t==='lost'&&v.send===false?'Close without email':t==='won'?'Send and mark as won':t==='lost'?'Send and close':'Send email'}</button>`:''}
+    ${c.preview?`<button class="btn" data-act="lprev" data-id="${id}">Rewrite from the details above</button>`:''}
+    <button class="btn" data-act="lcancel">Cancel</button></div></div>`;}
+function readCompose(id){const c=state.compose;if(!c)return;const box=$('#cp-'+id);if(!box)return;c.vars=c.vars||{};
+  box.querySelectorAll('[data-cv]').forEach(el=>{c.vars[el.dataset.cv]=el.type==='checkbox'?el.checked:el.value.trim();});
+  if(c.preview){const s=$('#cs-'+id),b=$('#cb-'+id);if(s)c.preview.subject=s.value;if(b)c.preview.body=b.value;}}
 async function vLeads(){
   const f=state.leadsFilter||'open';
-  shell('Business leads','Pilot requests from CheckAm for Business and enquiries from Fraud training for teams. Reply by email within two working days.',`<section class="panel" id="lds">${loading}</section>`);
-  let qy=sb.from('business_leads').select('*').order('created_at',{ascending:false}).limit(500);
-  if(f==='open')qy=qy.in('status',['new','contacted','in_talks']);else if(f!=='all')qy=qy.eq('kind',f);
-  const list=await rows(qy);
-  const tabs=`<div class="seg" role="group" aria-label="Show">${[['open','Open'],['pilot','Pilots'],['training','Training'],['all','All']].map(([k,l])=>`<button data-act="lfilter" data-k="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>`;
-  const card=l=>`<div class="pat"><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(l.company)}</h3><span class="tag">${l.kind==='pilot'?'CheckAm pilot':'Fraud training'}</span><span class="tag">${esc(LSTAT[l.status]||l.status)}</span></div><span class="sub mono">${esc(when(l.created_at))}</span></div>
-      <p><b>${esc(l.name)}</b>${l.role?' · '+esc(l.role):''} · <a href="mailto:${esc(l.email)}?subject=${encodeURIComponent(l.kind==='pilot'?'Your CheckAm for Business pilot request':'Your fraud training enquiry')}">${esc(l.email)}</a>${l.phone?' · '+esc(l.phone):''}</p>
+  shell('Business leads','Pilot requests from CheckAm for Business and enquiries from Fraud training for teams. Every new lead gets an automatic confirmation and you get an alert. Use the buttons on each lead to move it to a sale.',`<div id="lsum"></div><section class="panel" id="lds">${loading}</section>`);
+  const all=await rows(sb.from('business_leads').select('*').order('created_at',{ascending:false}).limit(500));
+  const list=all.filter(l=>f==='open'?!['won','lost'].includes(l.stage):f==='won'?l.stage==='won':f==='all'?true:l.kind===f);
+  const mails=list.length?await rows(sb.from('lead_emails').select('id,lead_id,template,subject,status,detail,auto,created_at,sent_at').in('lead_id',list.map(l=>l.id)).order('created_at',{ascending:false}).limit(2000)):[];
+  const byLead={};mails.forEach(m=>(byLead[m.lead_id]=byLead[m.lead_id]||[]).push(m));
+  const open=all.filter(l=>!['won','lost'].includes(l.stage)), monthStart=new Date();monthStart.setDate(1);monthStart.setHours(0,0,0,0);
+  const sum=a=>a.reduce((s,l)=>s+(Number(l.deal_value)||0),0);
+  const props=all.filter(l=>l.stage==='proposal'), wonM=all.filter(l=>l.stage==='won'&&l.won_at&&new Date(l.won_at)>=monthStart);
+  const stuck=mails.filter(m=>m.status==='queued'&&Date.now()-new Date(m.created_at)>3*60e3).length, failed=mails.filter(m=>m.status==='failed').length;
+  $('#lsum').innerHTML=(stuck?`<div class="banner"><b>${stuck} email${stuck===1?' is':'s are'} waiting to go out</b>The email sender is not working yet. Check that RESEND_API_KEY is set under Edge Functions → Secrets in the CheckAm Supabase project.</div>`:'')+
+    (failed?`<div class="banner" data-k="err"><b>${failed} email${failed===1?'':'s'} failed</b>Open the lead's Emails list to see why, then send it again with "Write an email".</div>`:'')+
+    `<div class="grid stats" style="margin-bottom:14px">
+      <div class="stat"><span>Open leads</span><b>${open.length}</b><small>${all.filter(l=>l.stage==='new').length} new, waiting for you</small></div>
+      <div class="stat"><span>Calls booked</span><b>${all.filter(l=>l.stage==='call_booked').length}</b><small>${all.filter(l=>l.stage==='call_booked'&&l.call_at&&new Date(l.call_at)>new Date()).length} still to come</small></div>
+      <div class="stat"><span>Proposals out</span><b>${props.length}</b><small>${naira(sum(props))||'₦0'} on the table</small></div>
+      <div class="stat"><span>Won this month</span><b>${wonM.length}</b><small>${naira(sum(wonM))||'₦0'} closed</small></div></div>`;
+  const tabs=`<div class="seg" role="group" aria-label="Show">${[['open','Open'],['pilot','Pilots'],['training','Training'],['won','Won'],['all','All']].map(([k,l])=>`<button data-act="lfilter" data-k="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>`;
+  const mrow=m=>`<div class="sub" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between"><span>${esc(when(m.created_at))} · ${esc(LTPL[m.template]||m.template)}${m.auto?' (automatic)':''}: ${esc(m.subject)}</span><span style="font-weight:600;color:${m.status==='sent'?'var(--fine)':m.status==='failed'?'var(--scam)':'var(--caution)'}" title="${esc(m.detail||'')}">${m.status==='sent'?'Sent':m.status==='failed'?'Failed':'Waiting to send'}</span></div>`;
+  const card=l=>{const id=esc(l.id), wa=waNum(l.phone), first=String(l.name||'').split(' ')[0], ms=byLead[l.id]||[];
+    const waText=encodeURIComponent('Hi '+first+', this is Ayodele from Open Fraud Labs. Thank you for your request about '+(l.kind==='pilot'?'CheckAm for Business':'fraud training')+'. ');
+    const acts=(LACTS[l.stage]||[]).map(([k,lab,p])=>`<button class="btn${p?' primary':''}" data-act="lact" data-k="${k}" data-id="${id}">${lab}</button>`).join('');
+    return `<div class="pat"><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(l.company)}</h3><span class="tag">${l.kind==='pilot'?'CheckAm pilot':'Fraud training'}</span><span class="tag">${esc(LSTAT[l.stage]||l.stage)}</span>${l.deal_value!=null?`<span class="tag">${naira(l.deal_value)}</span>`:''}</div><span class="sub mono">${esc(when(l.created_at))}</span></div>
+      <p><b>${esc(l.name)}</b>${l.role?' · '+esc(l.role):''} · <a href="mailto:${esc(l.email)}">${esc(l.email)}</a>${l.phone?' · '+esc(l.phone):' · <span style="color:var(--caution)">no phone given</span>'}</p>
       <p class="sub">${[l.company_type,l.team_size?(l.kind==='pilot'?'Checks a month: ':'People: ')+l.team_size:'',(l.interest||[]).join(', '),l.source?'Came from: '+l.source:''].filter(Boolean).map(esc).join(' · ')}</p>
       ${l.message?`<div><div class="lbl">Their message</div><p>${esc(l.message)}</p></div>`:''}
-      <form class="f" data-form="lead" data-id="${esc(l.id)}"><div class="fields"><label>Status<select id="ls-${esc(l.id)}">${Object.entries(LSTAT).map(([k,v])=>`<option value="${k}"${l.status===k?' selected':''}>${v}</option>`).join('')}</select></label>
-      <label>Your note<input id="ln-${esc(l.id)}" value="${esc(l.admin_note||'')}" placeholder="e.g. Call booked for Monday"></label></div><div class="row"><button class="btn primary" type="submit">Save</button></div></form></div>`;
+      <p style="font-weight:600">${esc(leadNext(l))}</p>
+      <div class="row">${acts}${wa?`<a class="btn" href="https://wa.me/${wa}?text=${waText}" target="_blank" rel="noopener">WhatsApp</a>`:''}</div>
+      ${composeHtml(l)}
+      <details><summary class="sub" style="cursor:pointer">Emails (${ms.length})</summary><div style="display:grid;gap:4px;margin-top:6px">${ms.length?ms.map(mrow).join(''):'<span class="sub">No emails yet.</span>'}</div></details>
+      <details><summary class="sub" style="cursor:pointer">Details and notes</summary>
+      <form class="f" data-form="lead" data-id="${id}" style="margin-top:8px"><div class="fields">
+        <label>Stage<select id="ls-${id}">${Object.entries(LSTAT).map(([k,v])=>`<option value="${k}"${l.stage===k?' selected':''}>${v}</option>`).join('')}</select></label>
+        <label>Deal value (₦)<input id="lv-${id}" inputmode="numeric" value="${l.deal_value!=null?esc(Math.round(l.deal_value)):''}" placeholder="e.g. 250000"></label>
+        <label>Your note<input id="ln-${id}" value="${esc(l.admin_note||'')}" placeholder="e.g. Decision maker is the CFO"></label></div>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="la-${id}" style="width:auto" ${l.auto_follow_up?'checked':''}>Send automatic follow-ups when they do not reply (up to two)</label>
+        <div class="row"><button class="btn" type="submit">Save details</button></div></form></details></div>`;};
   $('#lds').innerHTML=`<header><h2>${list.length} lead${list.length===1?'':'s'}</h2>${tabs}</header>${list.length?list.map(card).join(''):`<div class="empty"><b>No leads here yet</b>Requests from openfraudlabs.com/checkam/business and /fraud-training appear here.</div>`}`;
+  const c=state.compose;
+  if(c&&!c.preview&&!c.auto&&['nudge','custom','call_invite'].includes(c.tpl)){c.auto=true;leadPreview(c.id);}
+  if(c){const box=$('#cp-'+c.id);if(box)box.scrollIntoView({block:'nearest'});}
 }
+async function leadPreview(id,btn){
+  readCompose(id);const c=state.compose;if(!c)return;if(btn)btn.disabled=true;
+  try{const r=await run(sb.rpc('lead_preview',{p_lead:id,p_template:c.tpl,p_vars:c.vars||{}}));c.preview={subject:r.data.subject,body:r.data.body};render();}
+  catch(e){toast(errText(e));if(btn)btn.disabled=false;}}
+async function leadSend(id,btn){
+  readCompose(id);const c=state.compose;if(!c)return;const v=c.vars||{};const noMail=c.tpl==='lost'&&v.send===false;
+  if(!noMail&&!c.preview){toast('Write the email first.');return;}
+  await act(async()=>{await run(sb.rpc('lead_send',{p_lead:id,p_template:c.tpl,p_subject:noMail?'':c.preview.subject,p_body:noMail?'':c.preview.body,p_vars:v,p_send:!noMail}));state.compose=null;},
+    noMail?'Lead closed':c.tpl==='won'?'Marked as won and email sent':'Email sent',btn);}
 
 let patternsCache=[];
 async function vPatterns(){
@@ -498,6 +582,13 @@ $('#main').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='rfilter'){state.reportsFilter=b.dataset.k;render();}
   else if(a==='lfilter'){state.leadsFilter=b.dataset.k;render();}
+  else if(a==='lact'){const k=b.dataset.k;
+    if(k==='replied'){act(()=>run(sb.from('business_leads').update({next_action_at:null,follow_ups:0,updated_at:now()}).eq('id',id)),'Marked as replied. Automatic follow-ups paused.',b);return;}
+    if(k==='reopen'){act(()=>run(sb.from('business_leads').update({stage:'contacted',next_action_at:null,follow_ups:0,updated_at:now()}).eq('id',id)),'Lead reopened',b);return;}
+    if(!LTPL[k])return;state.compose={id,tpl:k,vars:{}};render();}
+  else if(a==='lprev'){leadPreview(id,b);}
+  else if(a==='lsend'){leadSend(id,b);}
+  else if(a==='lcancel'){state.compose=null;render();}
   else if(a==='days'){state.days=+b.dataset.k;render();}
   else if(a==='csv'){download(b.dataset.k,b);}
   else if(a==='rset'){const k=b.dataset.k;if(!['accepted','rejected'].includes(k))return;act(()=>run(sb.from('reports').update({status:k,reviewed_at:now()}).eq('id',id)),k==='accepted'?'Report accepted':'Report rejected',b);}
@@ -512,6 +603,7 @@ $('#main').addEventListener('click',e=>{
       if(k==='upheld')await run(sb.from('entities').update({admin_level:'unverified',admin_note:'Cleared on appeal'+(note?': '+note:'')}).eq('id',b.dataset.e));},
       k==='upheld'?'Appeal upheld, flag cleared':'Appeal rejected',b);}
 });
+$('#main').addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dataset.cv==='send'&&state.compose){readCompose(state.compose.id);state.compose.preview=null;render();}});
 $('#main').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector('button[type=submit]');
   if(f.id==='esearch'){state.q=$('#eq').value;render();return;}
@@ -532,8 +624,10 @@ $('#main').addEventListener('submit',async e=>{
       await run(sb.from('reports').insert({entity_id:ent.id,source:'admin',scam_type:scam||null,description:desc||null,status:'accepted',reviewed_at:now()}));
     },'Report saved',btn);
     if(ok)f.reset();return;}
-  if(f.dataset.form==='lead'){const st=$('#ls-'+f.dataset.id).value;if(!LSTAT[st])return;
-    act(()=>run(sb.from('business_leads').update({status:st,admin_note:$('#ln-'+f.dataset.id).value.trim()||null,updated_at:now()}).eq('id',f.dataset.id)),'Lead updated',btn);return;}
+  if(f.dataset.form==='lead'){const id=f.dataset.id,st=$('#ls-'+id).value;if(!LSTAT[st])return;
+    const vr=$('#lv-'+id).value.replace(/[^0-9.]/g,''),val=vr===''?null:Number(vr);if(val!=null&&!(val>=0)){toast('Enter the deal value as a number.');return;}
+    const auto=$('#la-'+id).checked;
+    act(()=>run(sb.from('business_leads').update({stage:st,deal_value:val,auto_follow_up:auto,admin_note:$('#ln-'+id).value.trim()||null,updated_at:now(),...(st==='won'?{won_at:now(),next_action_at:null}:{}),...(st==='lost'?{next_action_at:null}:{})}).eq('id',id)),'Lead updated',btn);return;}
   if(f.dataset.form==='override'){const lv=$('#ov-level').value;if(lv&&!LEVELS[lv])return;
     act(()=>run(sb.from('entities').update({admin_level:lv||null,admin_note:$('#ov-note').value.trim()||null}).eq('id',f.dataset.id)),'Override saved',btn);return;}
   if(f.dataset.form==='pattern'){const v={title:$('#p-title').value.trim(),category:$('#p-cat').value.trim(),example_text:$('#p-ex').value.trim()||null,warning_signs:$('#p-warn').value.trim()||null,advice:$('#p-adv').value.trim()||null};

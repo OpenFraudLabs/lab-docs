@@ -20,7 +20,7 @@
         .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j&&j.message||'Something went wrong.');return j;});})
         .then(function(){
           var d=document.createElement('div');d.className='done';d.setAttribute('role','status');
-          d.innerHTML='<div class="kicker">Request received</div><h3>Thank you, '+v('name').split(' ')[0].replace(/[<>&"]/g,'')+'.</h3><p>We will reply to <b>'+v('email').replace(/[<>&"]/g,'')+'</b> within two working days. If it is urgent, email hello@openfraudlabs.com.</p>';
+          d.innerHTML='<div class="kicker">Request received</div><h3>Thank you, '+v('name').split(' ')[0].replace(/[<>&"]/g,'')+'.</h3><p>We have sent a confirmation to <b>'+v('email').replace(/[<>&"]/g,'')+'</b> (check spam if you do not see it) and will reply within two working days. If it is urgent, email hello@openfraudlabs.com.</p>';
           f.replaceWith(d);d.scrollIntoView({behavior:'smooth',block:'center'});
         })
         .catch(function(err){msg.hidden=false;msg.dataset.k='err';msg.textContent=(err&&err.message)||'Could not send. Please email hello@openfraudlabs.com.';btn.disabled=false;btn.textContent=f.dataset.label||'Send request';});
