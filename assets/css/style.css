@@ -2313,3 +2313,16 @@ img {
 .ofl-sign__status { margin: 0; font-size: 0.88rem; font-weight: 600; min-height: 1.2em; }
 .ofl-sign__status.is-ok { color: #047857; }
 .ofl-sign__status.is-bad { color: #b91c1c; }
+
+/* Vision and mission (homepage) */
+.vm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;margin-top:1.5rem}
+.vm-card{border-radius:20px;padding:1.75rem;border:1px solid}
+.vm-card--vision{background:linear-gradient(160deg,#EAF1FF,#F7FAFF);border-color:#BFD3FF}
+.vm-card--mission{background:linear-gradient(160deg,#E6F8EE,#F6FCF8);border-color:#A9E3C3}
+.vm-card__label{margin:0;font-size:.8rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.vm-card--vision .vm-card__label{color:#2453E6}
+.vm-card--mission .vm-card__label{color:#0E8A4A}
+.vm-card__text{margin:.85rem 0 0;font-size:1.25rem;line-height:1.5;font-weight:600;color:#0B1B2B}
+.vm-values{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;padding:0;margin:1.25rem 0 0}
+.vm-values li{font-size:.9rem;font-weight:600;padding:.45rem .9rem;border-radius:999px;background:#fff;border:1px solid #D7DFEA;color:#24364A}
+@media (max-width:760px){.vm-grid{grid-template-columns:1fr}.vm-card__text{font-size:1.1rem}}

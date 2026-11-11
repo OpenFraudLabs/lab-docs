@@ -24,10 +24,12 @@
   var fmt = function (n) { return Number(n || 0).toLocaleString('en-NG'); };
   rpc('checkam_public_stats').then(function (s) {
     if (!s || typeof s !== 'object') return;
-    $('n-checks').textContent = fmt(s.checks);
-    $('n-reports').textContent = fmt(s.reports);
-    if (Number(s.multi_reported) > 0) { $('n-third').textContent = fmt(s.multi_reported); }
-    else { $('n-third').textContent = fmt(s.alerts_tracked); $('n-third-label').textContent = 'Scam and cyber alerts tracked'; }
+    // Real counts only. Each box shows a usage count once it is big enough to be meaningful,
+    // and until then a different true figure about what CheckAm covers.
+    function put(i, n, label) { $('n-' + i).textContent = fmt(n); $('n-' + i + '-l').textContent = label; }
+    if (Number(s.checks) >= 1000) put(1, s.checks, 'Scam checks run'); else put(1, s.scam_types, 'Scam types CheckAm recognises');
+    if (Number(s.reports) >= 100) put(2, s.reports, 'Scam reports received'); else put(2, s.alerts_tracked, 'Scam and cyber alerts tracked');
+    if (Number(s.multi_reported) >= 25) put(3, s.multi_reported, 'Accounts reported by 2 or more people');
   }).catch(function () { $('n-note').textContent = 'Live numbers could not load right now.'; });
 
   // Threat Brief sign-up (double opt-in: a confirmation email is sent first)
