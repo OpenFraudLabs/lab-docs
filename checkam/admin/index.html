@@ -418,8 +418,8 @@ async function vLeads(){
   const open=all.filter(l=>!['won','lost'].includes(l.stage)), monthStart=new Date();monthStart.setDate(1);monthStart.setHours(0,0,0,0);
   const sum=a=>a.reduce((s,l)=>s+(Number(l.deal_value)||0),0);
   const props=all.filter(l=>l.stage==='proposal'), wonM=all.filter(l=>l.stage==='won'&&l.won_at&&new Date(l.won_at)>=monthStart);
-  const stuck=mails.filter(m=>m.status==='queued'&&Date.now()-new Date(m.created_at)>3*60e3).length, failed=mails.filter(m=>m.status==='failed').length;
-  $('#lsum').innerHTML=(stuck?`<div class="banner"><b>${stuck} email${stuck===1?' is':'s are'} waiting to go out</b>The email sender is not working yet. Check that RESEND_API_KEY is set under Edge Functions → Secrets in the CheckAm Supabase project.</div>`:'')+
+  const mh=(await sb.rpc('admin_mail_health')).data||{}, stuck=Number(mh.waiting??mails.filter(m=>m.status==='queued'&&Date.now()-new Date(m.created_at)>3*60e3).length), failed=mails.filter(m=>m.status==='failed').length;
+  $('#lsum').innerHTML=(stuck?`<div class="banner"><b>${stuck} email${stuck===1?' is':'s are'} waiting to go out</b>This includes form confirmations and Threat Brief emails. The email sender is not working: check that RESEND_API_KEY is set under Edge Functions → Secrets in the CheckAm Supabase project.</div>`:'')+
     (failed?`<div class="banner" data-k="err"><b>${failed} email${failed===1?'':'s'} failed</b>Open the lead's Emails list to see why, then send it again with "Write an email".</div>`:'')+
     `<div class="grid stats" style="margin-bottom:14px">
       <div class="stat"><span>Open leads</span><b>${open.length}</b><small>${all.filter(l=>l.stage==='new').length} new, waiting for you</small></div>
