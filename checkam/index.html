@@ -126,6 +126,12 @@ textarea{min-height:90px;resize:vertical}
 .ncard .tags{display:flex;flex-wrap:wrap;gap:6px}
 .ncard .tags span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px}
 .ncard .tags span.ng{color:var(--caution);background:var(--bg)}
+.wcard{display:grid;gap:12px;margin-top:6px}
+.wcard img{width:100%;max-width:440px;height:auto;border-radius:16px;border:1px solid var(--line);display:block}
+.wcard-actions{display:flex;flex-wrap:wrap;gap:8px}
+.wcard-actions .btn{font-size:14.5px;padding:9px 14px}
+.weekly{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+@media (max-width:820px){.weekly{grid-template-columns:1fr}}
 .formmsg{font-size:14.5px;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
 
 .biz{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
@@ -191,6 +197,16 @@ body{margin:0}a{color:inherit}</style>
     </form>
     <div class="res" id="ck-res" aria-live="polite"><p class="muted">Your result appears here.</p></div>
   </div>
+</div></section>
+
+<section class="band" id="weekly" hidden><div class="wrap weekly">
+  <div>
+    <div class="kicker">This week's scam warning</div>
+    <h2 id="weekly-title">Scam warning</h2>
+    <p class="intro">Forward this card to your family groups and WhatsApp status. It shows the trick and the warning signs, never anyone's name or account, so it is safe to share.</p>
+    <p class="intro">Anyone who sees it can check a suspicious message free on WhatsApp: <a href="https://wa.me/2347038317433?text=CARD" target="_blank" rel="noopener">+234 703 831 7433</a>.</p>
+  </div>
+  <div id="weekly-card"></div>
 </div></section>
 
 <section class="band" id="news"><div class="wrap">
@@ -311,6 +327,7 @@ body{margin:0}a{color:inherit}</style>
         if(j.error){out.innerHTML='<p>'+esc(j.error)+'</p>';return;}
         var l=L[j.level]||L.unverified;
         out.innerHTML='<span class="lvl" style="--c:'+l[1]+'">'+l[0]+'</span><b>Why:</b><ul>'+(j.reasons||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul><p><b>What to do:</b> '+esc(j.advice||'')+'</p><p class="muted">Scammed or spotted a scam? <a href="https://wa.me/2347038317433?text=REPORT" target="_blank" rel="noopener">Report it on WhatsApp</a> to warn others.</p>';
+        if(j.level==='likely_scam'&&j.card&&window.CheckAmCards){var cb=window.CheckAmCards.block(j.card);if(cb){var h=document.createElement('p');h.innerHTML='<b>Warn others:</b> share this card. It shows the trick, never anyone\'s details.';out.appendChild(h);out.appendChild(cb);}}
       }).catch(function(){out.innerHTML='<p>Something went wrong. Please try again, or use CheckAm on WhatsApp.</p>';})
       .then(function(){btn.disabled=false;btn.textContent='Check it';});
   });
@@ -328,5 +345,6 @@ body{margin:0}a{color:inherit}</style>
   document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href*="wa.me"]');if(!a)return;log(/REPORT/i.test(a.href)?'report_click':'wa_click');});
 })();
 </script>
+<script src="/assets/checkam/cards.js?v=20261111"></script>
 </body>
 </html>

@@ -160,6 +160,15 @@ textarea{min-height:76px;resize:vertical}
       <p style="margin:6px 0 14px">We sent a sign-in link to <b id="lg-sent"></b>. Open the email on this device and tap the link. It can take a minute to arrive; check spam too.</p>
       <button class="btn" type="button" id="lg-back">Use another email</button>
     </div>
+    <div id="login-mfa" hidden>
+      <h1>Two-step sign-in</h1>
+      <p style="margin:6px 0 14px">Enter the 6-digit code from your authenticator app.</p>
+      <form class="f" id="mfaForm">
+        <label>Code<input id="mfa-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+        <button class="btn primary" type="submit">Verify</button>
+      </form>
+      <button class="btn" type="button" id="mfa-out" style="margin-top:10px">Sign out</button>
+    </div>
     <div class="banner" data-k="err" id="lg-err" hidden></div>
   </div>
 </div>
@@ -175,6 +184,7 @@ textarea{min-height:76px;resize:vertical}
       <button data-v="leads">Business leads <span class="count" id="c-leads">–</span></button>
       <button data-v="insights">Insights &amp; data</button>
       <button data-v="patterns">Scam patterns</button>
+      <button data-v="cards">Warning cards</button>
       <button data-v="settings">Settings</button>
     </nav>
     <a class="btn" href="/academy/admin/" style="text-decoration:none;text-align:center">Academy staff dashboard →</a>
@@ -234,12 +244,26 @@ $('#pwForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.
 $('#lg-back').addEventListener('click',()=>{$('#login-step2').hidden=true;$('#login-step1').hidden=false;$('#lg-err').hidden=true;});
 $('#signout').addEventListener('click',async()=>{await sb.auth.signOut({scope:'local'});ready=false;$('#login-step2').hidden=true;$('#login-step1').hidden=false;showLogin();});
 
+let me=null;
+$('#mfaForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.target.querySelector('button');const code=$('#mfa-code').value.trim();
+  if(!/^\d{6}$/.test(code)){showLogin('<b>Enter the 6 digits</b>Use the current code from your authenticator app.');$('#login-step1').hidden=true;$('#login-mfa').hidden=false;return;}
+  btn.disabled=true;$('#lg-err').hidden=true;
+  const {data:f}=await sb.auth.mfa.listFactors();const totp=(f&&f.totp||[]).find(x=>x.status==='verified');
+  const {error}=totp?await sb.auth.mfa.challengeAndVerify({factorId:totp.id,code}):{error:{message:'No authenticator found'}};
+  btn.disabled=false;$('#mfa-code').value='';
+  if(error){const el=$('#lg-err');el.innerHTML='<b>That code did not work</b>Codes change every 30 seconds. Try the current one.';el.hidden=false;return;}
+  const {data}=await sb.auth.getSession();ready=false;enter(data.session);});
+$('#mfa-out').addEventListener('click',async()=>{await sb.auth.signOut({scope:'local'});ready=false;$('#login-mfa').hidden=true;$('#login-step1').hidden=false;showLogin();});
+
 async function enter(session){
   if(!session){ready=false;showLogin();return;}
   lastSession=session;
   if(ready)return;
   let who=null;try{who=(await run(sb.rpc('admin_whoami'))).data;}catch(e){}
   if(!who||!who.is_admin){await sb.auth.signOut({scope:'local'});showLogin('<b>Not an admin</b>'+esc(session.user.email)+' is signed in but is not a CheckAm admin.');return;}
+  me=who;
+  if(who.has_mfa&&who.aal!=='aal2'){$('#app').hidden=true;$('#login').hidden=false;$('#login-step1').hidden=true;$('#login-step2').hidden=true;$('#login-mfa').hidden=false;$('#lg-err').hidden=true;setTimeout(()=>$('#mfa-code').focus(),50);return;}
+  $('#login-mfa').hidden=true;$('#login-step1').hidden=false;
   ready=true;$('#login').hidden=true;$('#app').hidden=false;setConn('ok','Signed in as '+who.email);render();counts();
 }
 
@@ -261,7 +285,7 @@ async function vOverview(){
   const by={};last7.forEach(r=>by[r.verdict]=(by[r.verdict]||0)+1);
   const total=last7.length, col={likely_scam:'var(--scam)',caution:'var(--caution)',unverified:'var(--unver)',looks_fine:'var(--fine)'};
   const help=fb>0?Math.round(100*helpful/fb)+'%':'–';
-  shell('Overview',sub,`
+  shell('Overview',sub,`${me&&!me.has_mfa?'<div class="banner" data-k="warn" style="margin-bottom:14px"><b>Protect this admin</b>Turn on two-step sign-in under Settings, so a stolen password or email link is not enough to get in.</div>':''}
   <div class="grid stats">
     <div class="stat"><span>Checks · 24 h</span><b>${c24}</b><small>${c7} in 7 days</small></div>
     <div class="stat"><span>WhatsApp users</span><b>${users}</b><small>unique numbers, hashed</small></div>
@@ -470,6 +494,42 @@ async function vSettings(){
     <label>Type it again<input id="pw2" type="password" autocomplete="new-password" minlength="8" required></label></div>
     <p class="sub" style="margin:0">At least 8 characters. Use one you don't use anywhere else.</p>
     <div class="row"><button class="btn primary" type="submit">Save password</button></div></form></div></section>`);
+  const on=!!(me&&me.has_mfa);
+  $('#main').insertAdjacentHTML('beforeend',`<section class="panel" style="margin-top:14px" id="mfa"><header><h2>Two-step sign-in</h2><span class="sub">${on?'On. Every sign-in also needs a code from your authenticator app.':'Off. Turn it on so a stolen password or email link is not enough to get in.'}</span></header><div class="body" id="mfa-body">
+    ${on?`<div class="row"><span class="tag">On ✓</span><button class="btn" data-act="mfaoff">Turn off</button></div>`
+       :`<p class="sub" style="margin:0 0 10px">You need an authenticator app such as Google Authenticator or Microsoft Authenticator (free).</p><button class="btn primary" data-act="mfastart">Set up two-step sign-in</button>`}
+  </div></section>
+  <section class="panel" style="margin-top:14px"><header><h2>Recent admin actions</h2><span class="sub">Every change made in this admin, newest first. It cannot be edited or deleted.</span></header><div id="audit">${loading}</div></section>`);
+  try{const log=await rows(sb.from('admin_audit').select('at,actor_email,table_name,action,changes').order('at',{ascending:false}).limit(40));
+    $('#audit').innerHTML=log.length?`<div class="tablewrap"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>Change</th></tr></thead><tbody>${log.map(l=>`<tr><td class="mono">${esc(when(l.at))}</td><td>${esc(l.actor_email||'')}</td><td>${esc(l.action)} · ${esc(l.table_name.replace(/_/g,' '))}</td><td class="sub" style="max-width:420px;word-break:break-word">${esc(Object.entries(l.changes||{}).map(([k,v])=>k+': '+v).join(', ').slice(0,240))}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty"><b>No actions yet</b>Changes you make from now on are recorded here.</div>`;}catch(e){$('#audit').innerHTML=`<div class="empty">${esc(errText(e))}</div>`;}
+}
+async function mfaStart(btn){btn.disabled=true;
+  try{const {data:f}=await sb.auth.mfa.listFactors();for(const x of (f&&f.all||[]).filter(x=>x.status!=='verified'))await sb.auth.mfa.unenroll({factorId:x.id});
+    const {data,error}=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'CheckAm admin '+Date.now()});if(error)throw error;
+    state.mfaFactor=data.id;
+    $('#mfa-body').innerHTML=`<div class="grid two" style="align-items:start"><div><p style="margin:0 0 8px"><b>1.</b> Open your authenticator app and scan this code.</p><img alt="QR code for your authenticator app" src="${esc(data.totp.qr_code)}" style="width:190px;height:190px;background:#fff;border-radius:10px;padding:8px">
+      <p class="sub" style="margin:8px 0 0">Can't scan? Type this key: <span class="mono" style="user-select:all;word-break:break-all">${esc(data.totp.secret)}</span></p></div>
+      <form class="f" id="mfaEnroll"><p style="margin:0"><b>2.</b> Enter the 6-digit code the app shows.</p><label>Code<input id="mfa-new" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+      <div class="row"><button class="btn primary" type="submit">Turn on</button><button class="btn" type="button" data-act="cancel">Cancel</button></div></form></div>`;
+  }catch(e){toast(errText(e));btn.disabled=false;}}
+
+/* ---------- warning cards and December Scam Watch ---------- */
+async function vCards(){
+  shell('Warning cards','Shareable scam warnings. CheckAm sends a rule card automatically with a Likely scam verdict. The featured card shows on openfraudlabs.com/checkam as “This week\'s scam warning”.',`<section class="panel" id="camp">${loading}</section><section class="panel" style="margin-top:14px" id="wcards">${loading}</section>`);
+  const [cards,weeks]=await Promise.all([rows(sb.from('warning_cards').select('*').order('sort')),rows(sb.rpc('checkam_campaign_weekly',{p_weeks:12}))]);
+  state.weeks=weeks;
+  const num=n=>Number(n||0).toLocaleString();
+  $('#camp').innerHTML=`<header><h2>December Scam Watch · weekly numbers</h2><button class="btn" data-act="csv" data-k="weekly">Download CSV</button></header>
+    <p class="sub" style="margin:0 16px 10px">Your own and test activity are left out. “New from cards” = first message was a CARD code.</p>
+    <div class="tablewrap"><table><thead><tr><th>Week of</th><th>New users</th><th>Active users</th><th>Checks</th><th>Likely scam</th><th>Cards sent</th><th>Status cards</th><th>CARD arrivals</th><th>New from cards</th><th>Web shares</th><th>Top scam types</th></tr></thead><tbody>
+    ${weeks.map(w=>`<tr><td class="mono">${esc(w.week_start)}</td><td>${num(w.new_users)}</td><td>${num(w.active_users)}</td><td>${num(w.checks)}</td><td>${num(w.likely_scam)}</td><td>${num(w.cards_sent)}</td><td>${num(w.status_cards)}</td><td>${num(w.card_arrivals)}</td><td>${num(w.new_users_from_cards)}</td><td>${num(w.web_card_shares)}</td><td class="sub">${esc((w.top_scam_types||[]).map(t=>t.card+' ('+t.n+')').join(', ')||'–')}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  const card=c=>`<div class="pat" style="display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:start">
+      <img src="/assets/checkam/cards/${esc(c.key)}-square.jpg" alt="" loading="lazy" style="width:120px;height:120px;border-radius:10px;border:1px solid var(--line)">
+      <div><div class="row" style="justify-content:space-between"><div class="row"><h3 style="font-size:16px">${esc(c.title)}</h3><span class="tag">${c.kind==='campaign'?'Campaign':'Sent by CheckAm'}</span>${c.featured?pill('looks_fine').replace('Looks fine','Featured on website'):''}</div></div>
+      <p class="sub" style="margin:6px 0 8px">Code on card: <span class="mono">CARD ${esc(c.code)}</span> · <a href="/assets/checkam/cards/${esc(c.key)}-square.jpg" download>Square</a> · <a href="/assets/checkam/cards/${esc(c.key)}-story.jpg" download>Status size</a></p>
+      ${c.featured?'':`<button class="btn" data-act="feature" data-id="${esc(c.key)}">Feature on website</button>`}</div></div>`;
+  $('#wcards').innerHTML=`<header><h2>${cards.length} cards</h2></header>${cards.map(card).join('')}`;
 }
 
 /* ---------- insights ---------- */
@@ -546,7 +606,8 @@ async function all(build){let out=[],from=0;for(;;){const d=await rows(build().r
 async function download(kind,btn){
   btn.disabled=true;const days=state.days||30,since=new Date(Date.now()-days*864e5).toISOString(),stamp=new Date().toISOString().slice(0,10);
   try{
-    if(kind==='daily'){save(`checkam-daily-${days}d-${stamp}.csv`,toCSV(lastInsights.daily,['day','visits','wa_clicks','checks','likely_scam','caution','reports']));}
+    if(kind==='weekly'){save(`checkam-scam-watch-weekly-${stamp}.csv`,toCSV((state.weeks||[]).map(w=>({...w,top_scam_types:(w.top_scam_types||[]).map(t=>t.card+' ('+t.n+')').join('; ')})),['week_start','new_users','active_users','checks','likely_scam','cards_sent','status_cards','card_arrivals','new_users_from_cards','web_card_shares','top_scam_types']));}
+    else if(kind==='daily'){save(`checkam-daily-${days}d-${stamp}.csv`,toCSV(lastInsights.daily,['day','visits','wa_clicks','checks','likely_scam','caution','reports']));}
     else if(kind==='reports'){const d=await all(()=>sb.from('reports').select('created_at,status,source,scam_type,description,entities(type,value_normalized,bank_name)').order('created_at',{ascending:false}));
       save(`checkam-reports-${stamp}.csv`,toCSV(d.map(r=>({date:r.created_at,status:r.status,source:r.source,entity_type:(r.entities||{}).type,value:(r.entities||{}).value_normalized,bank:(r.entities||{}).bank_name,scam_type:r.scam_type,description:r.description})),['date','status','source','entity_type','value','bank','scam_type','description']));}
     else if(kind==='entities'){const d=await all(()=>sb.from('entity_risk').select('type,value_normalized,bank_name,unique_reporters,pending_reports,level,last_reported').order('unique_reporters',{ascending:false}));
@@ -558,7 +619,7 @@ async function download(kind,btn){
   btn.disabled=false;
 }
 
-const VIEWS={leads:vLeads,insights:vInsights,overview:vOverview,reports:vReports,entities:vEntities,appeals:vAppeals,patterns:vPatterns,settings:vSettings};
+const VIEWS={cards:vCards,leads:vLeads,insights:vInsights,overview:vOverview,reports:vReports,entities:vEntities,appeals:vAppeals,patterns:vPatterns,settings:vSettings};
 async function render(){
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.v===view)));
   try{await VIEWS[view]();}catch(e){$('#main').insertAdjacentHTML('afterbegin',`<div class="banner" data-k="err"><b>Could not load this section</b>${esc(errText(e))}</div>`);}
@@ -590,6 +651,9 @@ $('#main').addEventListener('click',e=>{
   else if(a==='lsend'){leadSend(id,b);}
   else if(a==='lcancel'){state.compose=null;render();}
   else if(a==='days'){state.days=+b.dataset.k;render();}
+  else if(a==='mfastart'){mfaStart(b);}
+  else if(a==='mfaoff'){act(async()=>{const {data:f}=await sb.auth.mfa.listFactors();for(const x of (f&&f.totp||[])){const {error}=await sb.auth.mfa.unenroll({factorId:x.id});if(error)throw error;}await sb.auth.refreshSession();me=(await run(sb.rpc('admin_whoami'))).data;},'Two-step sign-in turned off',b);}
+  else if(a==='feature'){if(!/^[a-z0-9-]{2,40}$/.test(id))return;act(async()=>{await run(sb.from('warning_cards').update({featured:false,updated_at:now()}).eq('featured',true));await run(sb.from('warning_cards').update({featured:true,updated_at:now()}).eq('key',id));},'Card featured on the website',b);}
   else if(a==='csv'){download(b.dataset.k,b);}
   else if(a==='rset'){const k=b.dataset.k;if(!['accepted','rejected'].includes(k))return;act(()=>run(sb.from('reports').update({status:k,reviewed_at:now()}).eq('id',id)),k==='accepted'?'Report accepted':'Report rejected',b);}
   else if(a==='edit'){state.editing=id||null;state.confirm=null;render();}
@@ -607,6 +671,10 @@ $('#main').addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dat
 $('#main').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector('button[type=submit]');
   if(f.id==='esearch'){state.q=$('#eq').value;render();return;}
+  if(f.id==='mfaEnroll'){const code=$('#mfa-new').value.trim();if(!/^\d{6}$/.test(code)){toast('Enter the 6-digit code.');return;}btn.disabled=true;
+    const {error}=await sb.auth.mfa.challengeAndVerify({factorId:state.mfaFactor,code});btn.disabled=false;
+    if(error){toast('That code did not work. Try the current one.');return;}
+    await sb.auth.refreshSession();me=(await run(sb.rpc('admin_whoami'))).data;toast('Two-step sign-in is on. You will need a code each time you sign in.');render();return;}
   if(f.id==='pwSet'){const a=$('#pw1').value,b2=$('#pw2').value;if(a.length<8){toast('Use at least 8 characters.');return;}if(a!==b2){toast('The two passwords do not match.');return;}
     btn.disabled=true;
     let {data:cur}=await sb.auth.getSession();
