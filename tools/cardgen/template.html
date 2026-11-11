@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Inter;font-weight:400;src:url(node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2)}
+@font-face{font-family:Inter;font-weight:500;src:url(node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2)}
+@font-face{font-family:Inter;font-weight:600;src:url(node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2)}
+@font-face{font-family:Inter;font-weight:700;src:url(node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2)}
+@font-face{font-family:Inter;font-weight:800;src:url(node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2)}
+:root{--navy:#06111F;--panel:#0D1C2E;--line:#1E3350;--text:#F2F6FA;--soft:#A9BACB;--green:#25D366;--red:#FF5B4F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:var(--h);background:var(--navy);font-family:Inter,sans-serif;color:var(--text);overflow:hidden}
+.card{position:relative;width:1080px;height:var(--h);padding:var(--pad);display:flex;flex-direction:column;gap:var(--gap);
+  background:radial-gradient(900px 600px at 100% 0%,rgba(37,211,102,.13),transparent 60%),radial-gradient(800px 700px at 0% 100%,rgba(54,110,220,.16),transparent 60%),var(--navy)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:20px}
+.brand img{width:var(--logo);height:var(--logo);border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.brand b{display:block;font-size:var(--bname);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.brand small{display:block;font-size:22px;color:var(--soft);font-weight:500;margin-top:4px}
+.pill{font-size:21px;font-weight:800;letter-spacing:.08em;color:#fff;background:var(--red);border-radius:999px;padding:12px 22px;white-space:nowrap}
+.kicker{font-size:22px;font-weight:700;letter-spacing:.12em;color:var(--green);text-transform:uppercase}
+h1{font-size:var(--title);font-weight:800;line-height:1.04;letter-spacing:-.03em;margin-top:10px}
+.msg{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:28px;padding:26px 30px 30px}
+.msg .lbl{font-size:19px;font-weight:600;color:var(--soft);display:flex;justify-content:space-between;align-items:center}
+.msg .lbl i{font-style:normal;color:var(--red);font-weight:800;letter-spacing:.06em}
+.msg p{font-size:var(--msg);line-height:1.42;margin-top:12px;filter:blur(3.2px);color:#DCE6F0;user-select:none}
+.signs{display:grid;gap:14px}
+.sign{display:flex;gap:16px;align-items:flex-start;font-size:var(--sign);font-weight:600;line-height:1.3}
+.sign span{flex:none;width:40px;height:40px;border-radius:12px;background:rgba(255,91,79,.16);color:var(--red);display:grid;place-items:center;font-size:24px;font-weight:800;margin-top:2px}
+.todo{display:flex;gap:16px;align-items:flex-start;font-size:var(--sign);font-weight:600;line-height:1.3;color:var(--text)}
+.todo span{flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,211,102,.16);color:var(--green);display:grid;place-items:center;font-size:24px;font-weight:800;margin-top:2px}
+.spacer{flex:1}
+.foot{background:var(--green);color:#04210F;border-radius:28px;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.foot b{display:block;font-size:var(--fbig);font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.foot small{display:block;font-size:22px;font-weight:600;margin-top:6px}
+.code{flex:none;text-align:center;background:#06111F;color:#fff;border-radius:18px;padding:14px 20px}
+.code small{font-size:16px;color:var(--soft);font-weight:600;margin:0}
+.code b{font-size:28px;color:var(--green);margin-top:2px}
+.story-only{display:none}
+body.story .story-only{display:block}
+.slogan{font-size:var(--slogan);font-weight:800;letter-spacing:-.03em;line-height:1.05;text-align:center}
+.slogan em{font-style:normal;color:var(--green)}
+.card:not(.x) .sl{text-align:center}
+body:not(.story) .share{display:none}
+.share{font-size:24px;color:var(--soft);text-align:center;font-weight:500;margin-top:14px}
+</style></head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="brand"><img src="logo-round.png" alt=""><div><b>Open Fraud Labs</b><small>CheckAm scam warning</small></div></div>
+    <div class="pill">⚠ SCAM ALERT</div>
+  </div>
+  <div><div class="kicker" id="kicker">Watch out for this</div><h1 id="title"></h1></div>
+  <div class="msg"><div class="lbl"><span>Example message (blurred)</span><i>LIKELY SCAM</i></div><p id="example"></p></div>
+  <div class="signs" id="signs"></div>
+  <div class="todo"><span>✓</span><div id="todo"></div></div>
+  <div class="spacer"></div>
+  <div class="sl"><div class="slogan">Before you pay,<br><em>CheckAm it.</em></div><div class="share">Forward this to your family and groups.</div></div>
+  <div class="spacer story-only"></div>
+  <div class="foot">
+    <div><b>Checked with CheckAm, by Open Fraud Labs</b><small>Free on WhatsApp: +234 703 831 7433</small></div>
+    <div class="code"><small>Send</small><b id="code"></b></div>
+  </div>
+</div>
+<script>
+const q=new URLSearchParams(location.search), c=JSON.parse(q.get('c')), story=q.get('s')==='1';
+const R=document.documentElement.style;
+if(story){document.body.classList.add('story');Object.entries({'--h':'1920px','--pad':'90px 64px 90px','--gap':'44px','--logo':'112px','--bname':'44px','--title':'96px','--msg':'38px','--sign':'38px','--fbig':'30px','--slogan':'76px'}).forEach(([k,v])=>R.setProperty(k,v));}
+else Object.entries({'--h':'1080px','--pad':'54px 60px 54px','--gap':'24px','--logo':'84px','--bname':'36px','--title':'62px','--msg':'28px','--sign':'28px','--fbig':'26px','--slogan':'40px'}).forEach(([k,v])=>R.setProperty(k,v));
+const esc=t=>t.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+document.getElementById('title').textContent=c.title;
+document.getElementById('example').textContent=c.example;
+document.getElementById('todo').textContent=c.todo;
+document.getElementById('code').textContent='CARD '+c.code;
+document.getElementById('kicker').textContent=c.kind==='campaign'?'December Scam Watch':'Watch out for this';
+document.getElementById('signs').innerHTML=c.signs.map(s=>'<div class="sign"><span>!</span><div>'+esc(s)+'</div></div>').join('');
+document.fonts.ready.then(()=>document.body.dataset.ready='1');
+</script>
+</body></html>

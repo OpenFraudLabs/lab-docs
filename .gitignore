@@ -7,3 +7,5 @@
 # Allow only sample synthetic data
 !sample_data/synthetic_*.csv
 .uxfonts/
+tools/cardgen/node_modules/
+tools/cardgen/logo-round.png
