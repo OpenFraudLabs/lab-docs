@@ -1117,12 +1117,54 @@
                         roleDlg.close(); OFL.notice(msg, 'Reminder sent to ' + (a.full_name || a.email) + '.', 'success'); loadRoleApps(); } });
                     b.appendChild(el('div', { class: 'ofl-actions' }, rn, el('span', { class: 'ac-muted ac-small', text: a.nudged_at ? 'Last reminded ' + dt(a.nudged_at) : 'Automatic reminders also go out before the deadline.' })));
                 }
+                if (a.interview_at && a.interview_live !== false) {
+                    var past = new Date(a.interview_at) < new Date();
+                    b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: past ? 'Interview (held)' : 'Interview booked' }),
+                        el('p', { text: new Date(a.interview_at).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) + ' (Lagos time)' }),
+                        a.interview_link ? el('a', { href: a.interview_link, target: '_blank', rel: 'noopener noreferrer', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Open the meeting link' }) : null));
+                }
+                var book = el('div', { class: 'app-card', hidden: true });
+                function openBooking() {
+                    if (!book.hidden) { book.hidden = true; return; }
+                    book.textContent = '';
+                    var lagosToday = new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
+                    var tok = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(6)), function (n) { return ('0' + n.toString(16)).slice(-2); }).join('');
+                    var dIn = el('input', { type: 'date', min: lagosToday, required: true, 'aria-label': 'Interview date' });
+                    var tIn = el('input', { type: 'time', step: '300', value: '10:00', required: true, 'aria-label': 'Interview time, Lagos' });
+                    var lenIn = el('select', { 'aria-label': 'Interview length' }); [[20, '20 minutes'], [30, '30 minutes'], [45, '45 minutes'], [60, '1 hour']].forEach(function (o) { lenIn.appendChild(el('option', { value: String(o[0]), text: o[1] })); }); lenIn.value = '30';
+                    var lIn = el('input', { type: 'url', value: 'https://meet.jit.si/OpenFraudLabs-Interview-' + tok, 'aria-label': 'Meeting link', style: 'width:100%' });
+                    var bm = el('p', { class: 'ac-small', role: 'alert' });
+                    var go = el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: a.status === 'interview' ? 'Move the interview and email them' : 'Book interview and email them' });
+                    go.addEventListener('click', async function () {
+                        bm.textContent = '';
+                        if (!dIn.value || !tIn.value) { bm.textContent = 'Pick a date and a time.'; return; }
+                        var startsIso = dIn.value + 'T' + tIn.value + ':00+01:00';
+                        go.disabled = true; go.textContent = 'Booking…';
+                        var res = await sb.rpc('role_interview_book', { p_app: a.id, p_starts: startsIso, p_minutes: Number(lenIn.value), p_link: lIn.value.trim(), p_message: msgBox.value || null });
+                        go.disabled = false; go.textContent = 'Book interview and email them';
+                        if (res.error) { bm.textContent = OFL.friendlyError(res.error); return; }
+                        roleDlg.close();
+                        OFL.notice(msg, 'Interview ' + (res.data.rescheduled ? 'moved to ' : 'booked for ') + new Date(startsIso).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + '. ' + (a.full_name || a.email) + ' and you have been emailed a calendar invitation with the link. Both of you get a reminder an hour before.', 'success');
+                        loadRoleApps();
+                    });
+                    book.append(el('h3', { text: a.status === 'interview' ? 'Move the interview' : 'Book an interview' }),
+                        el('div', { style: 'display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem;margin:.4rem 0' },
+                            el('label', {}, el('span', { class: 'ac-small', text: 'Date' }), dIn), el('label', {}, el('span', { class: 'ac-small', text: 'Time (Lagos)' }), tIn), el('label', {}, el('span', { class: 'ac-small', text: 'Length' }), lenIn)),
+                        el('label', {}, el('span', { class: 'ac-small', text: 'Meeting link' }), lIn),
+                        el('p', { class: 'ac-muted ac-small', text: 'A free Jitsi link is filled in: it opens in any browser, nothing to install. Paste your Google Meet or Zoom link instead if you prefer. Your optional message above is added to their email.' }),
+                        el('div', { class: 'ofl-actions' }, go), bm);
+                    book.hidden = false;
+                    try { dIn.focus(); dIn.showPicker && dIn.showPicker(); } catch (e) {}
+                    book.scrollIntoView({ block: 'nearest' });
+                }
                 var acts = el('div', { class: 'ofl-actions' });
-                [['shortlisted', 'Shortlist', 'primary'], ['interview', 'Invite to interview', 'secondary'], ['offered', 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
-                    if (a.status === x[0]) return;
+                [['shortlisted', 'Shortlist', 'primary'], ['interview', a.status === 'interview' ? 'Move the interview' : 'Invite to interview', 'secondary'], ['offered', 'Make offer (sends offer letter)', 'secondary'], ['not_progressed', 'Not progressing', 'danger']].forEach(function (x) {
+                    if (a.status === x[0] && x[0] !== 'interview') return;
+                    if ((a.status === 'accepted' || a.status === 'hired' || a.status === 'offered') && x[0] === 'interview') return;
                     if ((a.status === 'accepted' || a.status === 'hired') && x[0] !== 'not_progressed') return;
-                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
+                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { if (x[0] === 'interview') return openBooking(); roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
                 });
+                b.appendChild(book);
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { roleDecide(a, 'note', note.value, null); } }));
                 b.appendChild(acts);
                 roleDlg.showModal();
