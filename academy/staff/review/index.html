@@ -120,9 +120,10 @@
             var sb = OFL.sb, el = OFL.el, app = document.getElementById('app'), msg = document.getElementById('msg');
             var user = await OFL.requireUser('/academy/staff/review/'); if (!user) return;
             var mc = await sb.rpc('my_staff_caps'); var admin = mc.error ? await OFL.isAdmin() : (Array.isArray(mc.data) && mc.data.indexOf('manage_checklists') >= 0);
-            var KIND = { whatsapp: 'WhatsApp post', checkin: 'Daily check-in', followup_list: 'Learner follow-up list' };
+            var KIND = { whatsapp: 'WhatsApp post', checkin: 'Daily check-in', followup_list: 'Learner follow-up list', social_post: 'Published post', content_plan: 'Weekly content calendar', results_report: 'Results report' };
             function day(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
             function scoreBlock(s) {
+                var L = s.labels || { a: 'WhatsApp posts (1 a day)', b: 'Portal messages (counted automatically)', c: 'Follow-up list', d: 'Evening check-ins (1 a day)' };
                 var pct = Math.min(100, Math.round(100 * s.score / s.max));
                 return [el('div', { class: 'rv-score' },
                     el('div', { class: 'rv-big', text: String(s.score) }, el('small', { text: ' / ' + s.max })),
@@ -131,10 +132,10 @@
                         el('div', { class: 'rv-track' }, el('div', { class: 'rv-fill', style: 'width:' + pct + '%' })),
                         el('span', { class: 'rv-tag ' + (s.met ? 'ok' : 'no'), text: s.met ? 'Target met' : (s.target - s.score) + ' more to reach the target' }))),
                     el('div', { class: 'rv-grid' },
-                        el('div', { class: 'rv-c' }, el('b', { text: s.whatsapp + '/' + s.days }), el('span', { text: 'WhatsApp posts (1 a day)' })),
-                        el('div', { class: 'rv-c' }, el('b', { text: s.portal + '/' + s.portal_max }), el('span', { text: 'Portal messages (counted automatically)' })),
-                        el('div', { class: 'rv-c' }, el('b', { text: s.followup + '/1' }), el('span', { text: 'Follow-up list by ' + day(s.followup_due) })),
-                        el('div', { class: 'rv-c' }, el('b', { text: s.checkins + '/' + s.days }), el('span', { text: 'Evening check-ins (1 a day)' })))];
+                        el('div', { class: 'rv-c' }, el('b', { text: s.whatsapp + '/' + s.days }), el('span', { text: L.a })),
+                        el('div', { class: 'rv-c' }, el('b', { text: s.portal + '/' + s.portal_max }), el('span', { text: L.b })),
+                        el('div', { class: 'rv-c' }, el('b', { text: s.followup + '/1' }), el('span', { text: L.c + ' by ' + day(s.followup_due) })),
+                        el('div', { class: 'rv-c' }, el('b', { text: s.checkins + '/' + s.days }), el('span', { text: L.d })))];
             }
             function itemList(items, canReject, reload) {
                 if (!items.length) return el('p', { class: 'ac-muted', text: 'Nothing submitted yet.' });
@@ -163,7 +164,7 @@
                         el('label', {}, el('span', { text: 'End date' }), el('input', { type: 'date', name: 'end', min: today, required: true })),
                         el('label', {}, el('span', { text: 'Follow-up list due' }), el('input', { type: 'date', name: 'due' }))),
                     el('label', {}, el('span', { text: 'Note to include in their email (optional)' }), el('textarea', { name: 'note', maxlength: 2000, style: 'min-height:80px' })),
-                    el('p', { class: 'ac-muted ac-small', text: 'They get an email straight away and the checklist appears on their staff portal. Points: 1 WhatsApp post and 1 check-in a day, 1 portal message every 2 days, plus the follow-up list (due 3 days after the start if left empty). Target: 90%. Assigning replaces any active checklist they have.' }),
+                    el('p', { class: 'ac-muted ac-small', text: 'They get an email straight away and the checklist appears on their staff portal. Points depend on their role: HR interns get 1 WhatsApp post and 1 check-in a day, 1 portal message every 2 days and a follow-up list; the Social Media intern gets 1 published post and 1 check-in a day, a weekly content calendar and a results report. New interns also get a 14-day checklist automatically from their start date, renewed every fortnight. Target: 90%. Assigning replaces any active checklist they have.' }),
                     el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Assign checklist and email them' }));
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); msg.textContent = '';
@@ -204,14 +205,12 @@
                 scoreBlock(s).forEach(function (n) { app.appendChild(n); });
                 var f = el('form', { class: 'rv-form', novalidate: true },
                     el('label', {}, el('span', { text: 'What are you submitting?' }),
-                        el('select', { name: 'kind', required: true },
-                            el('option', { value: '', text: 'Choose…' }),
-                            el('option', { value: 'whatsapp', text: 'WhatsApp post I made today' }),
-                            el('option', { value: 'checkin', text: 'Evening check-in (what I did today, what I need)' }),
-                            el('option', { value: 'followup_list', text: 'Learner follow-up list' }))),
+                        (function () { var sel = el('select', { name: 'kind', required: true }, el('option', { value: '', text: 'Choose…' }));
+                            ((s.labels && s.labels.options) || [['whatsapp', 'WhatsApp post I made today'], ['checkin', 'Evening check-in (what I did today, what I need)'], ['followup_list', 'Learner follow-up list']])
+                                .forEach(function (o) { sel.appendChild(el('option', { value: o[0], text: o[1] })); }); return sel; })()),
                     el('label', {}, el('span', { text: 'Details' }), el('textarea', { name: 'note', required: true, maxlength: 4000,
-                        placeholder: 'WhatsApp: paste or summarise the post. Check-in: what you did today and what you need. Follow-up list: each learner you contacted, how, and their reply.' })),
-                    el('label', {}, el('span', { text: 'Link (optional): screenshot or document' }), el('input', { name: 'link', type: 'url', placeholder: 'https://' })),
+                        placeholder: (s.labels && s.labels.placeholder) || 'WhatsApp: paste or summarise the post. Check-in: what you did today and what you need. Follow-up list: each learner you contacted, how, and their reply.' })),
+                    el('label', {}, el('span', { text: s.track === 'social' ? 'Link (required for a published post): the post, a screenshot or document' : 'Link (optional): screenshot or document' }), el('input', { name: 'link', type: 'url', placeholder: 'https://' })),
                     el('button', { class: 'ac-btn ac-btn--primary', type: 'submit', text: 'Submit' }));
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); msg.textContent = '';
@@ -223,10 +222,9 @@
                     loadMine();
                 });
                 app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Submit an item' }),
-                    el('ul', { class: 'rv-help' },
-                        el('li', { text: 'One WhatsApp post and one check-in count per day, from ' + day(s.starts_on) + ' to ' + day(s.ends_on) + '.' }),
-                        el('li', { text: 'Portal messages count automatically when you send them from Messages (at least one every two days).' }),
-                        el('li', { text: 'Submit the follow-up list by ' + day(s.followup_due) + '.' })), f));
+                    (function () { var ul = el('ul', { class: 'rv-help' }); var h = (s.labels && s.labels.help) || ['One WhatsApp post and one check-in count per day.', 'Portal messages count automatically when you send them from Messages (at least one every two days).', 'Submit the follow-up list by the date shown.'];
+                        h.forEach(function (t) { ul.appendChild(el('li', { text: t })); });
+                        ul.appendChild(el('li', { text: 'This checklist runs from ' + day(s.starts_on) + ' to ' + day(s.ends_on) + '. Due date: ' + day(s.followup_due) + '.' })); return ul; })(), f));
                 app.appendChild(el('div', { class: 'rv-card' }, el('h2', { text: 'Your submissions' }), itemList(s.items, false)));
             }
             admin ? loadAdmin() : loadMine();
