@@ -115,15 +115,16 @@
     <script>
         (async function () {
             var el = OFL.el, box = document.getElementById('cr-roles');
-            var roles = ((await OFL.sb.from('roles').select('slug, title, summary, paid, kind, location, commitment, duration, status, rolling').in('status', ['open', 'filled']).order('sort')).data || []);
+            var roles = ((await OFL.sb.from('roles').select('slug, title, summary, paid, kind, location, commitment, duration, status, rolling, urgency, pay_label').in('status', ['open', 'filled']).order('sort')).data || []);
             box.textContent = '';
             if (!roles.length) box.appendChild(el('p', { class: 'ac-muted', text: 'No internships are open right now.' }));
             roles.forEach(function (r) {
                 var open = r.status === 'open';
                 box.appendChild(el('article', { class: 'cr-job' }, el('div', {},
                     el('span', { class: 'ac-status ' + (open ? 'ac-status--live' : 'ac-status--soon'), text: open ? (r.rolling ? 'Open: rolling applications' : 'Open') : 'Filled' }),
+                    open && r.urgency ? el('span', { class: 'ac-status', style: 'margin-left:.4rem;' + (r.urgency === 'urgent' ? 'background:#FEF0EE;color:#B42318' : 'background:#FEF4E6;color:#B45309'), text: r.urgency === 'urgent' ? 'Urgent' : 'High priority' }) : null,
                     el('p', { class: 'cr-org', text: 'Open Fraud Labs Academy' }), el('h3', { text: r.title }), el('p', { class: 'ac-muted', text: r.summary }),
-                    el('p', { class: 'cr-meta', text: [r.paid ? 'Paid' : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
+                    el('p', { class: 'cr-meta', text: [r.paid ? (r.pay_label || 'Paid') : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
                     el('a', { class: 'ac-btn ac-btn--' + (open ? 'primary' : 'secondary'), href: '/careers/role/?r=' + encodeURIComponent(r.slug), text: open ? 'See role and apply' : 'See role' })));
             });
         })();

@@ -1018,7 +1018,7 @@
             // ---- Internship / job applications
             var roles = [], roleId = null, roleApps = [];
             var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'], ended: ['Internship ended', 'end'] };
-            var RL = { stage: { student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
+            var RL = { stage: { final_year: 'Final-year student', awaiting: 'Graduate awaiting NYSC', student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
             async function loadRoles(keep) {
                 if (!can('manage_applications')) return;
                 roles = (await sb.from('roles').select('*').order('sort')).data || [];
@@ -1068,7 +1068,7 @@
                 function row(label, v) { if (v) info.appendChild(el('div', { class: 'app-kv' }, el('span', { text: label }), typeof v === 'string' ? el('b', { text: v }) : v)); }
                 var cv = el('a', { href: '#', class: 'ac-btn ac-btn--primary ac-btn--sm', text: 'Open CV' });
                 cv.addEventListener('click', async function (e) { e.preventDefault(); var s2 = await sb.storage.from('cvs').createSignedUrl(a.cv_path, 600); if (s2.error) return OFL.notice(document.getElementById('role-dlg-msg'), 'CV not found.', 'error'); window.open(s2.data.signedUrl, '_blank', 'noopener'); });
-                row('CV', a.cv_path ? cv : null); row('Now', RL.stage[an.stage]); row('Institution', an.institution); row('Course', an.course); row('Graduation', an.grad_year);
+                row('CV', a.cv_path ? cv : null); if (an.proof_files && an.proof_files.length) { var pw = el('span', {}); an.proof_files.forEach(function (pth, i) { var pa = el('a', { href: '#', class: 'ac-btn ac-btn--secondary ac-btn--sm', style: 'margin:0 .3rem .3rem 0', text: 'Proof ' + (i + 1) + (/\.pdf$/i.test(pth) ? ' (PDF)' : '') }); pa.addEventListener('click', async function (e) { e.preventDefault(); var s3 = await sb.storage.from('role-proofs').createSignedUrl(pth, 600); if (s3.error) return OFL.notice(document.getElementById('role-dlg-msg'), 'File not found.', 'error'); window.open(s3.data.signedUrl, '_blank', 'noopener'); }); pw.appendChild(pa); }); row('Proof of experience', pw); } row('Now', RL.stage[an.stage]); row('Institution', an.institution); row('Course', an.course); row('Graduation', an.grad_year);
                 row('Location', [an.city, an.country].filter(Boolean).join(', ')); row('Time zone', an.timezone); row('Hours a week', RL.hours[an.hours]); row('Can start', an.start_date);
                 row('WhatsApp', an.phone ? el('a', { href: 'https://wa.me/' + an.phone.replace(/\D/g, ''), target: '_blank', rel: 'noopener noreferrer', text: an.phone }) : null);
                 row('LinkedIn', an.linkedin_url ? el('a', { href: an.linkedin_url, target: '_blank', rel: 'noopener noreferrer', text: 'Open profile' }) : null);

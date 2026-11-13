@@ -176,14 +176,15 @@
             document.getElementById('rl-crumb').textContent = r.title;
             document.getElementById('rl-title').textContent = r.title;
             document.getElementById('rl-summary').textContent = r.summary;
+            if (r.urgency && r.status === 'open') { var tt = document.getElementById('rl-title'); tt.parentNode.insertBefore(el('span', { class: 'ac-status', style: 'display:inline-block;margin:0 0 .6rem;' + (r.urgency === 'urgent' ? 'background:#FEF0EE;color:#B42318' : 'background:#FEF4E6;color:#B45309'), text: r.urgency === 'urgent' ? 'Urgent: hiring now' : 'High priority' }), tt); }
             document.getElementById('rl-eyebrow').textContent = 'Open Fraud Labs Academy \u00b7 ' + (r.paid ? 'Paid ' : 'Unpaid ') + r.kind;
             var facts = document.getElementById('rl-facts');
-            [[r.paid ? 'Paid' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Unpaid + data allowance' : 'Unpaid'), r.paid ? '' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Experience, a recommendation letter and data reimbursed' : 'Experience and a recommendation letter')], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
+            [[r.paid ? (r.pay_label || 'Paid') : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Unpaid + data allowance' : 'Unpaid'), r.paid ? 'Plus experience and a recommendation letter' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Experience, a recommendation letter and data reimbursed' : 'Experience and a recommendation letter')], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
                 .forEach(function (f) { if (f[0]) facts.appendChild(el('li', {}, el('b', { text: f[0] }), el('span', { text: f[1] }))); });
             var body = document.getElementById('rl-body');
             function list(title, items) { if (!items || !items.length) return; var ul = el('ul', { class: 'ac-outcomes' }); items.forEach(function (t) { ul.appendChild(el('li', { text: t })); }); body.append(el('h2', { text: title }), ul); }
             list('What you’ll do', r.responsibilities); list('Who we’re looking for', r.requirements); list('What you’ll get', r.benefits);
-            body.appendChild(el('p', { class: 'ac-muted ac-small', text: (r.duration ? r.duration + '. ' : '') + (r.paid ? '' : 'This is an unpaid internship: no salary or allowance. ') + (r.rolling ? 'We review applications as they arrive and close the role once it’s filled.' : '') }));
+            body.appendChild(el('p', { class: 'ac-muted ac-small', text: (r.duration ? r.duration + '. ' : '') + (r.paid ? (r.pay_detail ? 'Pay: ' + r.pay_detail + '. ' : '') : 'This is an unpaid internship: no salary or allowance. ') + (r.rolling ? 'We review applications as they arrive and close the role once it’s filled.' : '') }));
             var user = await OFL.getUser(), next = '/careers/role/?r=' + encodeURIComponent(slug), cta = document.getElementById('rl-cta');
             if (user) {
                 var mine = (await sb.rpc('role_application_mine', { p_slug: slug })).data;
@@ -200,12 +201,51 @@
             if (!prof.terms_accepted_at) { document.getElementById('rl-cta').appendChild(el('div', { class: 'ap-cta' }, el('h2', { text: 'One step before you apply' }), el('p', { class: 'ac-muted', text: 'Please accept the Terms of Service on your account page. You will come straight back here to apply.' }), el('a', { class: 'ac-btn ac-btn--primary', href: '/account/?next=' + encodeURIComponent(next), text: 'Accept the terms and continue' }))); return; }
             var form = document.getElementById('rl-form'), hasCv = false;
             cta.appendChild(el('h2', { class: 'rl-apply-h', text: 'Apply for this role' }));
-            var OPTS = { stage: [['student', 'Student (university or polytechnic)'], ['graduate', 'Recent graduate'], ['corps', 'NYSC corps member'], ['other', 'Other']],
+            var OPTS = { stage: [['final_year', 'Final-year student'], ['awaiting', 'Graduate awaiting NYSC'], ['corps', 'NYSC corps member'], ['student', 'Student (not final year)'], ['graduate', 'Recent graduate'], ['other', 'Other']].filter(function (o) { return !r.stages || r.stages.indexOf(o[0]) >= 0; }),
                 hours: [['3-5', '3–5 hours'], ['6-8', '6–8 hours'], ['9-12', '9–12 hours'], ['12+', 'More than 12']] };
             form.querySelectorAll('.wb-chips').forEach(function (g) { var n = g.getAttribute('data-name'); (OPTS[n] || []).forEach(function (o) { g.appendChild(el('label', { class: 'wb-chip' }, el('input', { type: 'radio', name: n, value: o[0] }), el('span', { text: o[1] }))); }); });
             try { form.timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
             if (r.paid) document.getElementById('rl-unpaid').textContent = 'I’ve read the role details.';
             cvUploader(document.getElementById('rl-cv'), user.id, 'role-' + slug, function () { hasCv = true; });
+            var proofCount = 0, proofBox = null;
+            if (r.proof_required) {
+                var cvField = document.getElementById('rl-cv').parentNode;
+                proofBox = el('div', { class: 'ap-upload', id: 'rl-proof' });
+                cvField.parentNode.insertBefore(el('div', { class: 'au-field' }, el('span', { text: r.proof_label || 'Proof of your experience' }),
+                    el('small', { class: 'ac-muted', style: 'display:block;margin:0 0 .4rem', text: (r.proof_help || '') + ' Pictures (JPG, PNG, WebP) or PDF, up to 5 MB each, up to 5 files.' }), proofBox), cvField.nextSibling);
+                var pList = el('ul', { class: 'ac-small', style: 'margin:.4rem 0 0;padding-left:1.1rem' });
+                var pInput = el('input', { type: 'file', multiple: 'multiple', accept: '.jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf', class: 'ap-file', 'aria-label': 'Upload proof of your experience' });
+                var pState = el('span', { class: 'ap-up-state', text: 'No proof uploaded yet' });
+                var pPick = el('button', { type: 'button', class: 'ac-btn ac-btn--secondary ac-btn--sm', text: 'Upload proof', onclick: function () { pInput.click(); } });
+                var folder = user.id + '/role-' + slug;
+                async function listProof() {
+                    var l = await sb.storage.from('role-proofs').list(folder, { limit: 20 }); var files = (l.data || []).filter(function (f) { return f.name && f.id; });
+                    proofCount = files.length; pList.textContent = '';
+                    files.forEach(function (f) { pList.appendChild(el('li', { text: f.name.replace(/^\d+-/, '') })); });
+                    pState.textContent = proofCount ? proofCount + ' file' + (proofCount === 1 ? '' : 's') + ' uploaded' : 'No proof uploaded yet'; pState.className = 'ap-up-state' + (proofCount ? ' is-ok' : '');
+                    pPick.textContent = proofCount ? 'Add more proof' : 'Upload proof'; pPick.disabled = proofCount >= 5;
+                }
+                pInput.addEventListener('change', async function () {
+                    var files = Array.prototype.slice.call(pInput.files || []); pInput.value = ''; if (!files.length) return;
+                    if (proofCount + files.length > 5) { pState.textContent = 'You can upload up to 5 files.'; pState.className = 'ap-up-state is-err'; return; }
+                    var types = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', pdf: 'application/pdf' };
+                    pPick.disabled = true;
+                    for (var i = 0; i < files.length; i++) {
+                        var f = files[i], ext = (f.name.split('.').pop() || '').toLowerCase();
+                        if (!types[ext]) { pState.textContent = f.name + ': use a picture (JPG, PNG, WebP) or a PDF.'; pState.className = 'ap-up-state is-err'; pPick.disabled = false; return; }
+                        if (f.size > 5242880) { pState.textContent = f.name + ' is over 5 MB. Make it smaller and try again.'; pState.className = 'ap-up-state is-err'; pPick.disabled = false; return; }
+                        pState.textContent = 'Uploading ' + f.name + '…'; pState.className = 'ap-up-state';
+                        var safe = f.name.replace(/[^A-Za-z0-9._-]+/g, '-').slice(-60);
+                        var up = await sb.storage.from('role-proofs').upload(folder + '/' + Date.now() + '-' + safe, f, { contentType: types[ext] });
+                        if (up.error) { pState.textContent = up.error.message || 'Upload failed. Try again.'; pState.className = 'ap-up-state is-err'; pPick.disabled = false; return; }
+                    }
+                    await listProof();
+                });
+                proofBox.append(el('div', { class: 'ap-up-row' }, pPick, pState), pInput, pList);
+                listProof();
+                var pf = form.portfolio_url.parentNode.querySelector('span'); if (pf) pf.textContent = 'Portfolio or page link (optional if you upload proof)';
+                var ex = form.experience.parentNode.querySelector('span'); if (ex) ex.textContent = 'Your relevant experience (required): what you did, where and when';
+            }
             var cnt = form.querySelector('.ap-count'); function upd() { var n = form.why.value.trim().length; cnt.textContent = n + ' characters' + (n < 50 ? ' (at least 50)' : ''); cnt.classList.toggle('is-short', n < 50); } form.why.addEventListener('input', upd); upd();
             form.hidden = false;
             form.addEventListener('submit', async function (e) {
@@ -216,6 +256,8 @@
                 if (f.phone.value.replace(/\D/g, '').length < 7) return stop(f.phone, 'Add a WhatsApp number we can reach you on.');
                 if (!/^https?:\/\/([a-z]+\.)?linkedin\.com\/in\/\S+/i.test(f.linkedin_url.value.trim())) return stop(f.linkedin_url, 'Add your LinkedIn profile link. It starts with https://www.linkedin.com/in/');
                 if (!hasCv) return stop(document.getElementById('rl-cv'), 'Upload your CV.');
+                if (r.proof_required && !proofCount && !/^https?:\/\/\S+\.\S+/i.test(f.portfolio_url.value.trim())) return stop(proofBox, 'Upload proof of your experience (pictures or a PDF), or add a link to your portfolio.');
+                if (r.proof_required && f.experience.value.trim().length < 50) return stop(f.experience, 'Describe your relevant experience (at least 50 characters).');
                 if (!val('hours')) return stop(f.querySelector('[data-name="hours"]'), 'Tell us how many hours a week you can give.');
                 if (f.why.value.trim().length < 50) return stop(f.why, 'Tell us a little more about why you want this role (at least 50 characters).');
                 if (!f.unpaid_ok.checked) return stop(f.unpaid_ok, 'Please confirm before you submit.');
