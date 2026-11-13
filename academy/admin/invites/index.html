@@ -221,7 +221,7 @@
             }
             var AFILTER = 'all';
             var AST = { approval: ['Needs your approval', '#6D28D9', '#F3E8FF'], applied: ['Applied: screening in progress', '#B45309', '#FEF4E6'], shortlisted: ['Shortlisted (has WhatsApp link)', '#046C4A', '#E7F7F0'],
-                        not_selected: ['Not selected: no own laptop or tablet', '#B42318', '#FEF0EE'], admitted: ['Joined the cohort', '#046C4A', '#E7F7F0'] };
+                        not_selected: ['Not selected: no own laptop or tablet', '#B42318', '#FEF0EE'], declined: ['Offer declined: not accepted in time', '#5B6B82', '#EEF1F5'], admitted: ['Joined the cohort', '#046C4A', '#E7F7F0'] };
             async function decide(x, ok) {
                 var note = window.prompt((ok ? 'Approve ' : 'Decline ') + x.name + '? They will be emailed straight away.\n\nOptional personal note to include in the email:', '');
                 if (note === null) return;
@@ -234,7 +234,7 @@
                 var rows = (r.data || []).filter(function (x) { return !x.is_staff; }).map(function (x) { x.stage = x.status === 'applied' && x.needs_approval ? 'approval' : x.status; return x; }), cnt = {}; rows.forEach(function (x) { cnt[x.stage] = (cnt[x.stage] || 0) + 1; });
                 var wrap = el('div'); app.appendChild(el('h2', { text: 'Applications (screened 24 hours after applying)', style: 'margin:1.75rem 0 .5rem' })); app.appendChild(wrap);
                 var g = el('div', { class: 'rv-grid', style: 'grid-template-columns:repeat(6,1fr)' });
-                [['all', 'All applications', rows.length], ['approval', 'Needs your approval', cnt.approval || 0], ['applied', 'Screening', cnt.applied || 0], ['shortlisted', 'Shortlisted', cnt.shortlisted || 0], ['not_selected', 'Not selected', cnt.not_selected || 0], ['admitted', 'Joined', cnt.admitted || 0]].forEach(function (f) {
+                [['all', 'All applications', rows.length], ['approval', 'Needs your approval', cnt.approval || 0], ['applied', 'Screening', cnt.applied || 0], ['shortlisted', 'Shortlisted', cnt.shortlisted || 0], ['not_selected', 'Not selected', cnt.not_selected || 0], ['declined', 'Offer declined', cnt.declined || 0], ['admitted', 'Joined', cnt.admitted || 0]].forEach(function (f) {
                     g.appendChild(el('button', { type: 'button', class: 'rv-c', style: 'text-align:left;cursor:pointer;' + (AFILTER === f[0] ? 'outline:2px solid #2453E6;' : ''), onclick: function () { AFILTER = f[0]; load(); } }, el('b', { text: String(f[2]) }), el('span', { text: f[1] })));
                 });
                 wrap.appendChild(g);
