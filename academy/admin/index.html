@@ -1012,7 +1012,7 @@
 
             // ---- Internship / job applications
             var roles = [], roleId = null, roleApps = [];
-            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'], ended: ['Internship ended', 'end'] };
             var RL = { stage: { student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
             async function loadRoles(keep) {
                 if (!can('manage_applications')) return;

@@ -2663,7 +2663,7 @@ admin_script = r"""        (async function () {
 
             // ---- Internship / job applications
             var roles = [], roleId = null, roleApps = [];
-            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'] };
+            var RSTAGE = { new: ['New', 'wait'], shortlisted: ['Shortlisted', 'go'], interview: ['Interview', 'go'], offered: ['Offer sent', 'go'], accepted: ['Offer signed', 'done'], hired: ['Hired', 'done'], not_progressed: ['Not progressed', 'end'], withdrawn: ['Withdrawn', 'end'], ended: ['Internship ended', 'end'] };
             var RL = { stage: { student: 'Student', graduate: 'Recent graduate', corps: 'NYSC corps member', other: 'Other' }, hours: { '3-5': '3–5 h', '6-8': '6–8 h', '9-12': '9–12 h', '12+': '12+ h' } };
             async function loadRoles(keep) {
                 if (!can('manage_applications')) return;
@@ -4132,9 +4132,10 @@ role_script = r"""        (async function () {
                     accepted: ['Offer accepted', 'Thank you for accepting', 'Next, complete your staff profile so the founder can approve it and set up your access.'],
                     hired: ['Welcome', 'You’re on the team', 'We’ll share onboarding details with you directly.'],
                     not_progressed: ['Application closed', 'Thank you for applying', 'We won’t be taking your application further for this role, but we’d be glad to see you apply again.'],
-                    withdrawn: ['Withdrawn', 'Application withdrawn', ''] }[m.status] || ['Application', 'Your application', ''];
+                    withdrawn: ['Withdrawn', 'Application withdrawn', ''],
+                    ended: ['Role ended', 'Your role has ended', 'Thank you for the time you gave to Open Fraud Labs. Check your email for details, including how to appeal.'] }[m.status] || ['Application', 'Your application', ''];
                 var box = document.getElementById('rl-status'); box.textContent = '';
-                box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : m.status === 'not_progressed' ? ' ap-state--end' : '') },
+                box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : (m.status === 'not_progressed' || m.status === 'ended') ? ' ap-state--end' : '') },
                     el('span', { class: 'ap-state__tag', text: T[0] }), el('h2', { text: T[1] }), el('p', { text: T[2] }),
                     ['offered', 'accepted', 'hired'].indexOf(m.status) >= 0 ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: '/careers/offer/?r=' + encodeURIComponent(slug),
                         text: m.status === 'offered' ? 'Read and sign your offer letter' : m.profile_status === 'approved' ? 'View your offer and profile' : 'Complete your staff profile' })) : null));
@@ -4770,6 +4771,86 @@ staff_script = r"""        (async function () {
         })();"""
 
 page("academy/staff", "Pay and leave | Open Fraud Labs Academy", "Your allowances, payment details, payments and leave.", staff_main, staff_script, noindex=True)
+
+appeal_main = """        <div class="ac-wrap sp">
+            <div id="msg"></div>
+            <div id="ap" hidden>
+                <section class="sp-card"><h1 id="ap-title">Appeal a decision</h1>
+                    <p id="ap-sum"></p>
+                    <p class="sp-days" id="ap-left" aria-live="polite"></p>
+                </section>
+                <section class="sp-card" id="ap-form-card" hidden><h2>Your appeal</h2>
+                    <p class="ac-muted ac-small">Explain why you think the decision should be reconsidered, for example work you did that was not recorded on your checklist. The founder reads every appeal personally and you will get a written reply.</p>
+                    <form class="ac-form" id="ap-form" novalidate>
+                        <label>Why should the decision be reconsidered?<textarea name="statement" rows="8" maxlength="4000" required placeholder="Write in your own words. Include dates and what you did where you can."></textarea></label>
+                        <p class="ac-muted ac-small" id="ap-count">At least 30 characters.</p>
+                        <label>Evidence or links <span class="ac-muted">(optional)</span><textarea name="evidence" rows="3" maxlength="1000" placeholder="e.g. dates of your WhatsApp posts, learners you contacted, or links to screenshots"></textarea></label>
+                        <div class="ofl-actions"><button class="ac-btn ac-btn--primary" type="submit" id="ap-send">Submit my appeal</button></div>
+                    </form>
+                </section>
+                <section class="sp-card" id="ap-done" hidden><h2 id="ap-done-h">Appeal submitted</h2>
+                    <p class="ac-muted" id="ap-done-p"></p>
+                    <h3 class="ac-admin__sub">What you submitted</h3>
+                    <p id="ap-mine" style="white-space:pre-wrap"></p>
+                    <p class="ac-muted ac-small" id="ap-mine-ev" style="white-space:pre-wrap"></p>
+                </section>
+            </div>
+        </div>"""
+
+appeal_script = r"""        (async function () {
+            var sb = OFL.sb, msg = document.getElementById('msg');
+            var user = await OFL.requireUser('/academy/appeal/'); if (!user) return;
+            var TZ = 'Africa/Lagos', A = null, skew = 0;
+            function when(v) { return new Date(v).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: TZ }); }
+            function $(id) { return document.getElementById(id); }
+            function left() {
+                var ms = new Date(A.deadline).getTime() - (Date.now() + skew);
+                if (ms <= 0) return 'The appeal window has closed.';
+                var h = Math.floor(ms / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+                return 'Time left to appeal: ' + h + ' hour' + (h === 1 ? '' : 's') + ' ' + m + ' minute' + (m === 1 ? '' : 's') + '.';
+            }
+            function draw() {
+                $('ap').hidden = false;
+                $('ap-title').textContent = 'Appeal: end of your role as ' + A.role_title;
+                $('ap-sum').textContent = A.decision + ' You can appeal until ' + when(A.deadline) + ' (Lagos time).';
+                var open = A.status === 'open' && new Date(A.deadline).getTime() > Date.now() + skew;
+                $('ap-form-card').hidden = !open;
+                $('ap-left').textContent = A.status === 'open' ? left() : '';
+                if (A.status !== 'open') {
+                    $('ap-done').hidden = false;
+                    var T = { submitted: ['Appeal submitted', 'Submitted on ' + when(A.submitted_at) + '. The founder will review it and reply to you in writing.'],
+                        upheld: ['Decision confirmed', A.decision_note || 'Your appeal was reviewed and the original decision stands.'],
+                        overturned: ['Appeal successful', A.decision_note || 'Your appeal was reviewed and the decision has been reversed.'],
+                        expired: ['Appeal window closed', 'No appeal was submitted before ' + when(A.deadline) + '. If you have a serious reason you could not appeal in time, reply to the decision email.'] }[A.status] || ['Appeal', ''];
+                    $('ap-done-h').textContent = T[0]; $('ap-done-p').textContent = T[1];
+                    $('ap-mine').textContent = A.statement || 'Nothing was submitted.';
+                    $('ap-mine-ev').textContent = A.evidence ? 'Evidence or links: ' + A.evidence : '';
+                }
+            }
+            var r = await sb.rpc('appeal_mine');
+            if (r.error) return OFL.notice(msg, OFL.friendlyError(r.error), 'error');
+            A = r.data || {};
+            if (A.now) skew = new Date(A.now).getTime() - Date.now();
+            if (!A.id) return OFL.notice(msg, 'There is no decision to appeal on this account. If you were sent a link to this page, check you are signed in with the email address it was sent to.', 'info');
+            draw();
+            var timer = setInterval(function () { if (A.status !== 'open') return clearInterval(timer); if (new Date(A.deadline).getTime() <= Date.now() + skew) { A.status = 'expired'; draw(); return clearInterval(timer); } $('ap-left').textContent = left(); }, 30000);
+            var ta = $('ap-form').elements.statement;
+            ta.addEventListener('input', function () { var n = ta.value.trim().length; $('ap-count').textContent = n < 30 ? 'At least 30 characters (' + n + ' so far).' : n.toLocaleString('en-GB') + ' of 4,000 characters.'; });
+            $('ap-form').addEventListener('submit', async function (ev) {
+                ev.preventDefault(); msg.textContent = '';
+                var s = ta.value.trim(), e = this.elements.evidence.value.trim();
+                if (s.length < 30) return OFL.notice(msg, 'Please explain your appeal in at least a few sentences.', 'error');
+                if (!confirm('Submit your appeal? You can only submit once.')) return;
+                var b = $('ap-send'); b.disabled = true; b.textContent = 'Submitting…';
+                var res = await sb.rpc('appeal_submit', { p_statement: s, p_evidence: e || null });
+                b.disabled = false; b.textContent = 'Submit my appeal';
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                var again = await sb.rpc('appeal_mine'); A = again.data || A; draw();
+                OFL.notice(msg, 'Your appeal has been submitted. A confirmation email is on its way.', 'success');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        })();"""
+page("academy/appeal", "Appeal a decision | Open Fraud Labs Academy", "Appeal a decision about your role at Open Fraud Labs.", appeal_main, appeal_script, noindex=True)
 
 
 # ============================================================== Admin: Staff pay and leave (its own page)

@@ -235,9 +235,10 @@
                     accepted: ['Offer accepted', 'Thank you for accepting', 'Next, complete your staff profile so the founder can approve it and set up your access.'],
                     hired: ['Welcome', 'You’re on the team', 'We’ll share onboarding details with you directly.'],
                     not_progressed: ['Application closed', 'Thank you for applying', 'We won’t be taking your application further for this role, but we’d be glad to see you apply again.'],
-                    withdrawn: ['Withdrawn', 'Application withdrawn', ''] }[m.status] || ['Application', 'Your application', ''];
+                    withdrawn: ['Withdrawn', 'Application withdrawn', ''],
+                    ended: ['Role ended', 'Your role has ended', 'Thank you for the time you gave to Open Fraud Labs. Check your email for details, including how to appeal.'] }[m.status] || ['Application', 'Your application', ''];
                 var box = document.getElementById('rl-status'); box.textContent = '';
-                box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : m.status === 'not_progressed' ? ' ap-state--end' : '') },
+                box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : (m.status === 'not_progressed' || m.status === 'ended') ? ' ap-state--end' : '') },
                     el('span', { class: 'ap-state__tag', text: T[0] }), el('h2', { text: T[1] }), el('p', { text: T[2] }),
                     ['offered', 'accepted', 'hired'].indexOf(m.status) >= 0 ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: '/careers/offer/?r=' + encodeURIComponent(slug),
                         text: m.status === 'offered' ? 'Read and sign your offer letter' : m.profile_status === 'approved' ? 'View your offer and profile' : 'Complete your staff profile' })) : null));
