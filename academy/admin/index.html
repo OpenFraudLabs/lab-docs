@@ -72,6 +72,11 @@
                         </div>
                         <div class="adm-ov__col adm-ov__col--quick"><h3 class="adm-ov__h">Quick actions</h3><div class="adm-quick" id="adm-quick"></div></div>
                     </div>
+                    <div id="c2-wrap" hidden>
+                        <h3 class="adm-ov__h" id="c2-h">Cohort 2 at a glance</h3>
+                        <div class="ac-kpis adm-kpis" id="c2-kpis"></div>
+                        <p class="ac-muted ac-small" id="c2-note" style="margin:.6rem 0 1.4rem"></p>
+                    </div>
                     <h3 class="adm-ov__h">Academy in numbers</h3>
                     <div class="ac-kpis adm-kpis" id="kpis"></div>
                 </section>
@@ -1585,6 +1590,27 @@
             }
             load();
         })();
+    </script>
+    <script>
+        (async function () { try {
+            var SLUG = 'cohort-2-2027', sb = OFL.sb, el = OFL.el;
+            var r = await sb.rpc('cohort_glance', { p_slug: SLUG }); var g = r.data; if (r.error || !g) return;
+            var TZ = 'Africa/Lagos', confirmed = g.accepted_apps + g.invites;
+            function when(v) { return new Date(v).toLocaleString('en-GB', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+            document.getElementById('c2-h').textContent = g.title + ' at a glance (starts ' + new Date(g.starts_on + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + ')';
+            var k = document.getElementById('c2-kpis');
+            [['Confirmed learners', confirmed, g.accepted_apps + ' accepted offers + ' + g.invites + ' by invite'],
+             ['In the WhatsApp group', g.whatsapp + ' of ' + g.accepted_apps, 'of those who accepted an offer'],
+             ['Awaiting acceptance', g.pending, g.pending_deadline ? 'final deadline ' + when(g.pending_deadline) : 'no deadline set'],
+             ['Offers declined', g.declined, 'not accepted in time'],
+             ['Not selected', g.not_selected, 'no own laptop or tablet'],
+             ['Places left', Math.max(0, g.capacity - confirmed - g.pending), 'of ' + g.capacity + ', holding pending offers']
+            ].forEach(function (x) { k.appendChild(el('div', { class: 'ac-kpi' }, el('strong', { class: 'num', text: String(x[1]) }), el('span', { text: x[0] }), el('small', { text: x[2] }))); });
+            var note = document.getElementById('c2-note');
+            note.appendChild(document.createTextNode((g.not_on_whatsapp.length ? 'Accepted but not yet in the WhatsApp group: ' + g.not_on_whatsapp.join(', ') + '. ' : '') + (g.screening ? g.screening + ' application(s) waiting to be screened. ' : '') + 'Live as of ' + when(g.as_of) + '. '));
+            note.appendChild(el('a', { href: '/academy/admin/invites/', text: 'See every applicant →' }));
+            document.getElementById('c2-wrap').hidden = false;
+        } catch (e) {} })();
     </script>
 </body>
 </html>
