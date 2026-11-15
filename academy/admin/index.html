@@ -1201,7 +1201,7 @@
             var roleBusy = false;
             async function roleDecide(a, status, note, message) {
                 var names = { shortlisted: 'shortlist', interview: 'invite to interview', offered: 'send an offer letter to', hired: 'mark as hired', not_progressed: 'tell they are not progressing' };
-                if (status !== 'note' && !window.confirm('This will ' + names[status] + ' ' + (a.full_name || a.email) + ' and email them. Continue?')) return;
+                if (status !== 'note' && !window.confirm('This will ' + names[status] + ' ' + (a.full_name || a.email) + (status === 'shortlisted' ? '. This is private: they are not emailed and their page still shows their application as under review. Continue?' : ' and email them. Continue?'))) return;
                 if (roleBusy) return; roleBusy = true;
                 var rbtns = document.querySelectorAll('#role-dlg-body button'); rbtns.forEach(function (x) { x.disabled = true; });
                 var res = await sb.rpc('role_application_decide', { p_id: a.id, p_status: status, p_note: note, p_message: message });
