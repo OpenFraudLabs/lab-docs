@@ -1076,6 +1076,28 @@
                 row('Keep for future roles', an.consent_keep ? 'Yes' : 'No');
                 b.appendChild(info);
                 b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why this role' }), el('p', { class: 'app-text', text: an.why || '—' }), el('h3', { text: 'Relevant experience' }), el('p', { class: 'app-text', text: an.experience || '—' })));
+                if (a.assessment) {
+                    var asx = a.assessment, ac = el('div', { class: 'app-card' }, el('h3', { text: 'Assessment' + (asx.submitted_at ? ': ' + asx.score + ' of ' + asx.max + ' (' + Math.round(100 * asx.score / Math.max(1, asx.max)) + '%) on multiple choice' : '') }));
+                    ac.appendChild(el('p', { class: 'ac-muted ac-small', text: asx.submitted_at ? 'Submitted ' + dt(asx.submitted_at) + (asx.auto_submitted ? ' (auto-submitted when time ran out)' : '') + '. The applicant has not been told their score.'
+                        : asx.started_at ? 'Started ' + dt(asx.started_at) + ', not submitted yet.' : (new Date(asx.due_at) < new Date() ? 'Not taken. It was due ' + dt(asx.due_at) + '.' : 'Invited. Due ' + dt(asx.due_at) + '.') }));
+                    if (asx.submitted_at && asx.items) {
+                        var det2 = el('details', {}, el('summary', { text: 'See every answer' }));
+                        asx.items.forEach(function (it) {
+                            if (it.kind === 'mcq') {
+                                var ch = it.answer == null ? null : Number(it.answer), ok = ch === it.correct_index;
+                                det2.appendChild(el('div', { class: 'app-kv', style: 'display:block;margin:.6rem 0' }, el('b', { text: it.position + '. ' + (ok ? '✓ ' : '✗ ') + it.prompt }),
+                                    el('div', { class: 'ac-small', text: 'Chose: ' + (ch == null ? '(no answer)' : it.options[ch]) + (ok ? '' : ' · Correct: ' + it.options[it.correct_index]) })));
+                            }
+                        });
+                        ac.appendChild(det2);
+                        asx.items.filter(function (it) { return it.kind === 'text'; }).forEach(function (it) {
+                            ac.appendChild(el('h3', { style: 'margin-top:1rem', text: 'Written task ' + it.position + ' (for your review)' }));
+                            ac.appendChild(el('p', { class: 'ac-muted ac-small', text: it.prompt }));
+                            ac.appendChild(el('p', { class: 'app-text', style: 'white-space:pre-wrap', text: it.answer || '—' }));
+                        });
+                    }
+                    b.appendChild(ac);
+                }
                 var note = el('textarea', { rows: '2', maxlength: '2000', placeholder: 'Private staff note (interview notes, impressions)', class: 'app-note' }); note.value = a.staff_note || '';
                 b.appendChild(el('label', { class: 'app-note-wrap' }, el('span', { text: 'Staff note' }), note));
                 var msgBox = el('textarea', { rows: '2', maxlength: '1000', placeholder: 'Optional personal message to the applicant (replaces the standard text in their email)', class: 'app-note' });
@@ -1162,7 +1184,7 @@
                     if (a.status === x[0] && x[0] !== 'interview') return;
                     if ((a.status === 'accepted' || a.status === 'hired' || a.status === 'offered') && x[0] === 'interview') return;
                     if ((a.status === 'accepted' || a.status === 'hired') && x[0] !== 'not_progressed') return;
-                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[1], onclick: function () { if (x[0] === 'interview') return openBooking(); roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
+                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[0] === 'shortlisted' ? 'Shortlist (no email)' : x[1], onclick: function () { if (x[0] === 'interview') return openBooking(); roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
                 });
                 b.appendChild(book);
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { roleDecide(a, 'note', note.value, null); } }));

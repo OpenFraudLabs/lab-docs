@@ -272,7 +272,7 @@
             function drawStatus(m, fresh) {
                 var T = { new: ['Application received', fresh ? 'Thank you for applying' : 'We’re reviewing your application', 'We review applications as they arrive. You’ll hear from us here, by email and possibly on WhatsApp.'],
                     shortlisted: ['Shortlisted', 'You’re shortlisted', 'We’ll be in touch soon about the next step.'],
-                    interview: ['Interview', 'We’d like to talk with you', 'We’ll contact you on WhatsApp or by email to agree a time.'],
+                    interview: ['Interview', 'We’d like to talk with you', 'Your interview details are below and in your email, with a calendar invitation.'],
                     offered: ['Offer', 'We’d like to offer you this role', 'Your offer letter is ready. Read it and sign it by typing your full name.'],
                     accepted: ['Offer accepted', 'Thank you for accepting', 'Next, complete your staff profile so the founder can approve it and set up your access.'],
                     hired: ['Welcome', 'You’re on the team', 'We’ll share onboarding details with you directly.'],
@@ -282,6 +282,11 @@
                 var box = document.getElementById('rl-status'); box.textContent = '';
                 box.appendChild(el('div', { class: 'ap-state' + (m.status === 'hired' || m.status === 'offered' ? ' ap-state--done' : (m.status === 'not_progressed' || m.status === 'ended') ? ' ap-state--end' : '') },
                     el('span', { class: 'ap-state__tag', text: T[0] }), el('h2', { text: T[1] }), el('p', { text: T[2] }),
+                    m.status === 'interview' && m.interview_at ? el('p', {}, el('b', { text: 'Your interview: ' + new Date(m.interview_at).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) + ' (your time). ' }),
+                        m.interview_link ? el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: m.interview_link, target: '_blank', rel: 'noopener noreferrer', text: 'Join the interview' }) : null) : null,
+                    m.assessment && !m.assessment.submitted && ['new', 'interview'].indexOf(m.status) >= 0 ? el('p', {}, el('span', { text: (m.assessment.started ? 'You have started your assessment. ' : 'Next step: a short online assessment, due by ' + new Date(m.assessment.due_at).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) + '. ') }),
+                        el('a', { class: 'ac-btn ac-btn--primary ac-btn--sm', href: '/careers/assessment/?r=' + encodeURIComponent(slug), text: m.assessment.started ? 'Continue the assessment' : 'Take the assessment' })) : null,
+                    m.assessment && m.assessment.submitted && m.status === 'new' ? el('p', { class: 'ac-muted', text: 'Your assessment is submitted. Thank you.' }) : null,
                     ['offered', 'accepted', 'hired'].indexOf(m.status) >= 0 ? el('p', {}, el('a', { class: 'ac-btn ac-btn--primary', href: '/careers/offer/?r=' + encodeURIComponent(slug),
                         text: m.status === 'offered' ? 'Read and sign your offer letter' : m.profile_status === 'approved' ? 'View your offer and profile' : 'Complete your staff profile' })) : null));
             }
