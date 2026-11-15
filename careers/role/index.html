@@ -170,6 +170,7 @@
                 box.append(OFL.el('div', { class: 'ap-up-row' }, pick, state), input);
             }
 
+            function closeTxt(r) { if (!r.closes_at) return ''; var d = new Date(r.closes_at); return d.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' }) + ', ' + d.toLocaleString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Africa/Lagos' }).replace(' ', ''); }
             var r = slug ? (await sb.from('roles').select('*').eq('slug', slug).maybeSingle()).data : null;
             if (!r) { document.getElementById('rl-title').textContent = 'Role not found'; document.getElementById('rl-summary').textContent = 'This role may have closed.'; document.getElementById('rl-cta').appendChild(el('a', { class: 'ac-btn ac-btn--secondary', href: '/careers/', text: 'See all roles' })); return; }
             document.title = r.title + ' | Careers | Open Fraud Labs';
@@ -179,12 +180,12 @@
             if (r.urgency && r.status === 'open') { var tt = document.getElementById('rl-title'); tt.parentNode.insertBefore(el('span', { class: 'ac-status', style: 'display:inline-block;margin:0 0 .6rem;' + (r.urgency === 'urgent' ? 'background:#FEF0EE;color:#B42318' : 'background:#FEF4E6;color:#B45309'), text: r.urgency === 'urgent' ? 'Urgent: apply now' : 'High priority' }), tt); }
             document.getElementById('rl-eyebrow').textContent = 'Open Fraud Labs Academy \u00b7 ' + (r.paid ? 'Paid ' : 'Unpaid ') + r.kind;
             var facts = document.getElementById('rl-facts');
-            [[r.paid ? (r.pay_label || 'Paid') : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Unpaid + data allowance' : 'Unpaid'), r.paid ? 'Plus experience and a recommendation letter' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Experience, a recommendation letter and data reimbursed' : 'Experience and a recommendation letter')], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? 'Reviewed as applications arrive' : 'Not taking applications']]
+            [[r.paid ? (r.pay_label || 'Paid') : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Unpaid + data allowance' : 'Unpaid'), r.paid ? 'Plus experience and a recommendation letter' : (/data allowance/i.test((r.benefits || []).join(' ')) ? 'Experience, a recommendation letter and data reimbursed' : 'Experience and a recommendation letter')], [r.location, 'Work from anywhere'], [r.commitment, 'Around your studies or NYSC'], [r.status === 'open' ? (r.closes_at ? 'Closes ' + closeTxt(r) : r.rolling ? 'Rolling' : 'Open') : 'Filled', r.status === 'open' ? (r.closes_at ? 'Apply before the deadline (Lagos time)' : 'Reviewed as applications arrive') : 'Not taking applications']]
                 .forEach(function (f) { if (f[0]) facts.appendChild(el('li', {}, el('b', { text: f[0] }), el('span', { text: f[1] }))); });
             var body = document.getElementById('rl-body');
             function list(title, items) { if (!items || !items.length) return; var ul = el('ul', { class: 'ac-outcomes' }); items.forEach(function (t) { ul.appendChild(el('li', { text: t })); }); body.append(el('h2', { text: title }), ul); }
             list('What you’ll do', r.responsibilities); list('Who we’re looking for', r.requirements); list('What you’ll get', r.benefits);
-            body.appendChild(el('p', { class: 'ac-muted ac-small', text: (r.duration ? r.duration + '. ' : '') + (r.paid ? (r.pay_detail ? 'Pay: ' + r.pay_detail + '. ' : '') : 'This is an unpaid internship: no salary or allowance. ') + (r.rolling ? 'We review applications as they arrive and close the role once it’s filled.' : '') }));
+            body.appendChild(el('p', { class: 'ac-muted ac-small', text: (r.duration ? r.duration + '. ' : '') + (r.paid ? (r.pay_detail ? 'Pay: ' + r.pay_detail + '. ' : '') : 'This is an unpaid internship: no salary or allowance. ') + (r.closes_at ? 'Applications close ' + closeTxt(r) + ' (Lagos time). Shortlisted applicants take a short online assessment, then an interview. Offers go out by the end of November.' : r.rolling ? 'We review applications as they arrive and close the role once it’s filled.' : '') }));
             var user = await OFL.getUser(), next = '/careers/role/?r=' + encodeURIComponent(slug), cta = document.getElementById('rl-cta');
             if (user) {
                 var mine = (await sb.rpc('role_application_mine', { p_slug: slug })).data;

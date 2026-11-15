@@ -1157,7 +1157,7 @@
                     var lagosToday = new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
                     var tok = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(6)), function (n) { return ('0' + n.toString(16)).slice(-2); }).join('');
                     var dIn = el('input', { type: 'date', min: lagosToday, required: true, 'aria-label': 'Interview date' });
-                    var tIn = el('input', { type: 'time', step: '300', value: '10:00', required: true, 'aria-label': 'Interview time, Lagos' });
+                    var tIn = el('input', { type: 'time', step: '300', value: '12:00', required: true, 'aria-label': 'Interview time, Lagos' });
                     var lenIn = el('select', { 'aria-label': 'Interview length' }); [[20, '20 minutes'], [30, '30 minutes'], [45, '45 minutes'], [60, '1 hour']].forEach(function (o) { lenIn.appendChild(el('option', { value: String(o[0]), text: o[1] })); }); lenIn.value = '30';
                     var lIn = el('input', { type: 'url', value: 'https://meet.jit.si/OpenFraudLabs-Interview-' + tok, 'aria-label': 'Meeting link', style: 'width:100%' });
                     var bm = el('p', { class: 'ac-small', role: 'alert' });

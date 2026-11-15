@@ -115,13 +115,14 @@
     <script>
         (async function () {
             var el = OFL.el, box = document.getElementById('cr-roles');
-            var roles = ((await OFL.sb.from('roles').select('slug, title, summary, paid, kind, location, commitment, duration, status, rolling, urgency, pay_label').in('status', ['open', 'filled']).order('sort')).data || []);
+            function closeTxt(r) { if (!r.closes_at) return ''; var d = new Date(r.closes_at); return d.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Africa/Lagos' }) + ', ' + d.toLocaleString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Africa/Lagos' }).replace(' ', ''); }
+            var roles = ((await OFL.sb.from('roles').select('slug, title, summary, paid, kind, location, commitment, duration, status, rolling, closes_at, urgency, pay_label').in('status', ['open', 'filled']).order('sort')).data || []);
             box.textContent = '';
             if (!roles.length) box.appendChild(el('p', { class: 'ac-muted', text: 'No internships are open right now.' }));
             roles.forEach(function (r) {
                 var open = r.status === 'open';
                 box.appendChild(el('article', { class: 'cr-job' }, el('div', {},
-                    el('span', { class: 'ac-status ' + (open ? 'ac-status--live' : 'ac-status--soon'), text: open ? (r.rolling ? 'Open: rolling applications' : 'Open') : 'Filled' }),
+                    el('span', { class: 'ac-status ' + (open ? 'ac-status--live' : 'ac-status--soon'), text: open ? (r.closes_at ? 'Open: closes ' + closeTxt(r) : r.rolling ? 'Open: rolling applications' : 'Open') : 'Filled' }),
                     open && r.urgency ? el('span', { class: 'ac-status', style: 'margin-left:.4rem;' + (r.urgency === 'urgent' ? 'background:#FEF0EE;color:#B42318' : 'background:#FEF4E6;color:#B45309'), text: r.urgency === 'urgent' ? 'Urgent' : 'High priority' }) : null,
                     el('p', { class: 'cr-org', text: 'Open Fraud Labs Academy' }), el('h3', { text: r.title }), el('p', { class: 'ac-muted', text: r.summary }),
                     el('p', { class: 'cr-meta', text: [r.paid ? (r.pay_label || 'Paid') : 'Unpaid', r.location, r.commitment].filter(Boolean).join(' · ') })),
