@@ -1077,7 +1077,7 @@
                 b.appendChild(info);
                 b.appendChild(el('div', { class: 'app-card' }, el('h3', { text: 'Why this role' }), el('p', { class: 'app-text', text: an.why || '—' }), el('h3', { text: 'Relevant experience' }), el('p', { class: 'app-text', text: an.experience || '—' })));
                 if (a.assessment) {
-                    var asx = a.assessment, ac = el('div', { class: 'app-card' }, el('h3', { text: 'Assessment' + (asx.submitted_at ? ': ' + asx.score + ' of ' + asx.max + ' (' + Math.round(100 * asx.score / Math.max(1, asx.max)) + '%) on multiple choice' : '') }));
+                    var asx = a.assessment, ac = el('div', { class: 'app-card' }, el('h3', { text: 'Assessment' + (asx.submitted_at ? ': ' + asx.score + ' of ' + asx.max + ' (' + Math.round(100 * asx.score / Math.max(1, asx.max)) + '%) on multiple choice' + (asx.written_max ? ', ' + asx.written_score + ' of ' + asx.written_max + ' suggested on written tasks' : '') : '') }));
                     ac.appendChild(el('p', { class: 'ac-muted ac-small', text: asx.submitted_at ? 'Submitted ' + dt(asx.submitted_at) + (asx.auto_submitted ? ' (auto-submitted when time ran out)' : '') + '. The applicant has not been told their score.'
                         : asx.started_at ? 'Started ' + dt(asx.started_at) + ', not submitted yet.' : (new Date(asx.due_at) < new Date() ? 'Not taken. It was due ' + dt(asx.due_at) + '.' : 'Invited. Due ' + dt(asx.due_at) + '.') }));
                     if (asx.submitted_at && asx.items) {
@@ -1094,6 +1094,11 @@
                             ac.appendChild(el('h3', { style: 'margin-top:1rem', text: 'Written task ' + it.position + ' (for your review)' }));
                             ac.appendChild(el('p', { class: 'ac-muted ac-small', text: it.prompt }));
                             ac.appendChild(el('p', { class: 'app-text', style: 'white-space:pre-wrap', text: it.answer || '—' }));
+                            if (it.rubric && it.rubric.checks) {
+                                var rb = el('div', { class: 'ac-small', style: 'margin:.3rem 0 .6rem' }, el('b', { text: 'Checklist score: ' + it.rubric.score + ' of ' + it.rubric.max + ' (a guide only, your judgement decides)' }));
+                                it.rubric.checks.forEach(function (c) { rb.appendChild(el('div', { text: (c.ok ? '✓ ' : '✗ ') + c.label + ' (' + c.earned + '/' + c.pts + ')' })); });
+                                ac.appendChild(rb);
+                            }
                         });
                     }
                     b.appendChild(ac);
