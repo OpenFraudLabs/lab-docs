@@ -177,7 +177,7 @@
                 <section class="ac-admin__sec" data-cap="manage_applications" id="roles-sec">
                     <div class="ac-admin__head"><h2>Internship applications</h2><p class="ac-muted">Applications for roles on the careers page. Move each person through the stages; they're told on the site and by email at every step except notes.</p>
                         <div class="ac-admin__tools"><select id="role-pick" aria-label="Role"></select><select id="role-status" aria-label="Role status"><option value="open">Open (rolling)</option><option value="filled">Filled</option><option value="closed">Closed</option><option value="draft">Hidden</option></select>
-                            <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="role-csv">Download CSV</button></div></div>
+                            <button class="ac-btn ac-btn--primary ac-btn--sm" type="button" id="role-assign-all">Assign assessment to all shortlisted</button> <button class="ac-btn ac-btn--secondary ac-btn--sm" type="button" id="role-csv">Download CSV</button></div></div>
                     <p class="app-line" id="role-line"></p>
                     <div class="ac-table-wrap"><table class="ac-table" id="role-table"></table></div>
                 </section>
@@ -1189,7 +1189,16 @@
                     if (a.status === x[0] && x[0] !== 'interview') return;
                     if ((a.status === 'accepted' || a.status === 'hired' || a.status === 'offered') && x[0] === 'interview') return;
                     if ((a.status === 'accepted' || a.status === 'hired') && x[0] !== 'not_progressed') return;
-                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[0] === 'shortlisted' ? 'Shortlist (no email)' : x[1], onclick: function () { if (x[0] === 'interview') return openBooking(); roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
+                    acts.appendChild(el('button', { class: 'ac-btn ac-btn--' + x[2] + ' ac-btn--sm', type: 'button', text: x[0] === 'shortlisted' ? 'Shortlist (no email)' : x[0] === 'interview' && a.status !== 'interview' && !a.assessment ? 'Book interview (skip assessment)' : x[1], onclick: function () { if (x[0] === 'interview') return openBooking(); roleDecide(a, x[0], note.value || null, msgBox.value || null); } }));
+                    if (x[0] === 'shortlisted' && !a.assessment && (a.status === 'new' || a.status === 'shortlisted' || a.status === 'interview')) {
+                        acts.appendChild(el('button', { class: 'ac-btn ac-btn--primary ac-btn--sm', type: 'button', text: 'Assign assessment', onclick: async function () {
+                            var who = a.full_name || a.email;
+                            if (!window.confirm('Send ' + who + ' the assessment now?' + (a.status === 'new' ? ' This also shortlists them.' : '') + ' They get an email with the link and 72 hours to take it.')) return;
+                            this.disabled = true; var res = await sb.rpc('assessment_assign', { p_app: a.id }); this.disabled = false;
+                            if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
+                            roleDlg.close(); OFL.notice(msg, 'Assessment sent to ' + who + '.', 'success'); loadRoleApps();
+                        } }));
+                    }
                 });
                 b.appendChild(book);
                 acts.appendChild(el('button', { class: 'ac-btn ac-btn--ghost ac-btn--sm', type: 'button', text: 'Save note', onclick: function () { roleDecide(a, 'note', note.value, null); } }));
@@ -1212,8 +1221,17 @@
                 var res = await sb.rpc('role_application_decide', { p_id: a.id, p_status: status, p_note: note, p_message: message });
                 roleBusy = false; rbtns.forEach(function (x) { x.disabled = false; });
                 if (res.error) return OFL.notice(document.getElementById('role-dlg-msg'), OFL.friendlyError(res.error), 'error');
-                roleDlg.close(); OFL.notice(msg, status === 'note' ? 'Note saved.' : 'Updated and emailed.', 'success'); loadRoleApps();
+                roleDlg.close(); OFL.notice(msg, status === 'note' ? 'Note saved.' : status === 'shortlisted' ? 'Shortlisted. They have not been emailed.' : 'Updated and emailed.', 'success'); loadRoleApps();
             }
+            document.getElementById('role-assign-all').addEventListener('click', async function () {
+                var r = curRole(); if (!r) return;
+                var todo = roleApps.filter(function (a) { return a.status === 'shortlisted' && !a.assessment; });
+                if (!todo.length) return OFL.notice(msg, 'Everyone shortlisted for ' + r.title + ' already has the assessment (or nobody is shortlisted yet).', 'info');
+                if (!window.confirm('Send the ' + r.title + ' assessment to ' + todo.length + ' shortlisted applicant' + (todo.length === 1 ? '' : 's') + ' (' + todo.map(function (a) { return a.full_name || a.email; }).join(', ') + ')? Each gets an email with the link and 72 hours to take it.')) return;
+                this.disabled = true; var res = await sb.rpc('assessment_assign_shortlisted', { p_role: r.id }); this.disabled = false;
+                if (res.error) return OFL.notice(msg, OFL.friendlyError(res.error), 'error');
+                OFL.notice(msg, 'Assessment sent to ' + res.data + ' applicant' + (res.data === 1 ? '' : 's') + '.', 'success'); loadRoleApps();
+            });
             document.getElementById('role-csv').addEventListener('click', function () {
                 var r = curRole(); if (!r) return;
                 var keys = ['stage', 'institution', 'course', 'grad_year', 'city', 'country', 'timezone', 'phone', 'linkedin_url', 'portfolio_url', 'hours', 'start_date', 'why', 'experience', 'consent_keep'];
