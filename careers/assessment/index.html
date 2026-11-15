@@ -124,7 +124,9 @@
                 app.textContent = '';
                 app.appendChild(el('div', { class: 'ap-state' }, el('span', { class: 'ap-state__tag', text: 'Before you start' }), el('h2', { text: A.minutes + ' minutes, one attempt' }),
                     el('p', { text: A.intro }),
-                    el('ul', {}, el('li', { text: 'Take it by ' + when(A.due_at) + '.' }), el('li', { text: 'The timer starts when you press Start and keeps running if you leave the page.' }),
+                    el('ul', {}, el('li', { text: 'Take it by ' + when(A.due_at) + '.' }), el('li', { text: 'Take it in one sitting. The timer starts when you press Start and cannot be paused: it keeps running if you leave the page or close it.' }),
+                        el('li', { text: 'Copying and pasting are turned off. Type every answer yourself.' }),
+                        el('li', { text: 'Stay on this page until you submit. Leaving it (switching tabs or apps) is recorded and shown to the reviewer.' }),
                         el('li', { text: 'Your answers save automatically. When time runs out, what you have saved is submitted.' }), el('li', { text: 'Use a laptop or a phone with a stable connection.' })),
                     el('p', {}, el('button', { class: 'ac-btn ac-btn--primary', type: 'button', text: 'Start the assessment', onclick: async function () {
                         if (!confirm('Start now? The ' + A.minutes + '-minute timer begins straight away.')) return;
@@ -142,8 +144,8 @@
             }
             function drawQuestions() {
                 app.textContent = '';
-                var bar = el('div', { class: 'ap-state', style: 'position:sticky;top:0;z-index:5;padding:.7rem 1rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center' },
-                    el('b', { id: 'as-left', text: '' }), el('span', { class: 'ac-muted ac-small', id: 'as-saved', text: 'Answers save automatically' }));
+                var bar = el('div', { id: 'as-bar', style: 'position:sticky;top:72px;z-index:45;margin:0 0 1rem;padding:.75rem 1rem;border-radius:10px;background:#0E1A2B;color:#fff;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.18)' },
+                    el('b', { id: 'as-left', style: 'font-size:1.15rem;font-variant-numeric:tabular-nums', text: 'Time left: …' }), el('span', { class: 'ac-small', id: 'as-saved', style: 'opacity:.85', text: 'Answers save automatically' }));
                 app.appendChild(bar);
                 var form = el('form', { novalidate: true });
                 (A.questions || []).forEach(function (q, i) {
@@ -171,12 +173,31 @@
                     await save(true);
                 });
                 app.appendChild(form);
+                form.style.userSelect = 'none'; form.style.webkitUserSelect = 'none';
+                function flag(kind, secs) { sb.rpc('assessment_flag', { p_slug: slug, p_kind: kind, p_secs: secs || 0 }).then(function () {}, function () {}); }
+                function warn(t) { OFL.notice(msg, t, 'info'); }
+                ['copy', 'cut'].forEach(function (ev) { form.addEventListener(ev, function (e) { e.preventDefault(); flag('copy'); warn('Copying is turned off in this assessment.'); }); });
+                form.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+                form.addEventListener('dragstart', function (e) { e.preventDefault(); });
+                form.querySelectorAll('textarea').forEach(function (ta) {
+                    ta.style.userSelect = 'text'; ta.style.webkitUserSelect = 'text';
+                    ta.setAttribute('autocomplete', 'off'); ta.setAttribute('spellcheck', 'true');
+                    ['paste', 'drop'].forEach(function (ev) { ta.addEventListener(ev, function (e) { e.preventDefault(); flag('paste'); warn('Pasting is turned off. Please type your answer yourself.'); }); });
+                    ta.addEventListener('beforeinput', function (e) { if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || e.inputType === 'insertFromPasteAsQuotation') { e.preventDefault(); flag('paste'); warn('Pasting is turned off. Please type your answer yourself.'); } });
+                });
+                var awayAt = null;
+                document.addEventListener('visibilitychange', function () {
+                    if (!document.getElementById('as-bar')) return;
+                    if (document.hidden) { awayAt = Date.now(); if (dirty) save(false); }
+                    else if (awayAt) { var secs = Math.round((Date.now() - awayAt) / 1000); awayAt = null; flag('leave', secs); warn('You left the assessment page for ' + (secs < 60 ? secs + ' seconds' : Math.round(secs / 60) + ' minutes') + '. This has been recorded. The timer kept running.'); tick(); }
+                });
                 function tick() {
                     var ms = new Date(A.ends_at).getTime() - (Date.now() + skew);
                     var lt = document.getElementById('as-left'); if (!lt) return;
                     if (ms <= 0) { lt.textContent = 'Time is up: submitting your saved answers…'; clearInterval(timer); save(false).then(load); return; }
                     var m = Math.floor(ms / 60000), s = Math.floor(ms % 60000 / 1000);
                     lt.textContent = 'Time left: ' + m + ':' + (s < 10 ? '0' : '') + s;
+                    var bb = document.getElementById('as-bar'); if (bb) bb.style.background = ms < 300000 ? '#B42318' : '#0E1A2B';
                 }
                 clearInterval(timer); timer = setInterval(function () { tick(); }, 1000); tick();
                 setInterval(function () { if (dirty) save(false); }, 20000);
